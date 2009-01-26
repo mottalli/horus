@@ -56,13 +56,188 @@ Circle PupilSegmentator::approximatePupil(const Image* image) {
 
     // Then apply the similarity transformation
     this->similarityTransform();
+    cvSmooth(this->buffers.similarityImage, this->buffers.similarityImage, CV_GAUSSIAN, 13);
 
     // Now perform the cascaded integro-differential operator
-    this->cascadedIntegroDifferentialOperator();
+    return this->cascadedIntegroDifferentialOperator(this->buffers.similarityImage);
+    
 }
 
-Circle PupilSegmentator::cascadedIntegroDifferentialOperator() {
-    Image* image = this->buffers.similarityImage;
+Circle PupilSegmentator::cascadedIntegroDifferentialOperator(const Image* image) {
+    int minrad = 10, minradabs = 10;
+    int maxrad = 80;
+    int minx = 10, miny = 10;
+    int maxx = image->width-10, maxy = image->height-10;
+    int i, x, y, radius;
+    int maxStep = INT_MIN;
+    int bestX, bestY, bestRadius;
+
+    std::vector<int> steps(3);
+    std::vector<int> radiusSteps(3);
+
+    steps[0] = 10; steps[1] = 3; steps[2] = 1;
+    radiusSteps[0] = 5; radiusSteps[1] = 3; radiusSteps[2] = 1;
+
+    for (i = 0; i < steps.size(); i++) {
+        for (x = minx; x < maxx; x += steps[i]) {
+            for (y = miny; y < maxy; y += steps[i]) {
+                MaxAvgRadiusResult res = this->maxAvgRadius(image, x, y, minrad, maxrad, radiusSteps[i]);
+                if (res.maxStep > maxStep) {
+                    maxStep = res.maxStep;
+                    bestX = x;
+                    bestY = y;
+                    bestRadius = res.maxRad;
+                }
+            }
+        }
+
+        minx = std::max<int>(bestX-steps[i], 0);
+        maxx = std::min<int>(bestX+steps[i], image->width);
+        miny = std::max<int>(bestY-steps[i], 0);
+        maxy = std::min<int>(bestY+steps[i], image->height);
+        minrad = std::max<int>(bestRadius-radiusSteps[i], minradabs);
+        maxrad = bestRadius+radiusSteps[i];
+    }
+
+    Circle bestCircle;
+    bestCircle.xc = bestX;
+    bestCircle.yc = bestY;
+    bestCircle.radius = bestRadius;
+
+    return bestCircle;
+}
+
+PupilSegmentator::MaxAvgRadiusResult PupilSegmentator::maxAvgRadius(const Image* image, int x, int y, int radmin, int radmax, int radstep)
+{
+    int maxDifference, difference;
+    unsigned char actualAvg, nextAvg;
+    MaxAvgRadiusResult result;
+
+    maxDifference = INT_MIN;
+
+    actualAvg = this->circleAverage(image, x, y, radmin);
+    for (int radius = radmin; radius <= radmax-radstep; radius += radstep) {
+        nextAvg = this->circleAverage(image, x, y, radius+radstep);
+        difference = int(actualAvg)-int(nextAvg);
+        if (difference > maxDifference) {
+            maxDifference = difference;
+            result.maxRad = radius;
+            result.maxStep = difference;
+        }
+
+        actualAvg = nextAvg;
+    }
+
+    return result;
+}
+
+unsigned char PupilSegmentator::circleAverage(const Image* image, int xc, int yc, int rc) {
+    // Optimized Bresenham algorithm for circles
+    int x = 0;
+    int y = rc;
+    int d = 3 - 2 * rc;
+    int i, w;
+    unsigned char *row1, *row2, *row3, *row4;
+    unsigned S, n;
+
+    i = 0;
+    n = 0;
+    S = 0;
+
+    if ((xc + rc) >= image->width || (xc - rc) < 0 || (yc + rc) >= image->height || (yc - rc) < 0) {
+        while (x < y) {
+            i++;
+            w = (i - 1)*8 + 1;
+
+            row1 = ((unsigned char*) (image->imageData)) + image->widthStep * (yc + y);
+            row2 = ((unsigned char*) (image->imageData)) + image->widthStep * (yc - y);
+            row3 = ((unsigned char*) (image->imageData)) + image->widthStep * (yc + x);
+            row4 = ((unsigned char*) (image->imageData)) + image->widthStep * (yc - x);
+
+            bool row1in = ((yc + y) >= 0 && (yc + y) < image->height);
+            bool row2in = ((yc - y) >= 0 && (yc - y) < image->height);
+            bool row3in = ((yc + x) >= 0 && (yc + x) < image->height);
+            bool row4in = ((yc - x) >= 0 && (yc - y) < image->height);
+            bool xcMxin = ((xc + x) >= 0 && (xc + x) < image->width);
+            bool xcmxin = ((xc - x) >= 0 && (xc - x) < image->width);
+            bool xcMyin = ((xc + y) >= 0 && (xc + y) < image->width);
+            bool xcmyin = ((xc - y) >= 0 && (xc - y) < image->width);
+
+            if (row1in && xcMxin) {
+                S += unsigned(row1[xc + x]);
+                n++;
+            }
+            if (row1in && xcmxin) {
+                S += unsigned(row1[xc - x]);
+                n++;
+
+            }
+            if (row2in && xcMxin) {
+                S += unsigned(row2[xc + x]);
+                n++;
+            }
+            if (row2in && xcmxin) {
+                S += unsigned(row2[xc - x]);
+                n++;
+            }
+            if (row3in && xcMyin) {
+                S += unsigned(row3[xc + y]);
+                n++;
+            }
+            if (row3in && xcmyin) {
+                S += unsigned(row3[xc - y]);
+                n++;
+            }
+            if (row4in && xcMyin) {
+                S += unsigned(row4[xc + y]);
+                n++;
+            }
+            if (row4in && xcmyin) {
+                S += unsigned(row4[xc - y]);
+                n++;
+            }
+
+            if (d < 0) {
+                d = d + (4 * x) + 6;
+            } else {
+                d = d + 4 * (x - y) + 10;
+                y--;
+            }
+
+            x++;
+        }
+    } else {
+        while (x < y) {
+            i++;
+            w = (i - 1)*8 + 1;
+
+            row1 = ((unsigned char*) (image->imageData)) + image->widthStep * (yc + y);
+            row2 = ((unsigned char*) (image->imageData)) + image->widthStep * (yc - y);
+            row3 = ((unsigned char*) (image->imageData)) + image->widthStep * (yc + x);
+            row4 = ((unsigned char*) (image->imageData)) + image->widthStep * (yc - x);
+
+            S += unsigned(row1[xc + x]);
+            S += unsigned(row1[xc - x]);
+            S += unsigned(row2[xc + x]);
+            S += unsigned(row2[xc - x]);
+            S += unsigned(row3[xc + y]);
+            S += unsigned(row3[xc - y]);
+            S += unsigned(row4[xc + y]);
+            S += unsigned(row4[xc - y]);
+            n += 8;
+
+            if (d < 0) {
+                d = d + (4 * x) + 6;
+            } else {
+                d = d + 4 * (x - y) + 10;
+                y--;
+            }
+
+            x++;
+        }
+    }
+
+    return (unsigned char) (S / n);
 }
 
 void PupilSegmentator::similarityTransform() {

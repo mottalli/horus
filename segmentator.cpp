@@ -29,6 +29,7 @@ SegmentationResult Segmentator::segmentImage(const Image* image) {
 
     ContourAndCloseCircle pupilResult = this->_pupilSegmentator.segmentPupil(this->buffers.workingImage);
     result.pupilContour = pupilResult.first;
+    result.pupilCircle = pupilResult.second;
     result.irisContour  = this->_irisSegmentator.segmentIris(this->buffers.workingImage, pupilResult);
 
     return result;

@@ -13,13 +13,15 @@
  * 
  */
 int main(int argc, char** argv) {
-    IplImage* imagen = cvLoadImage("/home/marcelo/Mis_Documentos/Facu/Tesis/Bases de datos/UBA/marcelo_der_1.bmp", 0);
+    IplImage* imagen = cvLoadImage("/home/marcelo/Mis_Documentos/Facu/Tesis/Bases de datos/UBA/marcelo_izq_1.bmp", 0);
 
     Segmentator segmentator;
-    segmentator.segmentImage(imagen);
+    SegmentationResult res = segmentator.segmentImage(imagen);
+
+    cvCircle(segmentator.buffers.workingImage, cvPoint(res.pupilCircle.xc, res.pupilCircle.yc), res.pupilCircle.radius, CV_RGB(255,255,255));
 
     cvNamedWindow("imagen");
-    cvShowImage("imagen", segmentator._pupilSegmentator.buffers.similarityImage);
+    cvShowImage("imagen", segmentator.buffers.workingImage);
 
 
     cvWaitKey(0);

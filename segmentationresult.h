@@ -17,6 +17,7 @@ public:
 
     Contour irisContour;
     Contour pupilContour;
+    Circle pupilCircle;
 private:
 
 };

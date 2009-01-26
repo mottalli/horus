@@ -30,7 +30,16 @@ private:
     void setupBuffers(const Image* image);
     void similarityTransform();
     Circle approximatePupil(const Image* image);
-    Circle cascadedIntegroDifferentialOperator();
+    Circle cascadedIntegroDifferentialOperator(const Image* image);
+
+    typedef struct {
+        int maxRad;
+        int maxStep;
+    } MaxAvgRadiusResult;
+    MaxAvgRadiusResult maxAvgRadius(const Image* image, int x, int y, int radmin, int radmax, int radstep);
+
+    unsigned char circleAverage(const Image* image, int x, int y, int radius);
+
 
     double _lastSigma, _lastMu;
 

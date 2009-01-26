@@ -14,6 +14,9 @@
 #include <opencv/highgui.h>
 #include <cmath>
 #include <iostream>
+#include <vector>
+#include <limits.h>
+
 
 #include "types.h"
 #include "parameters.h"
