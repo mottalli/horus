@@ -69,16 +69,18 @@ Circle PupilSegmentator::cascadedIntegroDifferentialOperator(const Image* image)
     int minx = 10, miny = 10;
     int maxx = image->width-10, maxy = image->height-10;
     int i, x, y, radius;
-    int maxStep = INT_MIN;
+    //int maxStep = INT_MIN;
     int bestX, bestY, bestRadius;
 
-    std::vector<int> steps(3);
-    std::vector<int> radiusSteps(3);
-
+    std::vector<int> steps(3), radiusSteps(3);
     steps[0] = 10; steps[1] = 3; steps[2] = 1;
-    radiusSteps[0] = 5; radiusSteps[1] = 3; radiusSteps[2] = 1;
+    radiusSteps[0] = 15; radiusSteps[1] = 3; radiusSteps[2] = 1;
+
+    /*std::vector<int> steps(1), radiusSteps(1);
+    radiusSteps[0] = steps[0] = 1;*/
 
     for (i = 0; i < steps.size(); i++) {
+        int maxStep = INT_MIN;
         for (x = minx; x < maxx; x += steps[i]) {
             for (y = miny; y < maxy; y += steps[i]) {
                 MaxAvgRadiusResult res = this->maxAvgRadius(image, x, y, minrad, maxrad, radiusSteps[i]);
@@ -91,12 +93,15 @@ Circle PupilSegmentator::cascadedIntegroDifferentialOperator(const Image* image)
             }
         }
 
+        //std::cout << i << " " << bestX << " " << bestY << " " << bestRadius << " " << maxStep << std::endl;
+
         minx = std::max<int>(bestX-steps[i], 0);
         maxx = std::min<int>(bestX+steps[i], image->width);
         miny = std::max<int>(bestY-steps[i], 0);
         maxy = std::min<int>(bestY+steps[i], image->height);
         minrad = std::max<int>(bestRadius-radiusSteps[i], minradabs);
         maxrad = bestRadius+radiusSteps[i];
+
     }
 
     Circle bestCircle;
@@ -122,11 +127,12 @@ PupilSegmentator::MaxAvgRadiusResult PupilSegmentator::maxAvgRadius(const Image*
         if (difference > maxDifference) {
             maxDifference = difference;
             result.maxRad = radius;
-            result.maxStep = difference;
         }
 
         actualAvg = nextAvg;
     }
+
+    result.maxStep = maxDifference;
 
     return result;
 }
