@@ -1,7 +1,7 @@
-/* 
+/*
  * File:   parameters.cpp
  * Author: marcelo
- * 
+ *
  * Created on January 22, 2009, 2:15 PM
  */
 
@@ -13,6 +13,9 @@ Parameters::Parameters() {
     bufferWidth = 320;
     muPupil = 5.0;
     sigmaPupil = 5.0;
+
+    pupilAdjustmentRingWidth = 100;
+    pupilAdjustmentRingHeight = 40;
 }
 
 Parameters::~Parameters() {

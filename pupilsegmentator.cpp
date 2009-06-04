@@ -1,16 +1,25 @@
-/* 
+/*
  * File:   pupilsegmentator.cpp
  * Author: marcelo
- * 
+ *
  * Created on January 21, 2009, 8:39 PM
  */
 
 #include "pupilsegmentator.h"
+#include "helperfunctions.h"
+#include <cmath>
+
+#define SAME_SIZE(im1, im2) (im1->width==im2->width && im1->height == im2->height)
 
 PupilSegmentator::PupilSegmentator() {
     this->buffers.LUT = cvCreateMat(256, 1, CV_8UC1);
     this->buffers.similarityImage = NULL;
     this->_lastSigma = this->_lastMu = -100.0;
+
+    this->buffers.workingImage = NULL;
+
+    this->buffers.adjustmentRing = NULL;
+    this->buffers.adjustmentRingGradient = NULL;
 }
 
 PupilSegmentator::~PupilSegmentator() {
@@ -25,29 +34,79 @@ ContourAndCloseCircle PupilSegmentator::segmentPupil(const Image* image) {
     this->setupBuffers(image);
     ContourAndCloseCircle result;
 
-    Circle pupilCircle = this->approximatePupil(image);
+    Circle pupilCircle = this->approximatePupil(this->buffers.workingImage);
+
+    pupilCircle.radius /= this->buffers.resizeFactor;
+    pupilCircle.xc /= this->buffers.resizeFactor;
+    pupilCircle.yc /= this->buffers.resizeFactor;
 
     result.second = pupilCircle;
+    result.first = this->adjustPupilContour(image, pupilCircle);
 
     return result;
 
 }
 
 void PupilSegmentator::setupBuffers(const Image* image) {
-    if (this->buffers.similarityImage != NULL) {
-        CvSize currentBufferSize = cvGetSize(this->buffers.similarityImage);
-        CvSize imageSize = cvGetSize(image);
-        if (imageSize.height == currentBufferSize.height && imageSize.width == currentBufferSize.width) {
-            // Must not update the buffers
-            return;
-        }
+	Parameters* parameters = Parameters::getParameters();
 
-        cvReleaseImage(&this->buffers.similarityImage);
-        cvReleaseImage(&this->buffers.equalizedImage);
+    // Initialize the working image
+    int bufferWidth = parameters->bufferWidth;
+
+    int workingWidth, workingHeight;
+    int width = image->width, height = image->height;
+    double resizeFactor;
+
+    if (image->width > bufferWidth) {
+        resizeFactor = double(bufferWidth) / double(image->width);
+        workingWidth = int(double(width)*resizeFactor);
+        workingHeight = int(double(height)*resizeFactor);
+    } else {
+        resizeFactor = 1.0;
+        workingWidth = width;
+        workingHeight = height;
     }
 
-    this->buffers.similarityImage = cvCreateImage(cvGetSize(image), IPL_DEPTH_8U, 1);
-    this->buffers.equalizedImage = cvCreateImage(cvGetSize(image), IPL_DEPTH_8U, 1);
+    this->buffers.resizeFactor = resizeFactor;
+
+    Image*& workingImage = this->buffers.workingImage;
+
+    if (workingImage == NULL || workingImage->width != workingWidth || workingImage->height != workingHeight) {
+        if (workingImage != NULL) {
+            cvReleaseImage(&workingImage);
+        }
+
+        workingImage = cvCreateImage(cvSize(workingWidth, workingHeight), IPL_DEPTH_8U, 1);
+
+        if (resizeFactor == 1.0) {
+            cvCopy(image, workingImage);
+        } else {
+            cvResize(image, workingImage, CV_INTER_LINEAR);
+        }
+    }
+
+
+    if (this->buffers.similarityImage == NULL || !SAME_SIZE(this->buffers.similarityImage, workingImage)) {
+    	if (this->buffers.similarityImage != NULL) {
+    		cvReleaseImage(&this->buffers.similarityImage);
+    		cvReleaseImage(&this->buffers.equalizedImage);
+    	}
+		this->buffers.similarityImage = cvCreateImage(cvGetSize(workingImage), IPL_DEPTH_8U, 1);
+		this->buffers.equalizedImage = cvCreateImage(cvGetSize(workingImage), IPL_DEPTH_8U, 1);
+    }
+
+    if (this->buffers.adjustmentRing == NULL || this->buffers.adjustmentRing->width != parameters->pupilAdjustmentRingWidth || this->buffers.adjustmentRing->height != parameters->pupilAdjustmentRingHeight) {
+    	if (this->buffers.adjustmentRing != NULL) {
+    		cvReleaseImage(&this->buffers.adjustmentRing);
+    		cvReleaseImage(&this->buffers.adjustmentRingGradient);
+    		cvReleaseMat(&this->buffers.adjustmentSnake);
+    	}
+
+    	this->buffers.adjustmentRing = cvCreateImage(cvSize(parameters->pupilAdjustmentRingWidth, parameters->pupilAdjustmentRingHeight), IPL_DEPTH_16S, 1);
+    	this->buffers.adjustmentRingGradient = cvCreateImage(cvSize(parameters->pupilAdjustmentRingWidth, parameters->pupilAdjustmentRingHeight), IPL_DEPTH_16S, 1);
+    	this->buffers.adjustmentSnake = cvCreateMat(1, parameters->pupilAdjustmentRingWidth, CV_32F);
+    }
+
 }
 
 Circle PupilSegmentator::approximatePupil(const Image* image) {
@@ -60,7 +119,76 @@ Circle PupilSegmentator::approximatePupil(const Image* image) {
 
     // Now perform the cascaded integro-differential operator
     return this->cascadedIntegroDifferentialOperator(this->buffers.similarityImage);
-    
+
+}
+
+Contour PupilSegmentator::adjustPupilContour(const Image* image, const Circle& approximateCircle)
+{
+	HelperFunctions::extractRing(image, this->buffers.adjustmentRing, approximateCircle, 0.5);
+
+	// Calculate the vertical gradient
+	cvSobel(this->buffers.adjustmentRing, this->buffers.adjustmentRingGradient, 0, 1, 3);
+	cvSmooth(this->buffers.adjustmentRingGradient, this->buffers.adjustmentRingGradient, CV_GAUSSIAN, 3, 3);
+
+	// Shortcut to avoid having huge lines
+	Image* gradient = this->buffers.adjustmentRingGradient;
+	CvMat* snake = this->buffers.adjustmentSnake;
+
+	// Find the points where the vertical gradient is maximum
+	for (int x = 0; x < gradient->width; x++) {
+		int maxGrad = INT_MIN;
+		int bestY = 0;
+		for (int y = 0; y < gradient->height; y++) {
+			int gxy = cvGetReal2D(gradient, y, x);
+			if  (gxy > maxGrad) {
+				maxGrad = gxy;
+				bestY = y;
+			}
+		}
+
+		cvSetReal2D(snake, 0, x, bestY);
+	}
+
+	// Smooth the snake
+	HelperFunctions::smoothSnakeFourier(snake, 3);
+
+	// Improve the estimation
+	for (int x = 0; x < gradient->width; x++) {
+		int maxGrad = INT_MIN;
+		int bestY = 0;
+		int v = cvGetReal2D(snake, 0, x);
+		int ymin = std::max(0, v-5);
+		int ymax = std::min(gradient->height, v+5);
+		for (int y = ymin; y < ymax; y++) {
+			int gxy = cvGetReal2D(gradient, y, x);
+			if (gxy > maxGrad) {
+				maxGrad = gxy;
+				bestY = y;
+			}
+		}
+
+		cvSetReal2D(snake, 0, x, bestY);
+	}
+
+	HelperFunctions::smoothSnakeFourier(snake, 5);
+
+
+	// Now, transform the points from the ring coordinates to the image coordinates
+	Contour result(snake->cols);
+	// NOTE: extracted from helperfunctions.cpp -- must fix this
+	double radiusMin = double(approximateCircle.radius)*(1.0-0.5), radiusMax = double(approximateCircle.radius)*(1.0+0.5);
+	for (int x = 0; x < gradient->width; x++) {
+		int y = cvGetReal2D(snake, 0, x);
+		double theta = (double(x)/double(snake->cols))*2.0*M_PI;
+		double radius = (double(y)/double(gradient->height-1))*double(radiusMax-radiusMin) + double(radiusMin);
+
+		int ximag = int(double(approximateCircle.xc) + std::cos(theta)*radius);
+		int yimag = int(double(approximateCircle.yc) + std::sin(theta)*radius);
+
+		result[x] = cvPoint(ximag,yimag);
+	}
+
+	return result;
 }
 
 Circle PupilSegmentator::cascadedIntegroDifferentialOperator(const Image* image) {
@@ -92,8 +220,6 @@ Circle PupilSegmentator::cascadedIntegroDifferentialOperator(const Image* image)
                 }
             }
         }
-
-        //std::cout << i << " " << bestX << " " << bestY << " " << bestRadius << " " << maxStep << std::endl;
 
         minx = std::max<int>(bestX-steps[i], 0);
         maxx = std::min<int>(bestX+steps[i], image->width);

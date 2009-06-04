@@ -1,4 +1,4 @@
-/* 
+/*
  * File:   parameters.h
  * Author: marcelo
  *
@@ -19,6 +19,8 @@ public:
     unsigned bufferWidth;
     double muPupil;
     double sigmaPupil;
+
+    int pupilAdjustmentRingWidth, pupilAdjustmentRingHeight;
 
 private:
     Parameters();

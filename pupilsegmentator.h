@@ -1,4 +1,4 @@
-/* 
+/*
  * File:   pupilsegmentator.h
  * Author: marcelo
  *
@@ -23,7 +23,10 @@ public:
         Image* equalizedImage;
         Image* adjustmentRing;
         Image* adjustmentRingGradient;
+        Image* workingImage;
+        CvMat* adjustmentSnake;
         CvMat* LUT;
+        double resizeFactor;
     } buffers;
 
 private:
@@ -39,6 +42,7 @@ private:
     MaxAvgRadiusResult maxAvgRadius(const Image* image, int x, int y, int radmin, int radmax, int radstep);
 
     unsigned char circleAverage(const Image* image, int x, int y, int radius);
+    Contour adjustPupilContour(const Image* image, const Circle& approximateCircle);
 
 
     double _lastSigma, _lastMu;
