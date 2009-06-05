@@ -6,15 +6,27 @@
  */
 
 #include "decorator.h"
+#include <cmath>
 
-Decorator::Decorator() {
-
+Decorator::Decorator()
+{
 }
 
 void Decorator::drawSegmentationResult(Image* image, const SegmentationResult& segmentationResult)
 {
 	this->drawContour(image, segmentationResult.irisContour);
 	this->drawContour(image, segmentationResult.pupilContour);
+
+	Circle irisCircle = segmentationResult.irisCircle;
+
+	int xMin = std::max(0, irisCircle.xc - int(1.5*irisCircle.radius));
+	int xMax = std::min(image->width, irisCircle.xc + int(1.5*irisCircle.radius));
+
+	this->drawParabola(image, segmentationResult.upperEyelid, xMin, xMax);
+	this->drawParabola(image, segmentationResult.lowerEyelid, xMin, xMax);
+
+	/*cvCircle(image, cvPoint(segmentationResult.irisCircle.xc,segmentationResult.irisCircle.yc), segmentationResult.irisCircle.radius, CV_RGB(255,255,255), 1);
+	cvCircle(image, cvPoint(segmentationResult.pupilCircle.xc,segmentationResult.pupilCircle.yc), segmentationResult.pupilCircle.radius, CV_RGB(255,255,255), 1);*/
 }
 
 void Decorator::drawContour(Image* image, const Contour& contour)
@@ -30,10 +42,22 @@ void Decorator::drawContour(Image* image, const Contour& contour)
 		if (false) {
 
 		} else {
-			cvLine(image, lastPoint, p, CV_RGB(255,255,255), 1);
+			cvLine(image, lastPoint, p, CV_RGB(255,0,0), 1);
 		}
 		lastPoint = p;
 	}
 
-	cvLine(image, lastPoint, p0, CV_RGB(255,255,255), 1);
+	cvLine(image, lastPoint, p0, CV_RGB(255,0,0), 1);
+}
+
+void Decorator::drawParabola(Image* image, const Parabola& parabola, int xMin, int xMax)
+{
+	if (xMin == -1) xMin = 1;
+	if (xMax == -1) xMax = image->width-1;
+	CvPoint lastPoint = cvPoint(xMin, int(parabola.value(xMin)));
+	for (int x = xMin+1; x <= xMax; x++) {
+		CvPoint point = cvPoint(x, int(parabola.value(x)));
+		cvLine(image, lastPoint, point, CV_RGB(255,255,255), 1);
+		lastPoint = point;
+	}
 }

@@ -40,8 +40,8 @@ ContourAndCloseCircle PupilSegmentator::segmentPupil(const Image* image) {
     pupilCircle.xc /= this->buffers.resizeFactor;
     pupilCircle.yc /= this->buffers.resizeFactor;
 
-    result.second = pupilCircle;
     result.first = this->adjustPupilContour(image, pupilCircle);
+    result.second = HelperFunctions::approximateCircle(result.first);
 
     return result;
 
@@ -194,7 +194,7 @@ Circle PupilSegmentator::cascadedIntegroDifferentialOperator(const Image* image)
     int maxrad = 80;
     int minx = 10, miny = 10;
     int maxx = image->width-10, maxy = image->height-10;
-    int i, x, y, radius;
+    int x, y, radius;
     //int maxStep = INT_MIN;
     int bestX, bestY, bestRadius;
 
@@ -202,10 +202,7 @@ Circle PupilSegmentator::cascadedIntegroDifferentialOperator(const Image* image)
     steps[0] = 10; steps[1] = 3; steps[2] = 1;
     radiusSteps[0] = 15; radiusSteps[1] = 3; radiusSteps[2] = 1;
 
-    /*std::vector<int> steps(1), radiusSteps(1);
-    radiusSteps[0] = steps[0] = 1;*/
-
-    for (i = 0; i < steps.size(); i++) {
+    for (size_t i = 0; i < steps.size(); i++) {
         int maxStep = INT_MIN;
         for (x = minx; x < maxx; x += steps[i]) {
             for (y = miny; y < maxy; y += steps[i]) {

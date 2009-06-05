@@ -18,7 +18,9 @@ Parameters::Parameters() {
     pupilAdjustmentRingHeight = 40;
 
     irisAdjustmentRingWidth = 100;
-    irisAdjustmentRingHeight = 50;
+    irisAdjustmentRingHeight = 90;
+
+    parabolicDetectorStep = 4;
 
 }
 

@@ -1,4 +1,4 @@
-/* 
+/*
  * File:   segmentator.h
  * Author: marcelo
  *
@@ -11,24 +11,26 @@
 #include "common.h"
 #include "pupilsegmentator.h"
 #include "irissegmentator.h"
+#include "eyelidsegmentator.h"
 #include "segmentationresult.h"
 
 class Segmentator {
 public:
-    Segmentator();
-    virtual ~Segmentator();
-    SegmentationResult segmentImage(const Image* image);
+	Segmentator();
+	virtual ~Segmentator();
+	SegmentationResult segmentImage(const Image* image);
 
-    struct {
-        Image* workingImage;
-        float resizeFactor;
-    } buffers;
+	struct {
+		Image* workingImage;
+		float resizeFactor;
+	} buffers;
 
-//private:
-    PupilSegmentator _pupilSegmentator;
-    IrisSegmentator _irisSegmentator;
+	//private:
+	PupilSegmentator _pupilSegmentator;
+	IrisSegmentator _irisSegmentator;
+	EyelidSegmentator _eyelidSegmentator;
 
-    void setupBuffers(const Image* image);
+	void setupBuffers(const Image* image);
 };
 
 #endif	/* _SEGMENTATOR_H */

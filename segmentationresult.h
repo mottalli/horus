@@ -1,4 +1,4 @@
-/* 
+/*
  * File:   segmentationresult.h
  * Author: marcelo
  *
@@ -18,6 +18,9 @@ public:
     Contour irisContour;
     Contour pupilContour;
     Circle pupilCircle;
+    Circle irisCircle;
+    Parabola upperEyelid;
+    Parabola lowerEyelid;
 private:
 
 };

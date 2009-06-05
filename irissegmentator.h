@@ -21,7 +21,7 @@ public:
         CvMat* adjustmentSnake;
     } buffers;
 
-    Contour segmentIris(const Image* image, const ContourAndCloseCircle& pupilSegmentation);
+    ContourAndCloseCircle segmentIris(const Image* image, const ContourAndCloseCircle& pupilSegmentation);
 
 private:
 	void setupBuffers(const Image* image);

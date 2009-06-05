@@ -19,7 +19,7 @@ IrisSegmentator::IrisSegmentator() {
 IrisSegmentator::~IrisSegmentator() {
 }
 
-Contour IrisSegmentator::segmentIris(const Image* image, const ContourAndCloseCircle& pupilSegmentation)
+ContourAndCloseCircle IrisSegmentator::segmentIris(const Image* image, const ContourAndCloseCircle& pupilSegmentation)
 {
 	this->setupBuffers(image);
 
@@ -122,7 +122,12 @@ Contour IrisSegmentator::segmentIris(const Image* image, const ContourAndCloseCi
 		irisContour[x] = cvPoint(ximage, yimage);
 	}
 
-    return irisContour;
+	ContourAndCloseCircle result;
+
+	result.first = irisContour;
+	result.second = HelperFunctions::approximateCircle(result.first);
+
+    return result;
 }
 
 void IrisSegmentator::setupBuffers(const Image* image)

@@ -34,3 +34,32 @@ void HelperFunctions::smoothSnakeFourier(CvMat* snake, int coefficients)
 	}
 	cvDFT(snake, snake, CV_DXT_INV_SCALE);
 }
+
+Circle HelperFunctions::approximateCircle(const Contour& contour)
+{
+	Circle result;
+
+	int n = contour.size();
+
+	int sumX = 0, sumY = 0;
+	for (Contour::const_iterator it = contour.begin(); it != contour.end(); it++) {
+		sumX += (*it).x;
+		sumY += (*it).y;
+	}
+	result.xc = sumX/n;
+	result.yc = sumY/n;
+
+	int bestRadius = 0;
+	int x,y;
+	for (Contour::const_iterator it = contour.begin(); it != contour.end(); it++) {
+        x = (*it).x;
+        y = (*it).y;
+        if ( (x-result.xc)*(x-result.xc)+(y-result.yc)*(y-result.yc) > bestRadius*bestRadius) {
+        	bestRadius = int(sqrt((x-result.xc)*(x-result.xc)+(y-result.yc)*(y-result.yc)));
+        }
+	}
+
+	result.radius = bestRadius;
+
+	return result;
+}

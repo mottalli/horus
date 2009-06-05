@@ -14,7 +14,7 @@
  *
  */
 int main(int argc, char** argv) {
-	IplImage* imagen = cvLoadImage(argv[1], 0);
+	IplImage* imagen = cvLoadImage(argv[1]);
 
 	Segmentator segmentator;
 	SegmentationResult res = segmentator.segmentImage(imagen);

@@ -23,6 +23,8 @@ public:
     int pupilAdjustmentRingWidth, pupilAdjustmentRingHeight;
     int irisAdjustmentRingWidth, irisAdjustmentRingHeight;
 
+    int parabolicDetectorStep;
+
 private:
     Parameters();
     static Parameters* instance;
