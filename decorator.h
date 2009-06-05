@@ -18,7 +18,7 @@ public:
 	void drawSegmentationResult(Image* image, const SegmentationResult& segmentationResult);
 private:
 	void drawContour(Image* image, const Contour& contour);
-	void drawParabola(Image* image, const Parabola& parabola, int xmin, int xmax);
+	void drawParabola(Image* image, const Parabola& parabola, int xMin, int xMax);
 };
 
 #endif /* DECORATOR_H_ */

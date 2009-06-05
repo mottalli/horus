@@ -53,7 +53,8 @@ Parabola EyelidSegmentator::segmentUpper(const Image* image, int pupilRadius)
 	double maxGrad = INT_MIN;
 
 	for (int p = 100; p < 150; p += 10) {
-		std::pair<Parabola, double> res = this->findParabola(upperPart, p, 0, upperPart->height-pupilRadius);
+		//std::pair<Parabola, double> res = this->findParabola(upperPart, p, 0, upperPart->height-pupilRadius);
+		std::pair<Parabola, double> res = this->findParabola(upperPart, p, 0, upperPart->height);
 		if (res.second > maxGrad) {
 			maxGrad = res.second;
 			bestParabola = res.first;
@@ -76,7 +77,8 @@ Parabola EyelidSegmentator::segmentLower(const Image* image, int pupilRadius)
 	double maxGrad = INT_MIN;
 
 	for (int p = -300; p < -150; p += 10) {
-		std::pair<Parabola, double> res = this->findParabola(lowerPart, p, pupilRadius, lowerPart->height);
+		//std::pair<Parabola, double> res = this->findParabola(lowerPart, p, pupilRadius, lowerPart->height);
+		std::pair<Parabola, double> res = this->findParabola(lowerPart, p, 0, lowerPart->height);
 		if (res.second > maxGrad) {
 			maxGrad = res.second;
 			bestParabola = res.first;

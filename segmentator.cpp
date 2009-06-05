@@ -7,6 +7,7 @@
 
 
 #include <stdexcept>
+#include <iostream>
 
 #include "segmentator.h"
 #include "helperfunctions.h"

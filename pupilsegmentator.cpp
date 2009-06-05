@@ -77,13 +77,15 @@ void PupilSegmentator::setupBuffers(const Image* image) {
         }
 
         workingImage = cvCreateImage(cvSize(workingWidth, workingHeight), IPL_DEPTH_8U, 1);
-
-        if (resizeFactor == 1.0) {
-            cvCopy(image, workingImage);
-        } else {
-            cvResize(image, workingImage, CV_INTER_LINEAR);
-        }
     }
+
+
+    if (resizeFactor == 1.0) {
+		cvCopy(image, workingImage);
+	} else {
+		cvResize(image, workingImage, CV_INTER_LINEAR);
+	}
+
 
 
     if (this->buffers.similarityImage == NULL || !SAME_SIZE(this->buffers.similarityImage, workingImage)) {
