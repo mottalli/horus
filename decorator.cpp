@@ -13,7 +13,7 @@ Decorator::Decorator() {
 
 void Decorator::drawSegmentationResult(Image* image, const SegmentationResult& segmentationResult)
 {
-	//this->drawContour(image, segmentationResult.irisContour);
+	this->drawContour(image, segmentationResult.irisContour);
 	this->drawContour(image, segmentationResult.pupilContour);
 }
 

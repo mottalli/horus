@@ -1,19 +1,143 @@
-/* 
+/*
  * File:   irissegmentator.cpp
  * Author: marcelo
- * 
+ *
  * Created on January 21, 2009, 8:39 PM
  */
 
 #include "irissegmentator.h"
+#include "parameters.h"
+#include "helperfunctions.h"
+#include <cmath>
 
 IrisSegmentator::IrisSegmentator() {
+	this->buffers.adjustmentRing = NULL;
+	this->buffers.adjustmentRingGradient = NULL;
 }
 
 
 IrisSegmentator::~IrisSegmentator() {
 }
 
-Contour IrisSegmentator::segmentIris(const Image* image, const ContourAndCloseCircle& pupilSegmentation) {
-    return Contour();
+Contour IrisSegmentator::segmentIris(const Image* image, const ContourAndCloseCircle& pupilSegmentation)
+{
+	this->setupBuffers(image);
+
+	Circle pupilCircle = pupilSegmentation.second;
+	int radiusMin = pupilCircle.radius * 1.3;
+	int radiusMax = pupilCircle.radius * 5.0;
+
+	HelperFunctions::extractRing(image, this->buffers.adjustmentRing, pupilCircle.xc, pupilCircle.yc, radiusMin, radiusMax);
+	cvSmooth(this->buffers.adjustmentRing, this->buffers.adjustmentRing, CV_GAUSSIAN, 3, 15);
+	cvSobel(this->buffers.adjustmentRing, this->buffers.adjustmentRingGradient, 0, 1, 3);
+	//cvSmooth(this->buffers.adjustmentRingGradient, this->buffers.adjustmentRingGradient, CV_GAUSSIAN, 3, 15);
+
+	double theta0 = -M_PI/4.0;
+	double theta1 = M_PI/4.0;
+	double theta2 = 3.0*M_PI/4.0;
+	double theta3 = 5.0*M_PI/4.0;
+
+	Image* gradient = this->buffers.adjustmentRingGradient;
+	CvMat* snake = this->buffers.adjustmentSnake;
+
+	assert(snake->width == this->buffers.adjustmentRing->width);
+
+	int x0 = int((theta0/(2.0*M_PI))*double(snake->cols));
+	int x1 = int((theta1/(2.0*M_PI))*double(snake->cols));
+	int x2 = int((theta2/(2.0*M_PI))*double(snake->cols));
+	int x3 = int((theta3/(2.0*M_PI))*double(snake->cols));
+
+	assert((x1 * x2 * x3) > 0);		// x1, x2 and x3 must be positive (x0 may be negative)
+	#define XIMAGE(x) ((x) >= 0 ? (x) : snake->cols+(x))
+
+	int sumY1, maxSumY1 = INT_MIN, sumY2, maxSumY2 = INT_MIN;
+	int bestY1 = 0, bestY2 = 0;
+
+	for (int y = 0; y < gradient->height; y++) {
+		sumY1 = 0;
+		sumY2 = 0;
+
+		for (int x = x0; x < x1; x++) {
+			sumY1 += cvGetReal2D(gradient, y, XIMAGE(x));
+		}
+		for (int x = x2; x < x3; x++) {
+			sumY2 += cvGetReal2D(gradient, y, x);		// No need to use XIMAGE here
+		}
+
+		if (sumY1 > maxSumY1) {
+			maxSumY1 = sumY1;
+			bestY1 = y;
+		}
+		if (sumY2 > maxSumY2) {
+			maxSumY2 = sumY2;
+			bestY2 = y;
+		}
+	}
+
+	for (int x = x0; x < x1; x++) {
+		cvSetReal2D(snake, 0, XIMAGE(x), bestY1);
+	}
+
+	for (int x = x2; x < x3; x++) {
+		cvSetReal2D(snake, 0, x, bestY2);
+	}
+
+	// Interpolation between the two segments
+	for (int x = x1; x < x2; x++) {
+		int y = bestY1 + (double(x-x1)/double(x2-1-x1)) * double(bestY2-bestY1);
+		cvSetReal2D(snake, 0, x, y);
+	}
+	for (int x = x3; x < XIMAGE(x0) && x < snake->width; x++) {
+		int y = bestY2 + (double(x-x3)/double(snake->width-1-x3)) * double(bestY1-bestY2);
+		cvSetReal2D(snake, 0, x, y);
+	}
+
+	for (int x = 0; x < snake->width; x++) {
+		int maxGrad = INT_MIN;
+		int maxY = 0;
+		int v = cvGetReal2D(snake, 0, x);
+		int y0 = std::max(0, v-5);
+		int y1 = std::min(gradient->height, v+5);
+
+		for (int y = y0; y < y1; y++) {
+			int gxy = cvGetReal2D(gradient,y,x);
+			if (gxy > maxGrad) {
+				maxGrad = gxy;
+				maxY = y;
+			}
+		}
+		cvSetReal2D(snake, 0, x, maxY);
+	}
+
+	// Smooth the snake
+	HelperFunctions::smoothSnakeFourier(snake, 3);
+
+	// Convert to image coordinates
+	Contour irisContour(snake->width);
+	for (int x = 0; x < snake->width; x++) {
+		double theta = (double(x)/double(snake->width))*2.0*M_PI;
+		double radius = ((double(cvGetReal2D(snake, 0, x))/double(gradient->height-1))*double(radiusMax-radiusMin)) + double(radiusMin);
+		int ximage = int(double(pupilCircle.xc) + std::cos(theta) * radius);
+		int yimage = int(double(pupilCircle.yc) + std::sin(theta) * radius);
+		irisContour[x] = cvPoint(ximage, yimage);
+	}
+
+    return irisContour;
+}
+
+void IrisSegmentator::setupBuffers(const Image* image)
+{
+	Parameters* parameters = Parameters::getParameters();
+
+    if (this->buffers.adjustmentRing == NULL || this->buffers.adjustmentRing->width != parameters->irisAdjustmentRingWidth || this->buffers.adjustmentRing->height != parameters->irisAdjustmentRingHeight) {
+    	if (this->buffers.adjustmentRing != NULL) {
+    		cvReleaseImage(&this->buffers.adjustmentRing);
+    		cvReleaseImage(&this->buffers.adjustmentRingGradient);
+			cvReleaseMat(&this->buffers.adjustmentSnake);
+    	}
+
+    	this->buffers.adjustmentRing = cvCreateImage(cvSize(parameters->irisAdjustmentRingWidth, parameters->irisAdjustmentRingHeight), IPL_DEPTH_16S, 1);
+    	this->buffers.adjustmentRingGradient = cvCreateImage(cvSize(parameters->irisAdjustmentRingWidth, parameters->irisAdjustmentRingHeight), IPL_DEPTH_16S, 1);
+    	this->buffers.adjustmentSnake = cvCreateMat(1, parameters->irisAdjustmentRingWidth, CV_32F);
+    }
 }

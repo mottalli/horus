@@ -1,4 +1,4 @@
-/* 
+/*
  * File:   irissegmentator.h
  * Author: marcelo
  *
@@ -15,9 +15,16 @@ public:
     IrisSegmentator();
     virtual ~IrisSegmentator();
 
+    struct {
+        Image* adjustmentRing;
+        Image* adjustmentRingGradient;
+        CvMat* adjustmentSnake;
+    } buffers;
+
     Contour segmentIris(const Image* image, const ContourAndCloseCircle& pupilSegmentation);
 
 private:
+	void setupBuffers(const Image* image);
 
 };
 

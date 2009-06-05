@@ -1,11 +1,9 @@
 #include "helperfunctions.h"
 
-void HelperFunctions::extractRing(const Image* src, Image* dest, const Circle& centerCircle, double widthFactor)
+void HelperFunctions::extractRing(const Image* src, Image* dest, int x0, int y0, int radiusMin, int radiusMax)
 {
 	assert(src->nChannels == 1 && dest->nChannels == 1);
-
-	int x0 = centerCircle.xc, y0 = centerCircle.yc;
-	double radiusMin = double(centerCircle.radius)*(1.0-widthFactor), radiusMax = double(centerCircle.radius)*(1.0+widthFactor);
+	assert(radiusMin < radiusMax);
 
 	int xsrc, ysrc, xdest, ydest;
 	double stepRadius = double(radiusMax-radiusMin)/double(dest->height-1);

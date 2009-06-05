@@ -16,6 +16,10 @@ Parameters::Parameters() {
 
     pupilAdjustmentRingWidth = 100;
     pupilAdjustmentRingHeight = 40;
+
+    irisAdjustmentRingWidth = 100;
+    irisAdjustmentRingHeight = 50;
+
 }
 
 Parameters::~Parameters() {

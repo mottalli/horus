@@ -14,7 +14,7 @@
 
 namespace HelperFunctions
 {
-	void extractRing(const Image* src, Image* dest, const Circle& centerCircle, double widthFactor);
+	void extractRing(const Image* src, Image* dest, int x0, int y0, int radiusMin, int radiusMax);
 	void smoothSnakeFourier(CvMat* snake, int coefficients);
 }
 

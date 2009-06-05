@@ -14,7 +14,7 @@
  *
  */
 int main(int argc, char** argv) {
-	IplImage* imagen = cvLoadImage("/home/marcelo/Mis_Documentos/Facu/Tesis/Bases de datos/UBA/marcelo_der_2.bmp", 0);
+	IplImage* imagen = cvLoadImage(argv[1], 0);
 
 	Segmentator segmentator;
 	SegmentationResult res = segmentator.segmentImage(imagen);

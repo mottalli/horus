@@ -124,7 +124,8 @@ Circle PupilSegmentator::approximatePupil(const Image* image) {
 
 Contour PupilSegmentator::adjustPupilContour(const Image* image, const Circle& approximateCircle)
 {
-	HelperFunctions::extractRing(image, this->buffers.adjustmentRing, approximateCircle, 0.5);
+	int radiusMin = approximateCircle.radius*0.5, radiusMax = approximateCircle.radius*1.5;
+	HelperFunctions::extractRing(image, this->buffers.adjustmentRing, approximateCircle.xc, approximateCircle.yc, radiusMin, radiusMax);
 
 	// Calculate the vertical gradient
 	cvSobel(this->buffers.adjustmentRing, this->buffers.adjustmentRingGradient, 0, 1, 3);
@@ -172,11 +173,8 @@ Contour PupilSegmentator::adjustPupilContour(const Image* image, const Circle& a
 
 	HelperFunctions::smoothSnakeFourier(snake, 5);
 
-
 	// Now, transform the points from the ring coordinates to the image coordinates
 	Contour result(snake->cols);
-	// NOTE: extracted from helperfunctions.cpp -- must fix this
-	double radiusMin = double(approximateCircle.radius)*(1.0-0.5), radiusMax = double(approximateCircle.radius)*(1.0+0.5);
 	for (int x = 0; x < gradient->width; x++) {
 		int y = cvGetReal2D(snake, 0, x);
 		double theta = (double(x)/double(snake->cols))*2.0*M_PI;

@@ -21,6 +21,7 @@ public:
     double sigmaPupil;
 
     int pupilAdjustmentRingWidth, pupilAdjustmentRingHeight;
+    int irisAdjustmentRingWidth, irisAdjustmentRingHeight;
 
 private:
     Parameters();
