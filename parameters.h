@@ -13,22 +13,24 @@
  */
 class Parameters {
 public:
-    virtual ~Parameters();
-    static Parameters* getParameters();
+	virtual ~Parameters();
+	static Parameters* getParameters();
 
-    unsigned bufferWidth;
-    double muPupil;
-    double sigmaPupil;
+	unsigned bufferWidth;
+	double muPupil;
+	double sigmaPupil;
 
-    int pupilAdjustmentRingWidth, pupilAdjustmentRingHeight;
-    int irisAdjustmentRingWidth, irisAdjustmentRingHeight;
+	int pupilAdjustmentRingWidth, pupilAdjustmentRingHeight;
+	int irisAdjustmentRingWidth, irisAdjustmentRingHeight;
 
-    int parabolicDetectorStep;
+	int parabolicDetectorStep;
+
+	int templateWidth;
+	int templateHeight;
 
 private:
-    Parameters();
-    static Parameters* instance;
-
+	Parameters();
+	static Parameters* instance;
 };
 
 #endif	/* _PARAMETERS_H */

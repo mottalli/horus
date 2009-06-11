@@ -9,8 +9,6 @@
 #include "helperfunctions.h"
 #include <cmath>
 
-#define SAME_SIZE(im1, im2) (im1->width==im2->width && im1->height == im2->height)
-
 PupilSegmentator::PupilSegmentator() {
     this->buffers.LUT = cvCreateMat(256, 1, CV_8UC1);
     this->buffers.similarityImage = NULL;

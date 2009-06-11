@@ -9,14 +9,22 @@
 
 #include "segmentator.h"
 #include "decorator.h"
+#include "irisencoder.h"
+#include "parameters.h"
 
 using namespace std;
 
 int main(int argc, char** argv) {
-	/*IplImage* imagen = cvLoadImage(argv[1]);
+	IplImage* imagen = cvLoadImage(argv[1]);
 
 	Segmentator segmentator;
 	SegmentationResult res = segmentator.segmentImage(imagen);
+	IrisEncoder encoder;
+	Parameters* parameters = Parameters::getParameters();
+	parameters->templateWidth = 1024;
+	parameters->templateHeight = 1024/5;
+
+	encoder.generateTemplate(imagen, res);
 
 	Decorator decorator;
 	decorator.drawSegmentationResult(imagen, res);
@@ -24,9 +32,14 @@ int main(int argc, char** argv) {
 	cvNamedWindow("imagen");
 	cvShowImage("imagen", imagen);
 
+	cvNamedWindow("normalizada");
+	cvShowImage("normalizada", encoder.buffers.normalizedTexture);
+
 	cvWaitKey(0);
-	cvReleaseImage(&imagen);*/
-	CvCapture* capture = cvCaptureFromCAM(0);
+	cvReleaseImage(&imagen);
+
+
+	/*CvCapture* capture = cvCaptureFromCAM(0);
 	if (!capture) {
 		cout << "No se puede capturar" << endl;
 		return 1;
@@ -68,6 +81,6 @@ int main(int argc, char** argv) {
 		cvShowImage("Video", frame);
 		//cvShowImage("Video", segmentator._pupilSegmentator.buffers.similarityImage);
 		cvWaitKey(10);
-	}
+	}*/
 }
 

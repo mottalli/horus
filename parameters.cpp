@@ -22,6 +22,9 @@ Parameters::Parameters() {
 
     parabolicDetectorStep = 4;
 
+    templateWidth = 240;
+    templateHeight = 20;
+
 }
 
 Parameters::~Parameters() {
