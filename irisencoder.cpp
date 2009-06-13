@@ -40,7 +40,7 @@ void IrisEncoder::normalizeIris(const Image* image, Image* dest, CvMat* destMask
 	const Contour& irisContour = segmentationResult.irisContour;
 	CvPoint p0, p1;
 
-	assert(std::abs(double(pupilContour[0].y - irisContour[0].y)) < 2);		// Both contours must be aligned
+	//assert(std::abs(double(pupilContour[0].y - irisContour[0].y)) < 2);		// Both contours must be aligned
 
 	for (int x = 0; x < normalizedWidth; x++) {
 		double q = double(x)/double(normalizedWidth);

@@ -19,11 +19,10 @@ void Decorator::drawSegmentationResult(Image* image, const SegmentationResult& s
 
 	Circle irisCircle = segmentationResult.irisCircle;
 
-	int xMin = std::max(0, irisCircle.xc - int(1.5*irisCircle.radius));
-	int xMax = std::min(image->width, irisCircle.xc + int(1.5*irisCircle.radius));
-
-	this->drawParabola(image, segmentationResult.upperEyelid, -1, -1);
-	this->drawParabola(image, segmentationResult.lowerEyelid, -1, -1);
+	if (segmentationResult.eyelidsSegmented) {
+		this->drawParabola(image, segmentationResult.upperEyelid, -1, -1);
+		this->drawParabola(image, segmentationResult.lowerEyelid, -1, -1);
+	}
 
 	/*cvCircle(image, cvPoint(segmentationResult.irisCircle.xc,segmentationResult.irisCircle.yc), segmentationResult.irisCircle.radius, CV_RGB(255,255,255), 1);
 	cvCircle(image, cvPoint(segmentationResult.pupilCircle.xc,segmentationResult.pupilCircle.yc), segmentationResult.pupilCircle.radius, CV_RGB(255,255,255), 1);*/

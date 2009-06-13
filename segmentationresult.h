@@ -21,6 +21,8 @@ public:
     Circle irisCircle;
     Parabola upperEyelid;
     Parabola lowerEyelid;
+
+    bool eyelidsSegmented;
 private:
 
 };

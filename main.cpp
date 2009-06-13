@@ -6,15 +6,18 @@
  */
 
 #include <iostream>
+#include <strstream>
 
 #include "segmentator.h"
 #include "decorator.h"
 #include "irisencoder.h"
 #include "parameters.h"
+#include "videoprocessor.h"
 
 using namespace std;
 
 int main(int argc, char** argv) {
+#if 0
 	IplImage* imagen = cvLoadImage(argv[1]);
 
 	Segmentator segmentator;
@@ -37,8 +40,48 @@ int main(int argc, char** argv) {
 
 	cvWaitKey(0);
 	cvReleaseImage(&imagen);
+#elif 1
+	/*const string path_video = "/home/marcelo/Mis_Documentos/Facu/Tesis/Bases de datos/Videos/marcelo1";
+	const unsigned cantidad_imagenes = 227;*/
+	const string path_video = "/home/marcelo/Mis_Documentos/Facu/Tesis/Bases de datos/Videos/bursztyn1";
+	IplImage* frame;
+	Segmentator segmentator;
+	IrisEncoder encoder;
+	Decorator decorator;
+	VideoProcessor videoprocessor;
+	Parameters* parameters = Parameters::getParameters();
+	parameters->templateWidth = 1024;
+	parameters->templateHeight = 1024/5;
+
+	cvNamedWindow("imagen");
+	cvNamedWindow("normalizada");
+
+	for (unsigned numero_imagen = 1; ; numero_imagen++) {
+		char path[100];
+		sprintf(path, "%s/%i.jpg", path_video.c_str(), numero_imagen);
+		cout << path << endl;
+		frame = cvLoadImage(path);
+		if (!frame) {
+			cout << "NO!" << endl;
+			break;
+		}
+
+		SegmentationResult res = segmentator.segmentImage(frame);
+		encoder.generateTemplate(frame, res);
+
+		decorator.drawSegmentationResult(frame,  res);
 
 
+		cvShowImage("normalizada", encoder.buffers.normalizedTexture);
+
+		cout << videoprocessor.imageQuality(encoder.buffers.normalizedTexture) << endl;
+
+		cvShowImage("imagen", frame);
+		cvWaitKey(10);
+	}
+
+
+#elif 0
 	/*CvCapture* capture = cvCaptureFromCAM(0);
 	if (!capture) {
 		cout << "No se puede capturar" << endl;
@@ -82,5 +125,6 @@ int main(int argc, char** argv) {
 		//cvShowImage("Video", segmentator._pupilSegmentator.buffers.similarityImage);
 		cvWaitKey(10);
 	}*/
+#endif
 }
 

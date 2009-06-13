@@ -42,12 +42,29 @@ SegmentationResult Segmentator::segmentImage(const Image* image) {
 	result.irisContour = irisResult.first;
 	result.irisCircle = irisResult.second;
 
-	std::pair<Parabola, Parabola> eyelids = this->_eyelidSegmentator.segmentEyelids(imageToSegment, result.pupilCircle, result.irisCircle);
-	result.upperEyelid = eyelids.first;
-	result.lowerEyelid = eyelids.second;
+	result.eyelidsSegmented = false;
 
 	return result;
 };
+
+void Segmentator::segmentEyelids(const Image* image, SegmentationResult& result)
+{
+	const Image* imageToSegment;		// Can either user image or workingImage depending on image format
+
+	this->setupBuffers(image);
+
+	if (image->nChannels == 1 && image->depth == IPL_DEPTH_8U) {
+		imageToSegment = image;
+	} else {
+		cvCvtColor(image, this->buffers.workingImage, CV_RGB2GRAY);
+		imageToSegment = this->buffers.workingImage;
+	}
+
+	std::pair<Parabola, Parabola> eyelids = this->_eyelidSegmentator.segmentEyelids(imageToSegment, result.pupilCircle, result.irisCircle);
+	result.upperEyelid = eyelids.first;
+	result.lowerEyelid = eyelids.second;
+	result.eyelidsSegmented = true;
+}
 
 void Segmentator::setupBuffers(const Image* image)
 {

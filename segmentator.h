@@ -19,6 +19,7 @@ public:
 	Segmentator();
 	virtual ~Segmentator();
 	SegmentationResult segmentImage(const Image* image);
+	void segmentEyelids(const Image* image, SegmentationResult& result);
 
 	struct {
 		Image* workingImage;
