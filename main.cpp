@@ -41,26 +41,30 @@ int main(int argc, char** argv) {
 	cvWaitKey(0);
 	cvReleaseImage(&imagen);
 #elif 1
-	/*const string path_video = "/home/marcelo/Mis_Documentos/Facu/Tesis/Bases de datos/Videos/marcelo1";
-	const unsigned cantidad_imagenes = 227;*/
-	const string path_video = "/home/marcelo/Mis_Documentos/Facu/Tesis/Bases de datos/Videos/bursztyn1";
+	//const string path_video = "/home/marcelo/Mis_Documentos/Facu/Tesis/Bases de datos/Videos/marcelo1";
+	string path_video = string(argv[1]);
+	//const string path_video = "/home/marcelo/Mis_Documentos/Facu/Tesis/Bases de datos/Videos/bursztyn1";
 	IplImage* frame;
 	Segmentator segmentator;
 	IrisEncoder encoder;
 	Decorator decorator;
 	VideoProcessor videoprocessor;
 	Parameters* parameters = Parameters::getParameters();
-	parameters->templateWidth = 1024;
-	parameters->templateHeight = 1024/5;
+	//parameters->templateWidth = 1024;
+	//parameters->templateHeight = 1024/5;
 
 	cvNamedWindow("imagen");
+	cvMoveWindow("imagen", 900, 10);
 	cvNamedWindow("normalizada");
+	cvMoveWindow("normalizada", 900, 600);
+	cvNamedWindow("filtrada");
+	cvMoveWindow("filtrada", 900, 700);
 
 	for (unsigned numero_imagen = 1; ; numero_imagen++) {
 		char path[100];
 		sprintf(path, "%s/%i.jpg", path_video.c_str(), numero_imagen);
 		cout << path << endl;
-		frame = cvLoadImage(path);
+		frame = cvLoadImage(path, 0);
 		if (!frame) {
 			cout << "NO!" << endl;
 			break;
@@ -71,10 +75,17 @@ int main(int argc, char** argv) {
 
 		decorator.drawSegmentationResult(frame,  res);
 
-
 		cvShowImage("normalizada", encoder.buffers.normalizedTexture);
 
-		cout << videoprocessor.imageQuality(encoder.buffers.normalizedTexture) << endl;
+		Image* foo1 = cvCreateImage(cvGetSize(encoder.buffers.filteredTexture), IPL_DEPTH_32F, 1);
+		Image* foo2 = cvCreateImage(cvGetSize(encoder.buffers.filteredTexture), IPL_DEPTH_8U, 1);
+		cvSplit(encoder.buffers.filteredTexture, foo1, NULL, NULL, NULL);
+		//cvNormalize(foo1, foo2, 0, 255, CV_MINMAX);
+		cvThreshold(foo1, foo2, 0, 255, CV_THRESH_BINARY);
+		cvShowImage("filtrada", foo2);
+
+		cvReleaseImage(&foo1);
+		cvReleaseImage(&foo2);
 
 		cvShowImage("imagen", frame);
 		cvWaitKey(10);

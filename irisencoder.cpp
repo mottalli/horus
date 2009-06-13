@@ -5,16 +5,17 @@
  *      Author: marcelo
  */
 
-#include "irisencoder.h"
-#include "parameters.h"
 #include <cmath>
 #include <iostream>
 
-IrisEncoder::IrisEncoder()
+#include "irisencoder.h"
+#include "parameters.h"
+
+IrisEncoder::IrisEncoder() :
+	filter(1.0/32.0, 0.5)
 {
 	this->buffers.noiseMask = NULL;
 	this->buffers.normalizedTexture = NULL;
-	this->buffers.bwImage = NULL;
 }
 
 IrisEncoder::~IrisEncoder()
@@ -23,14 +24,16 @@ IrisEncoder::~IrisEncoder()
 
 void IrisEncoder::generateTemplate(const Image* image, const SegmentationResult& segmentationResult)
 {
+	assert(image->nChannels == 1);
 	this->initializeBuffers(image);
+	IrisEncoder::normalizeIris(image, this->buffers.normalizedTexture, this->buffers.noiseMask, segmentationResult);
 
-	if (image->nChannels == 1) {
-		IrisEncoder::normalizeIris(image, this->buffers.normalizedTexture, this->buffers.noiseMask, segmentationResult);
-	} else {
-		cvCvtColor(image, this->buffers.bwImage, CV_RGB2GRAY);
-		IrisEncoder::normalizeIris(this->buffers.bwImage, this->buffers.normalizedTexture, this->buffers.noiseMask, segmentationResult);
-	}
+	this->applyFilter();
+}
+
+void IrisEncoder::applyFilter()
+{
+	this->filter.applyFilter(this->buffers.normalizedTexture, this->buffers.filteredTexture);
 }
 
 void IrisEncoder::normalizeIris(const Image* image, Image* dest, CvMat* destMask, const SegmentationResult& segmentationResult)
@@ -90,14 +93,9 @@ void IrisEncoder::initializeBuffers(const Image* image)
 	if (this->buffers.normalizedTexture == NULL || this->buffers.normalizedTexture->width != parameters->templateWidth || this->buffers.normalizedTexture->height != parameters->templateHeight) {
 		if (this->buffers.normalizedTexture != NULL) {
 			cvReleaseImage(&this->buffers.normalizedTexture);
+			cvReleaseImage(&this->buffers.filteredTexture);
 		}
 		this->buffers.normalizedTexture = cvCreateImage(cvSize(parameters->templateWidth,parameters->templateHeight), IPL_DEPTH_8U, 1);
-	}
-
-	if (this->buffers.bwImage == NULL || !SAME_SIZE(this->buffers.bwImage, image)) {
-		if (this->buffers.bwImage != NULL) {
-			cvReleaseImage(&this->buffers.bwImage);
-		}
-		this->buffers.bwImage = cvCreateImage(cvGetSize(image), IPL_DEPTH_8U, 1);
+		this->buffers.filteredTexture = cvCreateImage(cvSize(parameters->templateWidth,parameters->templateHeight), IPL_DEPTH_32F, 2);
 	}
 }

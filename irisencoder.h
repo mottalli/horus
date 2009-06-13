@@ -10,6 +10,7 @@
 
 #include "common.h"
 #include "segmentationresult.h"
+#include "loggabor1dfilter.h"
 
 class IrisEncoder {
 public:
@@ -22,12 +23,13 @@ public:
 	struct {
 		Image* normalizedTexture;
 		CvMat* noiseMask;
-
-		Image* bwImage;
+		Image* filteredTexture;
 	} buffers;
 
 private:
 	void initializeBuffers(const Image* image);
+	LogGabor1DFilter filter;
+	void applyFilter();
 };
 
 #endif /* IRISENCODER_H_ */

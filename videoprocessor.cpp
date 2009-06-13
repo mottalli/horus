@@ -20,19 +20,14 @@ VideoProcessor::~VideoProcessor() {
 
 double VideoProcessor::imageQuality(const Image* image)
 {
+	assert(image->nChannels == 1);
+
 	Image* real = cvCreateImage(cvGetSize(image), IPL_DEPTH_32F, 1);
 	Image* imaginary = cvCreateImage(cvGetSize(image), IPL_DEPTH_32F, 1);
 	Image* resultFT = cvCreateImage(cvGetSize(image), IPL_DEPTH_32F, 2);
 	Image* powerSpectrum = cvCreateImage(cvGetSize(image), IPL_DEPTH_32F, 1);
 
-	if (image->nChannels == 1) {
-		cvConvert(image, real);
-	} else {
-		Image* tmp = cvCreateImage(cvGetSize(image), IPL_DEPTH_8U, 1);
-		cvSplit(image, tmp, NULL, NULL, NULL);
-		cvConvert(tmp, real);
-		cvReleaseImage(&tmp);
-	}
+	cvConvert(image, real);
 
 	cvZero(imaginary);
 	cvMerge(real, imaginary, NULL, NULL, resultFT);
