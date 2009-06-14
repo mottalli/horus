@@ -16,24 +16,32 @@ IrisEncoder::IrisEncoder() :
 {
 	this->buffers.noiseMask = NULL;
 	this->buffers.normalizedTexture = NULL;
+	this->buffers.thresholdedTexture = NULL;
+	this->buffers.filteredTexture = NULL;
+	this->buffers.filteredTextureReal = NULL;
+	this->buffers.filteredTextureImag = NULL;
 }
 
 IrisEncoder::~IrisEncoder()
 {
 }
 
-void IrisEncoder::generateTemplate(const Image* image, const SegmentationResult& segmentationResult)
+IrisTemplate IrisEncoder::generateTemplate(const Image* image, const SegmentationResult& segmentationResult)
 {
 	assert(image->nChannels == 1);
 	this->initializeBuffers(image);
 	IrisEncoder::normalizeIris(image, this->buffers.normalizedTexture, this->buffers.noiseMask, segmentationResult);
 
 	this->applyFilter();
+
+	return IrisTemplate(this->buffers.thresholdedTexture, this->buffers.noiseMask);
 }
 
 void IrisEncoder::applyFilter()
 {
 	this->filter.applyFilter(this->buffers.normalizedTexture, this->buffers.filteredTexture);
+	cvSplit(this->buffers.filteredTexture, this->buffers.filteredTextureReal, this->buffers.filteredTextureImag, NULL, NULL);
+	cvThreshold(this->buffers.filteredTextureImag, this->buffers.thresholdedTexture, 0, 1, CV_THRESH_BINARY);
 }
 
 void IrisEncoder::normalizeIris(const Image* image, Image* dest, CvMat* destMask, const SegmentationResult& segmentationResult)
@@ -45,6 +53,7 @@ void IrisEncoder::normalizeIris(const Image* image, Image* dest, CvMat* destMask
 
 	//assert(std::abs(double(pupilContour[0].y - irisContour[0].y)) < 2);		// Both contours must be aligned
 
+	cvSet(destMask, cvScalar(1,1,1));
 	for (int x = 0; x < normalizedWidth; x++) {
 		double q = double(x)/double(normalizedWidth);
 		double theta = q*2.0*M_PI;
@@ -75,12 +84,20 @@ void IrisEncoder::normalizeIris(const Image* image, Image* dest, CvMat* destMask
 
 			if (ximage0 < 0 || ximage1 >= image->width || yimage0 < 0 || yimage1 >= image->height) {
 				cvSetReal2D(dest, y, x, 0);
+				cvSetReal2D(destMask, y, x, 0);
 			} else {
 				double v1 = cvGetReal2D(image, yimage0, ximage0);
 				double v2 = cvGetReal2D(image, yimage0, ximage1);
 				double v3 = cvGetReal2D(image, yimage1, ximage0);
 				double v4 = cvGetReal2D(image, yimage1, ximage1);
 				cvSetReal2D(dest, y, x, (v1+v2+v3+v4)/4.0);
+			}
+
+			// See if (x,y) is occluded by an eyelid
+			if (segmentationResult.eyelidsSegmented) {
+				if (yimage <= segmentationResult.upperEyelid.value(ximage) || yimage >= segmentationResult.lowerEyelid.value(ximage)) {
+					cvSetReal2D(destMask, y, x, 0);
+				}
 			}
 		}
 	}
@@ -97,5 +114,9 @@ void IrisEncoder::initializeBuffers(const Image* image)
 		}
 		this->buffers.normalizedTexture = cvCreateImage(cvSize(parameters->templateWidth,parameters->templateHeight), IPL_DEPTH_8U, 1);
 		this->buffers.filteredTexture = cvCreateImage(cvSize(parameters->templateWidth,parameters->templateHeight), IPL_DEPTH_32F, 2);
+		this->buffers.filteredTextureReal = cvCreateImage(cvSize(parameters->templateWidth,parameters->templateHeight), IPL_DEPTH_32F, 1);
+		this->buffers.filteredTextureImag = cvCreateImage(cvSize(parameters->templateWidth,parameters->templateHeight), IPL_DEPTH_32F, 1);
+		this->buffers.noiseMask = cvCreateMat(parameters->templateHeight, parameters->templateWidth, CV_8U);
+		this->buffers.thresholdedTexture = cvCreateMat(parameters->templateHeight, parameters->templateWidth, CV_8U);
 	}
 }

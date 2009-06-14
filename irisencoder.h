@@ -11,19 +11,23 @@
 #include "common.h"
 #include "segmentationresult.h"
 #include "loggabor1dfilter.h"
+#include "iristemplate.h"
 
 class IrisEncoder {
 public:
 	IrisEncoder();
 	virtual ~IrisEncoder();
 
-	void generateTemplate(const Image* image, const SegmentationResult& segmentationResult);
+	IrisTemplate generateTemplate(const Image* image, const SegmentationResult& segmentationResult);
 	static void normalizeIris(const Image* image, Image* dest, CvMat* destMask, const SegmentationResult& segmentationResult);
 
 	struct {
 		Image* normalizedTexture;
 		CvMat* noiseMask;
 		Image* filteredTexture;
+		Image* filteredTextureReal;
+		Image* filteredTextureImag;
+		CvMat* thresholdedTexture;
 	} buffers;
 
 private:

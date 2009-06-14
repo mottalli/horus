@@ -59,6 +59,8 @@ int main(int argc, char** argv) {
 	cvMoveWindow("normalizada", 900, 600);
 	cvNamedWindow("filtrada");
 	cvMoveWindow("filtrada", 900, 700);
+	cvNamedWindow("histo");
+	cvMoveWindow("histo", 1000, 700);
 
 	for (unsigned numero_imagen = 1; ; numero_imagen++) {
 		char path[100];
@@ -71,7 +73,7 @@ int main(int argc, char** argv) {
 		}
 
 		SegmentationResult res = segmentator.segmentImage(frame);
-		encoder.generateTemplate(frame, res);
+		IrisTemplate irisTemplate = encoder.generateTemplate(frame, res);
 
 		decorator.drawSegmentationResult(frame,  res);
 
@@ -79,11 +81,43 @@ int main(int argc, char** argv) {
 
 		Image* foo1 = cvCreateImage(cvGetSize(encoder.buffers.filteredTexture), IPL_DEPTH_32F, 1);
 		Image* foo2 = cvCreateImage(cvGetSize(encoder.buffers.filteredTexture), IPL_DEPTH_8U, 1);
-		cvSplit(encoder.buffers.filteredTexture, foo1, NULL, NULL, NULL);
+		cvSplit(encoder.buffers.filteredTexture, NULL, foo1, NULL, NULL);
 		//cvNormalize(foo1, foo2, 0, 255, CV_MINMAX);
 		cvThreshold(foo1, foo2, 0, 255, CV_THRESH_BINARY);
-		cvShowImage("filtrada", foo2);
+		cvShowImage("filtrada", irisTemplate.getTemplate());
 
+
+
+		Image* texture = foo1;
+		int hist_size[] = {256};
+		CvHistogram* hist = cvCreateHist(1, hist_size, CV_HIST_ARRAY, NULL, 1);
+		double min, max;
+		cvMinMaxLoc(texture, &max, &min, NULL, NULL);
+		float ranges[] = { -20, 20 };
+		float* foo[] = {ranges};
+		cvSetHistBinRanges(hist, foo, true);
+		IplImage* planes[] = {texture};
+		cvCalcHist(planes, hist, false, NULL);
+		float min_value, max_value;
+		cvGetMinMaxHistValue(hist, &min_value, &max_value);
+		Image* imgHistogram = cvCreateImage(cvSize(256, 50),8,3);
+		cvRectangle(imgHistogram, cvPoint(0,0), cvPoint(256,50), CV_RGB(255,255,255),-1);
+		for (int j = 0; j < 256; j++) {
+			double value = cvQueryHistValue_1D(hist, j);
+			double normalized = cvRound(value*50.0/max_value);
+			cvLine(imgHistogram,cvPoint(j,50), cvPoint(j,50-normalized), CV_RGB(0,0,0));
+		}
+
+		CvScalar avg, std;
+		cvAvgSdv(texture, &avg, &std);
+		double m = avg.val[0];
+		double s = std.val[0];
+		cvLine(imgHistogram, cvPoint(m+s,0), cvPoint(m+s,50), CV_RGB(255,0,0));
+		cvLine(imgHistogram, cvPoint(m-s,0), cvPoint(m-s,50), CV_RGB(255,0,0));
+		std::cout << s << std::endl;
+
+		cvShowImage("histo", imgHistogram);
+		cvReleaseImage(&imgHistogram);
 		cvReleaseImage(&foo1);
 		cvReleaseImage(&foo2);
 
