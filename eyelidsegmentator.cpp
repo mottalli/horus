@@ -29,22 +29,31 @@ std::pair<Parabola, Parabola> EyelidSegmentator::segmentEyelids(const Image* ima
 	int y0lower= irisCircle.yc;
 	int y1lower = std::min(image->height, irisCircle.yc+r);
 
-	Parabola upperEyelid = this->segmentUpper(image, x0, y0upper, x1, y1upper, pupilCircle, irisCircle);
-	Parabola lowerEyelid = this->segmentLower(image, x0, y0lower, x1, y1lower, pupilCircle, irisCircle);
+	//TODO: improve this
+	Image* gradient = cvCreateImage(cvGetSize(image), IPL_DEPTH_32F, 1);
+	cvSobel(image, gradient, 0, 1, 3);
+	cvSmooth(gradient, gradient, CV_BLUR, 7);
+
+
+	Parabola upperEyelid = this->segmentUpper(image, gradient, x0, y0upper, x1, y1upper, pupilCircle, irisCircle);
+	Parabola lowerEyelid = this->segmentLower(image, gradient, x0, y0lower, x1, y1lower, pupilCircle, irisCircle);
 
 	std::pair<Parabola, Parabola> result;
 	result.first = upperEyelid;
 	result.second = lowerEyelid;
+
+	cvReleaseImage(&gradient);
+
 	return result;
 }
 
-Parabola EyelidSegmentator::segmentUpper(const Image* image, int x0, int y0, int x1, int y1, const Circle& pupilCircle, const Circle& irisCircle)
+Parabola EyelidSegmentator::segmentUpper(const Image* image, const Image* gradient, int x0, int y0, int x1, int y1, const Circle& pupilCircle, const Circle& irisCircle)
 {
 	Parabola bestParabola;
 	double maxGrad = INT_MIN;
 
 	for (int p = 150; p < 300; p += 50) {
-		std::pair<Parabola, double> res = this->findParabola(image, p, x0, y0, x1, y1);
+		std::pair<Parabola, double> res = this->findParabola(image, gradient, p, x0, y0, x1, y1);
 		if (res.second > maxGrad) {
 			maxGrad = res.second;
 			bestParabola = res.first;
@@ -54,13 +63,13 @@ Parabola EyelidSegmentator::segmentUpper(const Image* image, int x0, int y0, int
 	return bestParabola;
 }
 
-Parabola EyelidSegmentator::segmentLower(const Image* image, int x0, int y0, int x1, int y1, const Circle& pupilCircle, const Circle& irisCircle)
+Parabola EyelidSegmentator::segmentLower(const Image* image, const Image* gradient, int x0, int y0, int x1, int y1, const Circle& pupilCircle, const Circle& irisCircle)
 {
 	Parabola bestParabola;
 	double maxGrad = INT_MIN;
 
 	for (int p = -300; p < -150; p += 50) {
-		std::pair<Parabola, double> res = this->findParabola(image, p, x0, y0, x1, y1);
+		std::pair<Parabola, double> res = this->findParabola(image, gradient, p, x0, y0, x1, y1);
 		if (res.second > maxGrad) {
 			maxGrad = res.second;
 			bestParabola = res.first;
@@ -70,16 +79,11 @@ Parabola EyelidSegmentator::segmentLower(const Image* image, int x0, int y0, int
 	return bestParabola;
 }
 
-std::pair<Parabola, double> EyelidSegmentator::findParabola(const Image* image, int p, int x0, int y0, int x1, int y1)
+std::pair<Parabola, double> EyelidSegmentator::findParabola(const Image* image, const Image* gradient, int p, int x0, int y0, int x1, int y1)
 {
-	IplImage* gradient = cvCreateImage(cvGetSize(image), IPL_DEPTH_32F, 1);
-
 	int step = Parameters::getParameters()->parabolicDetectorStep;
 
 	CvMat* M = cvCreateMat((y1-y0)/step, (x1-x0)/step, CV_32F);
-
-	cvSobel(image, gradient, 0, 1, 7);
-	cvSmooth(gradient, gradient, CV_BLUR, 15);
 
 	for (int i = 0; i < M->rows; i++) {
 		int y = y0+i*step;
@@ -102,12 +106,13 @@ std::pair<Parabola, double> EyelidSegmentator::findParabola(const Image* image, 
 	cvMul(Dy, Dy, Dy);
 	cvAdd(Dx, Dy, D);
 
+	cvSmooth(D, D, CV_BLUR, 3);
+
 	CvPoint maxPos;
 	CvPoint minPos;
 	double max;
 	cvMinMaxLoc(D, &max, NULL, &minPos, &maxPos);
 
-	cvReleaseImage(&gradient);
 	cvReleaseMat(&M);
 	cvReleaseMat(&Dx);
 	cvReleaseMat(&Dy);
@@ -128,7 +133,7 @@ double EyelidSegmentator::parabolaAverage(const Image* gradient, const Image* or
 	assert(originalImage->depth == IPL_DEPTH_8U);
 	assert(gradient->depth == IPL_DEPTH_32F);
 
-	for (x = 0; x < gradient->width; x += gradient->width/50 + 1) {
+	for (x = 0; x < gradient->width; x += gradient->width/100 + 1) {
 		y = parabola.value(x);
 		if (y < 0 || y >= gradient->height) {
 			continue;
@@ -137,7 +142,7 @@ double EyelidSegmentator::parabolaAverage(const Image* gradient, const Image* or
 		float* rowGradient = (float*)(gradient->imageData + int(y)*gradient->widthStep);
 		unsigned char* rowImage = (unsigned char*)(originalImage->imageData + int(y)*originalImage->widthStep);
 
-		float v = rowImage[int(x)];
+		unsigned char v = rowImage[int(x)];
 		if (v < 80 || v > 250) {
 			// Try to avoid the pupil and the infrared reflection
 			continue;

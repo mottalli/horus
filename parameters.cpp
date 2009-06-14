@@ -10,31 +10,30 @@
 Parameters* Parameters::instance = (Parameters*)0;
 
 Parameters::Parameters() {
-    bufferWidth = 320;
-    muPupil = 5.0;
-    sigmaPupil = 5.0;
+	bufferWidth = 320;
+	muPupil = 5.0;
+	sigmaPupil = 5.0;
 
-    pupilAdjustmentRingWidth = 100;
-    pupilAdjustmentRingHeight = 40;
+	pupilAdjustmentRingWidth = 100;
+	pupilAdjustmentRingHeight = 40;
 
-    irisAdjustmentRingWidth = 100;
-    irisAdjustmentRingHeight = 90;
+	irisAdjustmentRingWidth = 100;
+	irisAdjustmentRingHeight = 90;
 
-    parabolicDetectorStep = 10;
+	parabolicDetectorStep = 10;
 
-    templateWidth = 240;
-    templateHeight = 20;
-
+	templateWidth = 240;
+	templateHeight = 20;
 }
 
 Parameters::~Parameters() {
 }
 
 Parameters* Parameters::getParameters() {
-    if (Parameters::instance == 0) {
-        Parameters::instance = new Parameters();
-    }
+	if (Parameters::instance == 0) {
+		Parameters::instance = new Parameters();
+	}
 
-    return Parameters::instance;
+	return Parameters::instance;
 }
 
