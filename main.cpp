@@ -49,7 +49,7 @@ int main(int argc, char** argv) {
 	IrisEncoder encoder;
 	Decorator decorator;
 	VideoProcessor videoprocessor;
-	Parameters* parameters = Parameters::getParameters();
+	//Parameters* parameters = Parameters::getParameters();
 	//parameters->templateWidth = 1024;
 	//parameters->templateHeight = 1024/5;
 
@@ -59,8 +59,10 @@ int main(int argc, char** argv) {
 	cvMoveWindow("normalizada", 900, 600);
 	cvNamedWindow("filtrada");
 	cvMoveWindow("filtrada", 900, 700);
+	cvNamedWindow("mascara");
+	cvMoveWindow("mascara", 900, 800);
 	cvNamedWindow("histo");
-	cvMoveWindow("histo", 1000, 700);
+	cvMoveWindow("histo", 900, 900);
 
 	for (unsigned numero_imagen = 1; ; numero_imagen++) {
 		char path[100];
@@ -73,6 +75,7 @@ int main(int argc, char** argv) {
 		}
 
 		SegmentationResult res = segmentator.segmentImage(frame);
+		segmentator.segmentEyelids(frame, res);
 		IrisTemplate irisTemplate = encoder.generateTemplate(frame, res);
 
 		decorator.drawSegmentationResult(frame,  res);
@@ -85,6 +88,7 @@ int main(int argc, char** argv) {
 		//cvNormalize(foo1, foo2, 0, 255, CV_MINMAX);
 		cvThreshold(foo1, foo2, 0, 255, CV_THRESH_BINARY);
 		cvShowImage("filtrada", irisTemplate.getTemplate());
+		cvShowImage("mascara", irisTemplate.getNoiseMask());
 
 
 

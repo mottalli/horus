@@ -22,7 +22,7 @@ std::pair<Parabola, Parabola> EyelidSegmentator::segmentEyelids(const Image* ima
 	assert(image->origin == 0);
 
 	CvMat matWorkingRegion;
-	int r = irisCircle.radius * 1.5;
+	int r = irisCircle.radius * 2.5;
 	int x0 = std::max(0, irisCircle.xc-r);
 	int x1 = std::min(image->width, irisCircle.xc+r);
 	int y0 = std::max(0, irisCircle.yc-r);
@@ -52,8 +52,8 @@ Parabola EyelidSegmentator::segmentUpper(const Image* image, int pupilRadius)
 	Parabola bestParabola;
 	double maxGrad = INT_MIN;
 
-	//for (int p = 100; p < 150; p += 10) {
-	for (int p = 200; p < 201; p++) {
+	for (int p = 150; p < 300; p += 50) {
+	//for (int p = 200; p < 201; p++) {
 		//std::pair<Parabola, double> res = this->findParabola(upperPart, p, 0, upperPart->height-pupilRadius);
 		std::pair<Parabola, double> res = this->findParabola(upperPart, p, 0, upperPart->height);
 		if (res.second > maxGrad) {
@@ -77,7 +77,7 @@ Parabola EyelidSegmentator::segmentLower(const Image* image, int pupilRadius)
 	Parabola bestParabola;
 	double maxGrad = INT_MIN;
 
-	for (int p = -300; p < -150; p += 30) {
+	for (int p = -300; p < -150; p += 50) {
 		//std::pair<Parabola, double> res = this->findParabola(lowerPart, p, pupilRadius, lowerPart->height);
 		std::pair<Parabola, double> res = this->findParabola(lowerPart, p, 0, lowerPart->height);
 		if (res.second > maxGrad) {

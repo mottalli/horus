@@ -56,7 +56,6 @@ void IrisEncoder::normalizeIris(const Image* image, Image* dest, CvMat* destMask
 	cvSet(destMask, cvScalar(1,1,1));
 	for (int x = 0; x < normalizedWidth; x++) {
 		double q = double(x)/double(normalizedWidth);
-		double theta = q*2.0*M_PI;
 
 		double w = q*double(pupilContour.size());
 		p0 = pupilContour[int(std::floor(w))];

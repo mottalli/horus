@@ -13,10 +13,13 @@
 class IrisTemplate {
 public:
 	IrisTemplate();
+	IrisTemplate(const IrisTemplate& otherTemplate);
 	IrisTemplate(const CvMat* binaryTemplate, const CvMat* binaryMask);
 
 	IplImage* getTemplate(void) const;
 	IplImage* getNoiseMask(void) const;
+
+	IrisTemplate& operator=(const IrisTemplate& otherTemplate);
 
 	virtual ~IrisTemplate();
 private:

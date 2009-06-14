@@ -29,8 +29,33 @@ IrisTemplate::IrisTemplate(const CvMat* binaryTemplate, const CvMat* binaryMask)
 	this->packBits(binaryMask, this->mask);
 }
 
+IrisTemplate::IrisTemplate(const IrisTemplate& otherTemplate)
+{
+	this->irisTemplate = (CvMat*)cvClone(otherTemplate.irisTemplate);
+	this->mask = (CvMat*)cvClone(otherTemplate.mask);
+}
+
+IrisTemplate& IrisTemplate::operator=(const IrisTemplate& otherTemplate)
+{
+	if (this->irisTemplate != NULL) {
+		cvReleaseMat(&this->irisTemplate);
+	}
+	if (this->mask != NULL) {
+		cvReleaseMat(&this->mask);
+	}
+
+	this->irisTemplate = (CvMat*)cvClone(otherTemplate.irisTemplate);
+	this->mask = (CvMat*)cvClone(otherTemplate.mask);
+
+	return *this;
+}
+
 IrisTemplate::~IrisTemplate()
 {
+	if (this->irisTemplate != NULL) {
+		cvReleaseMat(&this->irisTemplate);
+		cvReleaseMat(&this->mask);
+	}
 }
 
 Image* IrisTemplate::getTemplate() const
@@ -43,9 +68,10 @@ Image* IrisTemplate::getTemplate() const
 
 Image* IrisTemplate::getNoiseMask() const
 {
-	Image* foo = cvCreateImage(cvGetSize(this->mask), IPL_DEPTH_8U, 1);
-	cvNormalize(this->mask, foo, 0, 255, CV_MINMAX);
-	return foo;
+	CvMat* foo = cvCreateMat(this->mask->height, this->irisTemplate->width*8, CV_8U);
+	Image* img = new Image;
+	this->unpackBits(this->mask, foo, 255);
+	return cvGetImage(foo, img);
 }
 
 // Pack the binary in src into bits
