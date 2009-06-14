@@ -21,7 +21,6 @@ std::pair<Parabola, Parabola> EyelidSegmentator::segmentEyelids(const Image* ima
 {
 	assert(image->origin == 0);
 
-	CvMat matWorkingRegion;
 	int r = irisCircle.radius * 1.5;
 	int x0 = std::max(0, irisCircle.xc-r);
 	int x1 = std::min(image->width, irisCircle.xc+r);
@@ -126,7 +125,7 @@ double EyelidSegmentator::parabolaAverage(const Image* gradient, const Image* or
 	int n = 0;
 	double x, y;
 
-	assert(originalImage->depth == IPL_DEPTH_32F);
+	assert(originalImage->depth == IPL_DEPTH_8U);
 	assert(gradient->depth == IPL_DEPTH_32F);
 
 	for (x = 0; x < gradient->width; x += gradient->width/50 + 1) {
@@ -136,7 +135,7 @@ double EyelidSegmentator::parabolaAverage(const Image* gradient, const Image* or
 		}
 
 		float* rowGradient = (float*)(gradient->imageData + int(y)*gradient->widthStep);
-		float* rowImage = (float*)(originalImage->imageData + int(y)*originalImage->widthStep);
+		unsigned char* rowImage = (unsigned char*)(originalImage->imageData + int(y)*originalImage->widthStep);
 
 		float v = rowImage[int(x)];
 		if (v < 80 || v > 250) {
