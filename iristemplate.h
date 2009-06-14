@@ -22,6 +22,9 @@ public:
 private:
 	CvMat* irisTemplate;
 	CvMat* mask;
+
+	void packBits(const CvMat* src, CvMat* dest) const;
+	void unpackBits(const CvMat* src, CvMat* dest, int trueval = 1) const;
 };
 
 #endif /* IRISTEMPLATE_H_ */
