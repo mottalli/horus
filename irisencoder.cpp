@@ -59,14 +59,14 @@ void IrisEncoder::normalizeIris(const Image* image, Image* dest, CvMat* destMask
 
 		double w = q*double(pupilContour.size());
 		p0 = pupilContour[int(std::floor(w))];
-		p1 = pupilContour[int(std::ceil(w))];
+		p1 = pupilContour[int(std::ceil(w)) % pupilContour.size()];
 		double prop = w-std::floor(w);
 		double xfrom = double(p0.x) + double(p1.x-p0.x)*prop;
 		double yfrom = double(p0.y) + double(p1.y-p0.y)*prop;
 
 		w = q*double(irisContour.size());
 		p0 = irisContour[int(std::floor(w))];
-		p1 = irisContour[int(std::ceil(w))];
+		p1 = irisContour[int(std::ceil(w)) % irisContour.size()];
 		prop = w-std::floor(w);
 		double xto = double(p0.x) + double(p1.x-p0.x)*prop;
 		double yto = double(p0.y) + double(p1.y-p0.y)*prop;

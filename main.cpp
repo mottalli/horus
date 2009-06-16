@@ -91,13 +91,12 @@ int main(int argc, char** argv) {
 
 		cvShowImage("normalizada", encoder.buffers.normalizedTexture);
 
-		Image* foo1 = cvCreateImage(cvGetSize(encoder.buffers.filteredTexture), IPL_DEPTH_32F, 1);
-		Image* foo2 = cvCreateImage(cvGetSize(encoder.buffers.filteredTexture), IPL_DEPTH_8U, 1);
-		cvSplit(encoder.buffers.filteredTexture, NULL, foo1, NULL, NULL);
-		//cvNormalize(foo1, foo2, 0, 255, CV_MINMAX);
-		cvThreshold(foo1, foo2, 0, 255, CV_THRESH_BINARY);
-		cvShowImage("filtrada", irisTemplate.getTemplateImage());
-		cvShowImage("mascara", irisTemplate.getNoiseMaskImage());
+		IplImage* templateImage = irisTemplate.getTemplateImage();
+		IplImage* noiseMaskImage = irisTemplate.getNoiseMaskImage();
+		cvShowImage("filtrada", templateImage);
+		cvShowImage("mascara", noiseMaskImage);
+		cvReleaseImage(&templateImage);
+		cvReleaseImage(&noiseMaskImage);
 
 		/*Image* texture = foo1;
 		int hist_size[] = {256};
@@ -142,6 +141,7 @@ int main(int argc, char** argv) {
 			comparator.setSrcTemplate(irisTemplate);
 			storedTemplate = true;
 		}
+		cvReleaseImage(&frame);
 	}
 
 

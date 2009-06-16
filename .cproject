@@ -33,7 +33,7 @@
 </tool>
 <tool id="cdt.managedbuild.tool.gnu.c.linker.exe.debug.1097982299" name="GCC C Linker" superClass="cdt.managedbuild.tool.gnu.c.linker.exe.debug"/>
 <tool id="cdt.managedbuild.tool.gnu.cpp.linker.exe.debug.1444794540" name="GCC C++ Linker" superClass="cdt.managedbuild.tool.gnu.cpp.linker.exe.debug">
-<option id="gnu.cpp.link.option.libs.1849231241" superClass="gnu.cpp.link.option.libs" valueType="libs">
+<option id="gnu.cpp.link.option.libs.1849231241" name="Libraries (-l)" superClass="gnu.cpp.link.option.libs" valueType="libs">
 <listOptionValue builtIn="false" value="cxcore"/>
 <listOptionValue builtIn="false" value="cv"/>
 <listOptionValue builtIn="false" value="highgui"/>
@@ -50,6 +50,12 @@
 </tool>
 </toolChain>
 </folderInfo>
+<fileInfo id="cdt.managedbuild.config.gnu.exe.debug.1954460753.397094105" name="horus_wrap.cxx" rcbsApplicability="disable" resourcePath="python_interface/horus_wrap.cxx" toolsToInvoke="cdt.managedbuild.tool.gnu.cpp.compiler.exe.debug.1243334802.132831189">
+<tool id="cdt.managedbuild.tool.gnu.cpp.compiler.exe.debug.1243334802.132831189" name="GCC C++ Compiler" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.exe.debug.1243334802"/>
+</fileInfo>
+<sourceEntries>
+<entry excluding="python_interface/horus_wrap.cxx" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
+</sourceEntries>
 </configuration>
 </storageModule>
 <storageModule moduleId="scannerConfiguration">
@@ -304,6 +310,7 @@
 <storageModule moduleId="org.eclipse.cdt.core.externalSettings"/>
 <storageModule moduleId="org.eclipse.cdt.core.language.mapping"/>
 <storageModule moduleId="org.eclipse.cdt.make.core.buildtargets"/>
+<storageModule moduleId="org.eclipse.cdt.internal.ui.text.commentOwnerProjectMappings"/>
 </cconfiguration>
 <cconfiguration id="cdt.managedbuild.config.gnu.exe.release.1142511660">
 <storageModule buildSystemId="org.eclipse.cdt.managedbuilder.core.configurationDataProvider" id="cdt.managedbuild.config.gnu.exe.release.1142511660" moduleId="org.eclipse.cdt.core.settings" name="Release">
@@ -345,6 +352,12 @@
 </tool>
 </toolChain>
 </folderInfo>
+<fileInfo id="cdt.managedbuild.config.gnu.exe.release.1142511660.247338694" name="horus_wrap.cxx" rcbsApplicability="disable" resourcePath="python_interface/horus_wrap.cxx" toolsToInvoke="cdt.managedbuild.tool.gnu.cpp.compiler.exe.release.1059023942.1617190153">
+<tool id="cdt.managedbuild.tool.gnu.cpp.compiler.exe.release.1059023942.1617190153" name="GCC C++ Compiler" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.exe.release.1059023942"/>
+</fileInfo>
+<sourceEntries>
+<entry excluding="python_interface/horus_wrap.cxx" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
+</sourceEntries>
 </configuration>
 </storageModule>
 <storageModule moduleId="scannerConfiguration">
@@ -599,6 +612,7 @@
 <storageModule moduleId="org.eclipse.cdt.core.language.mapping"/>
 <storageModule moduleId="org.eclipse.cdt.make.core.buildtargets"/>
 <storageModule moduleId="org.eclipse.cdt.core.externalSettings"/>
+<storageModule moduleId="org.eclipse.cdt.internal.ui.text.commentOwnerProjectMappings"/>
 </cconfiguration>
 </storageModule>
 <storageModule moduleId="cdtBuildSystem" version="4.0.0">

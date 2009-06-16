@@ -57,17 +57,23 @@ IrisTemplate::~IrisTemplate()
 Image* IrisTemplate::getTemplateImage() const
 {
 	CvMat* foo = cvCreateMat(this->irisTemplate->height, this->irisTemplate->width*8, CV_8U);
-	Image* img = new Image;
 	Tools::unpackBits(this->irisTemplate, foo, 255);
-	return cvGetImage(foo, img);
+	Image* img = cvCreateImage(cvGetSize(foo), IPL_DEPTH_8U, 1);
+	cvCopy(foo, img);
+
+	cvReleaseMat(&foo);
+	return img;
 }
 
 Image* IrisTemplate::getNoiseMaskImage() const
 {
-	CvMat* foo = cvCreateMat(this->mask->height, this->irisTemplate->width*8, CV_8U);
-	Image* img = new Image;
+	CvMat* foo = cvCreateMat(this->mask->height, this->mask->width*8, CV_8U);
 	Tools::unpackBits(this->mask, foo, 255);
-	return cvGetImage(foo, img);
+	Image* img = cvCreateImage(cvGetSize(foo), IPL_DEPTH_8U, 1);
+	cvCopy(foo, img);
+
+	cvReleaseMat(&foo);
+	return img;
 }
 
 CvMat* IrisTemplate::getUnpackedTemplate() const

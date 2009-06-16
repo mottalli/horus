@@ -30,8 +30,8 @@ public:
 
 	IrisTemplate& operator=(const IrisTemplate& otherTemplate);
 
-	std::string serialize() const;
-	static IrisTemplate unserialize(const std::string& serializedTemplate);
+	//std::string serialize() const;
+	//static IrisTemplate unserialize(const std::string& serializedTemplate);
 
 	virtual ~IrisTemplate();
 protected:

@@ -194,9 +194,9 @@ Circle PupilSegmentator::cascadedIntegroDifferentialOperator(const Image* image)
     int maxrad = 80;
     int minx = 10, miny = 10;
     int maxx = image->width-10, maxy = image->height-10;
-    int x, y, radius;
+    int x, y, radius = 0;
     //int maxStep = INT_MIN;
-    int bestX, bestY, bestRadius;
+    int bestX = 0, bestY = 0, bestRadius = 0;
 
     std::vector<int> steps(3), radiusSteps(3);
     steps[0] = 10; steps[1] = 3; steps[2] = 1;
