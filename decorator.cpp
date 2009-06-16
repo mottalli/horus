@@ -20,8 +20,10 @@ void Decorator::drawSegmentationResult(Image* image, const SegmentationResult& s
 	Circle irisCircle = segmentationResult.irisCircle;
 
 	if (segmentationResult.eyelidsSegmented) {
-		this->drawParabola(image, segmentationResult.upperEyelid, -1, -1);
-		this->drawParabola(image, segmentationResult.lowerEyelid, -1, -1);
+		int xMin = segmentationResult.irisCircle.xc-segmentationResult.irisCircle.radius;
+		int xMax = segmentationResult.irisCircle.xc+segmentationResult.irisCircle.radius;
+		this->drawParabola(image, segmentationResult.upperEyelid, xMin, xMax);
+		this->drawParabola(image, segmentationResult.lowerEyelid, xMin, xMax);
 	}
 
 	/*cvCircle(image, cvPoint(segmentationResult.irisCircle.xc,segmentationResult.irisCircle.yc), segmentationResult.irisCircle.radius, CV_RGB(255,255,255), 1);
@@ -51,8 +53,8 @@ void Decorator::drawContour(Image* image, const Contour& contour)
 
 void Decorator::drawParabola(Image* image, const Parabola& parabola, int xMin, int xMax)
 {
-	if (xMin == -1) xMin = 1;
-	if (xMax == -1) xMax = image->width;
+	if (xMin < 0) xMin = 1;
+	if (xMax < 0 || xMax >= image->width) xMax = image->width-1;
 
 	CvPoint lastPoint = cvPoint(xMin, int(parabola.value(xMin)));
 	for (int x = xMin+1; x <= xMax; x++) {

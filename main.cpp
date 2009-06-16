@@ -13,6 +13,7 @@
 #include "irisencoder.h"
 #include "parameters.h"
 #include "videoprocessor.h"
+#include "templatecomparator.h"
 
 using namespace std;
 
@@ -42,7 +43,12 @@ int main(int argc, char** argv) {
 	cvReleaseImage(&imagen);
 #elif 1
 	//const string path_video = "/home/marcelo/Mis_Documentos/Facu/Tesis/Bases de datos/Videos/marcelo1";
-	string path_video = string(argv[1]);
+	string path_video;
+	if (argc < 2) {
+		path_video = "/home/marcelo/Mis_Documentos/Facu/Tesis/Bases de datos/Videos/bursztyn1/";
+	} else {
+		path_video = string(argv[1]);
+	}
 	//const string path_video = "/home/marcelo/Mis_Documentos/Facu/Tesis/Bases de datos/Videos/bursztyn1";
 	IplImage* frame;
 	Segmentator segmentator;
@@ -63,6 +69,9 @@ int main(int argc, char** argv) {
 	cvMoveWindow("mascara", 900, 800);
 	cvNamedWindow("histo");
 	cvMoveWindow("histo", 900, 900);
+
+	TemplateComparator comparator;
+	bool storedTemplate = false;
 
 	for (unsigned numero_imagen = 1; ; numero_imagen++) {
 		char path[100];
@@ -87,12 +96,10 @@ int main(int argc, char** argv) {
 		cvSplit(encoder.buffers.filteredTexture, NULL, foo1, NULL, NULL);
 		//cvNormalize(foo1, foo2, 0, 255, CV_MINMAX);
 		cvThreshold(foo1, foo2, 0, 255, CV_THRESH_BINARY);
-		cvShowImage("filtrada", irisTemplate.getTemplate());
-		cvShowImage("mascara", irisTemplate.getNoiseMask());
+		cvShowImage("filtrada", irisTemplate.getTemplateImage());
+		cvShowImage("mascara", irisTemplate.getNoiseMaskImage());
 
-
-
-		Image* texture = foo1;
+		/*Image* texture = foo1;
 		int hist_size[] = {256};
 		CvHistogram* hist = cvCreateHist(1, hist_size, CV_HIST_ARRAY, NULL, 1);
 		double min, max;
@@ -123,10 +130,18 @@ int main(int argc, char** argv) {
 		cvShowImage("histo", imgHistogram);
 		cvReleaseImage(&imgHistogram);
 		cvReleaseImage(&foo1);
-		cvReleaseImage(&foo2);
+		cvReleaseImage(&foo2);*/
+
+		if (storedTemplate) {
+			cout << "Hamming distance: " << comparator.compare(irisTemplate) << endl;
+		}
 
 		cvShowImage("imagen", frame);
-		cvWaitKey(10);
+		char k = cvWaitKey(10);
+		if (k == 's') {
+			comparator.setSrcTemplate(irisTemplate);
+			storedTemplate = true;
+		}
 	}
 
 

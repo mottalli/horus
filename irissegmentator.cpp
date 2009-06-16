@@ -53,15 +53,18 @@ ContourAndCloseCircle IrisSegmentator::segmentIris(const Image* image, const Con
 	int sumY1, maxSumY1 = INT_MIN, sumY2, maxSumY2 = INT_MIN;
 	int bestY1 = 0, bestY2 = 0;
 
+	assert(gradient->depth == IPL_DEPTH_16S);
 	for (int y = 0; y < gradient->height; y++) {
 		sumY1 = 0;
 		sumY2 = 0;
 
+		int16_t* row = (int16_t*)(gradient->imageData + y*gradient->widthStep);
+
 		for (int x = x0; x < x1; x++) {
-			sumY1 += cvGetReal2D(gradient, y, XIMAGE(x));
+			sumY1 += row[XIMAGE(x)];
 		}
 		for (int x = x2; x < x3; x++) {
-			sumY2 += cvGetReal2D(gradient, y, x);		// No need to use XIMAGE here
+			sumY2 += row[x];		// No need to use XIMAGE here
 		}
 
 		if (sumY1 > maxSumY1) {

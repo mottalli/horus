@@ -236,7 +236,7 @@ Circle PupilSegmentator::cascadedIntegroDifferentialOperator(const Image* image)
 PupilSegmentator::MaxAvgRadiusResult PupilSegmentator::maxAvgRadius(const Image* image, int x, int y, int radmin, int radmax, int radstep)
 {
     int maxDifference, difference;
-    unsigned char actualAvg, nextAvg;
+    uint8_t actualAvg, nextAvg;
     MaxAvgRadiusResult result;
 
     maxDifference = INT_MIN;
@@ -258,13 +258,13 @@ PupilSegmentator::MaxAvgRadiusResult PupilSegmentator::maxAvgRadius(const Image*
     return result;
 }
 
-unsigned char PupilSegmentator::circleAverage(const Image* image, int xc, int yc, int rc) {
+uint8_t PupilSegmentator::circleAverage(const Image* image, int xc, int yc, int rc) {
     // Optimized Bresenham algorithm for circles
     int x = 0;
     int y = rc;
     int d = 3 - 2 * rc;
     int i, w;
-    unsigned char *row1, *row2, *row3, *row4;
+    uint8_t *row1, *row2, *row3, *row4;
     unsigned S, n;
 
     i = 0;
@@ -276,10 +276,10 @@ unsigned char PupilSegmentator::circleAverage(const Image* image, int xc, int yc
             i++;
             w = (i - 1)*8 + 1;
 
-            row1 = ((unsigned char*) (image->imageData)) + image->widthStep * (yc + y);
-            row2 = ((unsigned char*) (image->imageData)) + image->widthStep * (yc - y);
-            row3 = ((unsigned char*) (image->imageData)) + image->widthStep * (yc + x);
-            row4 = ((unsigned char*) (image->imageData)) + image->widthStep * (yc - x);
+            row1 = ((uint8_t*) (image->imageData)) + image->widthStep * (yc + y);
+            row2 = ((uint8_t*) (image->imageData)) + image->widthStep * (yc - y);
+            row3 = ((uint8_t*) (image->imageData)) + image->widthStep * (yc + x);
+            row4 = ((uint8_t*) (image->imageData)) + image->widthStep * (yc - x);
 
             bool row1in = ((yc + y) >= 0 && (yc + y) < image->height);
             bool row2in = ((yc - y) >= 0 && (yc - y) < image->height);
@@ -338,10 +338,10 @@ unsigned char PupilSegmentator::circleAverage(const Image* image, int xc, int yc
             i++;
             w = (i - 1)*8 + 1;
 
-            row1 = ((unsigned char*) (image->imageData)) + image->widthStep * (yc + y);
-            row2 = ((unsigned char*) (image->imageData)) + image->widthStep * (yc - y);
-            row3 = ((unsigned char*) (image->imageData)) + image->widthStep * (yc + x);
-            row4 = ((unsigned char*) (image->imageData)) + image->widthStep * (yc - x);
+            row1 = ((uint8_t*) (image->imageData)) + image->widthStep * (yc + y);
+            row2 = ((uint8_t*) (image->imageData)) + image->widthStep * (yc - y);
+            row3 = ((uint8_t*) (image->imageData)) + image->widthStep * (yc + x);
+            row4 = ((uint8_t*) (image->imageData)) + image->widthStep * (yc - x);
 
             S += unsigned(row1[xc + x]);
             S += unsigned(row1[xc - x]);
@@ -364,7 +364,7 @@ unsigned char PupilSegmentator::circleAverage(const Image* image, int xc, int yc
         }
     }
 
-    return (unsigned char) (S / n);
+    return (uint8_t) (S / n);
 }
 
 void PupilSegmentator::similarityTransform() {
@@ -380,11 +380,11 @@ void PupilSegmentator::similarityTransform() {
         this->_lastSigma = sigma;
         this->_lastMu = mu;
 
-        unsigned char* pLUT = this->buffers.LUT->data.ptr;
+        uint8_t* pLUT = this->buffers.LUT->data.ptr;
         for (int i = 0; i < 256; i++) {
             num = (double(i)-mu)*(double(i)-mu);
             res = std::exp(-num/denom)*255.0;
-            pLUT[i] = (unsigned char)(res);
+            pLUT[i] = (uint8_t)(res);
         }
     }
 

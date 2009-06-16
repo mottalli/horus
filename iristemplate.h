@@ -9,25 +9,34 @@
 #define IRISTEMPLATE_H_
 
 #include "common.h"
+#include <string>
+
+class TemplateComparator;
 
 class IrisTemplate {
+	friend class TemplateComparator;
 public:
 	IrisTemplate();
 	IrisTemplate(const IrisTemplate& otherTemplate);
 	IrisTemplate(const CvMat* binaryTemplate, const CvMat* binaryMask);
 
-	IplImage* getTemplate(void) const;
-	IplImage* getNoiseMask(void) const;
+	IplImage* getTemplateImage(void) const;
+	IplImage* getNoiseMaskImage(void) const;
+	CvMat* getUnpackedTemplate() const;
+	CvMat* getUnpackedMask() const;
+
+	inline const CvMat* getPackedTemplate() const { return this->irisTemplate; };
+	inline const CvMat* getPackedMask() const { return this->mask; };
 
 	IrisTemplate& operator=(const IrisTemplate& otherTemplate);
 
+	std::string serialize() const;
+	static IrisTemplate unserialize(const std::string& serializedTemplate);
+
 	virtual ~IrisTemplate();
-private:
+protected:
 	CvMat* irisTemplate;
 	CvMat* mask;
-
-	void packBits(const CvMat* src, CvMat* dest) const;
-	void unpackBits(const CvMat* src, CvMat* dest, int trueval = 1) const;
 };
 
 #endif /* IRISTEMPLATE_H_ */
