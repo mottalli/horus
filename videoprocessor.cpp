@@ -6,133 +6,102 @@
  */
 
 #include "videoprocessor.h"
+#include <stdexcept>
 #include <iostream>
 #include <cmath>
 
 void cvShiftDFT(CvArr * src_arr, CvArr * dst_arr );
 
-VideoProcessor::VideoProcessor() {
-
-}
-
-VideoProcessor::~VideoProcessor() {
-}
-
-double VideoProcessor::imageQuality(const Image* image)
+VideoProcessor::VideoProcessor()
 {
-	assert(image->nChannels == 1);
+	this->buffers.lastFrame = NULL;
+	this->lastStatus = DEFOCUSED;
+}
 
-	Image* real = cvCreateImage(cvGetSize(image), IPL_DEPTH_32F, 1);
-	Image* imaginary = cvCreateImage(cvGetSize(image), IPL_DEPTH_32F, 1);
-	Image* resultFT = cvCreateImage(cvGetSize(image), IPL_DEPTH_32F, 2);
-	Image* powerSpectrum = cvCreateImage(cvGetSize(image), IPL_DEPTH_32F, 1);
+VideoProcessor::~VideoProcessor()
+{
+	if (this->buffers.lastFrame != NULL) {
+		cvReleaseImage(&this->buffers.lastFrame);
+	}
+}
 
-	cvConvert(image, real);
+VideoProcessor::VideoStatus VideoProcessor::processFrame(const Image* frame)
+{
+	this->lastStatus = this->doProcess(frame);
+	return this->lastStatus;
+}
 
-	cvZero(imaginary);
-	cvMerge(real, imaginary, NULL, NULL, resultFT);
-	cvDFT(resultFT, resultFT, CV_DXT_FORWARD);
+VideoProcessor::VideoStatus VideoProcessor::doProcess(const Image* frame)
+{
+	if (frame->nChannels == 1) {
+		cvCopy(frame, this->buffers.lastFrame);
+	} else {
+		cvCvtColor(frame, this->buffers.lastFrame, CV_BGR2GRAY);
+	}
 
-	cvSplit(resultFT, real, imaginary, NULL, NULL);
+	Parameters* parameters = Parameters::getParameters();
 
-	// Calculate the power spectrum: re^2 + imag^2
-	cvMul(real, real, real);
-	cvMul(imaginary, imaginary, imaginary);
-	cvAdd(real, imaginary, powerSpectrum);
+	double focus = this->qualityChecker.checkFocus(this->buffers.lastFrame);
+	if (focus < parameters->focusThreshold) {
+		return DEFOCUSED;
+	}
 
-	// Put the DC coefficient in the middle of the image (makes calculations easier)
-	double dc = cvGetReal2D(powerSpectrum, 0, 0);
-	cvShiftDFT(powerSpectrum, powerSpectrum);
+	if (parameters->interlacedVideo) {
+		double interlacedCorrelation = this->qualityChecker.interlacedCorrelation(this->buffers.lastFrame);
+		if (interlacedCorrelation < parameters->correlationThreshold) {
+			return DEFOCUSED;
 
-	// Now, calculate the PHF
-	double totalPower = 0.0;
-	double phf = 0.0;
-
-	int x0 = powerSpectrum->width/2;
-	int y0 = powerSpectrum->height/2;
-	int radius2 = powerSpectrum->width/8;
-	radius2 = radius2*radius2;
-
-	for (int x = 0; x < powerSpectrum->width; x++) {
-		for (int y = 0; y < powerSpectrum->height; y++) {
-			double val = cvGetReal2D(powerSpectrum, y, x);
-
-			totalPower += val;
-			if ((x-0)*(x-x0)+(y-y0)*(y-y0) > radius2) {
-				phf += val;
-			}
 		}
 	}
 
-	cvReleaseImage(&real);
-	cvReleaseImage(&imaginary);
-	cvReleaseImage(&resultFT);
-	cvReleaseImage(&powerSpectrum);
+	SegmentationResult sr = segmentator.segmentImage(this->buffers.lastFrame);
+	if (!qualityChecker.validateSegmentation(this->buffers.lastFrame, sr)) {
+		// No iris found on the image, or the segmentation is incorrect
+		return FOCUSED_NO_IRIS;
+	}
 
-	return 100.0*std::log10(phf)/std::log10(totalPower);
+	if (!qualityChecker.checkIrisQuality(this->buffers.lastFrame, sr)) {
+		// The image is kind of focused but the iris doesn't have enough quality
+		float q = 0.2;
+
+		if (sr.irisCircle.radius*2 < parameters->expectedIrisDiameter*q) {
+			// Iris too far?
+			return IRIS_TOO_FAR;
+		} else if (sr.irisCircle.radius*2 > parameters->expectedIrisDiameter*q) {
+			// Iris too close?
+			return IRIS_TOO_CLOSE;
+		} else {
+			// Low quality for some reason...
+			return IRIS_LOW_QUALITY;
+		}
+	}
+
+	// At this point we have a good quality image and we have enough reasons to believe
+	// it's properly segmented.
+	if (true) {
+		return FOCUSED_IRIS;
+	} else {
+		//TODO
+		return GOT_TEMPLATE;
+	}
 }
 
-/******************************************************************************/
-// Rearrange the quadrants of Fourier image so that the origin is at
-// the image center
-// src & dst arrays of equal size & type
-void cvShiftDFT(CvArr * src_arr, CvArr * dst_arr )
+IrisTemplate VideoProcessor::getTemplate()
 {
-    CvMat * tmp = NULL;
-    CvMat q1stub, q2stub;
-    CvMat q3stub, q4stub;
-    CvMat d1stub, d2stub;
-    CvMat d3stub, d4stub;
-    CvMat * q1, * q2, * q3, * q4;
-    CvMat * d1, * d2, * d3, * d4;
+	if (this->lastStatus != FOCUSED_IRIS || this->lastStatus != GOT_TEMPLATE) {
+		throw std::runtime_error("Requested iris template but no iris detected in image");
+	}
 
-    CvSize size = cvGetSize(src_arr);
-    CvSize dst_size = cvGetSize(dst_arr);
-    int cx, cy;
-
-    if(dst_size.width != size.width ||
-       dst_size.height != size.height){
-        cvError( CV_StsUnmatchedSizes,
-		   "cvShiftDFT", "Source and Destination arrays must have equal sizes",
-		   __FILE__, __LINE__ );
-    }
-
-    if(src_arr==dst_arr){
-        tmp = cvCreateMat(size.height/2, size.width/2, cvGetElemType(src_arr));
-    }
-
-    cx = size.width/2;
-    cy = size.height/2; // image center
-
-    q1 = cvGetSubRect( src_arr, &q1stub, cvRect(0,0,cx, cy) );
-    q2 = cvGetSubRect( src_arr, &q2stub, cvRect(cx,0,cx,cy) );
-    q3 = cvGetSubRect( src_arr, &q3stub, cvRect(cx,cy,cx,cy) );
-    q4 = cvGetSubRect( src_arr, &q4stub, cvRect(0,cy,cx,cy) );
-    d1 = cvGetSubRect( src_arr, &d1stub, cvRect(0,0,cx,cy) );
-    d2 = cvGetSubRect( src_arr, &d2stub, cvRect(cx,0,cx,cy) );
-    d3 = cvGetSubRect( src_arr, &d3stub, cvRect(cx,cy,cx,cy) );
-    d4 = cvGetSubRect( src_arr, &d4stub, cvRect(0,cy,cx,cy) );
-
-    if(src_arr!=dst_arr){
-        if( !CV_ARE_TYPES_EQ( q1, d1 )){
-            cvError( CV_StsUnmatchedFormats,
-			"cvShiftDFT", "Source and Destination arrays must have the same format",
-			__FILE__, __LINE__ );
-        }
-        cvCopy(q3, d1, 0);
-        cvCopy(q4, d2, 0);
-        cvCopy(q1, d3, 0);
-        cvCopy(q2, d4, 0);
-    }
-    else{
-        cvCopy(q3, tmp, 0);
-        cvCopy(q1, q3, 0);
-        cvCopy(tmp, q1, 0);
-        cvCopy(q4, tmp, 0);
-        cvCopy(q2, q4, 0);
-        cvCopy(tmp, q2, 0);
-
-		cvReleaseMat(&tmp);
-    }
+	//TODO
+	return IrisTemplate();
 }
-/******************************************************************************/
+
+void VideoProcessor::initializeBuffers(const Image* frame)
+{
+	if (this->buffers.lastFrame == NULL || !SAME_SIZE(this->buffers.lastFrame, frame)) {
+		if (this->buffers.lastFrame != NULL) {
+			cvReleaseImage(&this->buffers.lastFrame);
+		}
+		this->buffers.lastFrame = cvCreateImage(cvGetSize(frame), IPL_DEPTH_8U, 1);
+	}
+}

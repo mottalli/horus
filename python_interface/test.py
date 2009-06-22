@@ -5,6 +5,9 @@ from opencv.highgui import *
 segmentator = horus.Segmentator()
 decorator = horus.Decorator()
 
+parameters = horus.Parameters.getParameters()
+print parameters.muPupil
+
 imagen = cvLoadImage('/home/marcelo/Mis_Documentos/Facu/Tesis/Bases de datos/UBA/norberto_der_1.jpg', 0)
 
 results = segmentator.segmentImage(imagen)

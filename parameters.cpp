@@ -24,6 +24,11 @@ Parameters::Parameters() {
 
 	templateWidth = 240;
 	templateHeight = 20;
+
+	interlacedVideo = true;
+	focusThreshold = 50;
+	correlationThreshold = 95;
+	expectedIrisDiameter = 250;
 }
 
 Parameters::~Parameters() {

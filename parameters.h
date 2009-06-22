@@ -16,6 +16,7 @@ public:
 	virtual ~Parameters();
 	static Parameters* getParameters();
 
+	// Segmentation parameters
 	unsigned bufferWidth;
 	double muPupil;
 	double sigmaPupil;
@@ -25,6 +26,13 @@ public:
 
 	int parabolicDetectorStep;
 
+	// Video processing parameters
+	bool interlacedVideo;
+	int focusThreshold;
+	int correlationThreshold;
+	int expectedIrisDiameter;
+
+	// Template generation parameters
 	int templateWidth;
 	int templateHeight;
 
