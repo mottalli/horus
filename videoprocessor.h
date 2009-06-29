@@ -35,12 +35,13 @@ public:
 	VideoStatus processFrame(const Image* frame);
 	IrisTemplate getTemplate();
 
-private:
+//private:
 	QualityChecker qualityChecker;
 	Segmentator segmentator;
 	IrisEncoder irisEncoder();
 
 	VideoStatus lastStatus;
+	SegmentationResult lastSegmentationResult;
 
 	VideoStatus doProcess(const Image* frame);
 	void initializeBuffers(const Image* frame);

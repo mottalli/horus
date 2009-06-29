@@ -50,35 +50,6 @@ void Tools::unpackBits(const CvMat* src, CvMat* dest, int trueval)
 	}
 }
 
-/*
- 10000000: 128
- 01000000: 64
- 00100000: 32
- 00010000: 16
- 00001000: 8
- 00000100: 4
- 00000010: 2
- 00000001: 1
- */
-
-static uint8_t BIT_MASK[] = {0x80, 0x40, 0x20, 0x10, 0x08, 0x04, 0x02, 0x01 };
-
-uint8_t setBit(uint8_t b, int bit, bool value)
-{
-	if (value) {
-		// Set to 1
-		return b | BIT_MASK[bit];
-	} else {
-		// Set to 0
-		return b & (~BIT_MASK[bit]);
-	}
-}
-
-bool getBit(uint8_t b, int bit)
-{
-	return (b & BIT_MASK[bit]) ? true : false;
-}
-
 void Tools::drawHistogram(const IplImage* img)
 {
 	int bins = 256;
@@ -110,4 +81,33 @@ void Tools::drawHistogram(const IplImage* img)
 	cvReleaseImage(&imgHist);
 	cvReleaseHist(&hist);
 	cvReleaseImage(&copy);
+}
+
+/*
+ 10000000: 128
+ 01000000: 64
+ 00100000: 32
+ 00010000: 16
+ 00001000: 8
+ 00000100: 4
+ 00000010: 2
+ 00000001: 1
+ */
+
+static uint8_t BIT_MASK[] = {0x80, 0x40, 0x20, 0x10, 0x08, 0x04, 0x02, 0x01 };
+
+uint8_t setBit(uint8_t b, int bit, bool value)
+{
+	if (value) {
+		// Set to 1
+		return b | BIT_MASK[bit];
+	} else {
+		// Set to 0
+		return b & (~BIT_MASK[bit]);
+	}
+}
+
+bool getBit(uint8_t b, int bit)
+{
+	return (b & BIT_MASK[bit]) ? true : false;
 }

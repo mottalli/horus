@@ -36,6 +36,8 @@ void Decorator::drawSegmentationResult(Image* image, const SegmentationResult& s
 
 void Decorator::drawContour(Image* image, const Contour& contour, CvScalar color)
 {
+	if (contour.size() < 2) return;
+
 	const CvPoint p0 = contour[0];
 	int n = contour.size();
 

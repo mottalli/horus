@@ -65,7 +65,7 @@ double QualityChecker::interlacedCorrelation(const Image* frame)
 
 double QualityChecker::checkFocus(const Image* image)
 {
-	Image* src = cvCreateImage(cvGetSize(image), IPL_DEPTH_32F, 1);
+	/*Image* src = cvCreateImage(cvGetSize(image), IPL_DEPTH_32F, 1);
 	cvConvert(image, src);
 
 	cvDCT(src, src, CV_DXT_FORWARD);
@@ -94,7 +94,18 @@ double QualityChecker::checkFocus(const Image* image)
 	double c = 0.6;
 
 	cvReleaseImage(&src);
-	return 100.0*q*q/(q*q+c*c);
+	return 100.0*q*q/(q*q+c*c);*/
+
+	Image* src = cvCreateImage(cvGetSize(image), IPL_DEPTH_32F, 1);
+	cvConvert(image, src);
+	cvSobel(src, src, 0, 1, 3);
+	cvAbs(src, src);
+	double s = cvSum(src).val[0];
+	double c = 3e+06;
+
+	cvReleaseImage(&src);
+	return 100.0*s*s/(s*s+c*c);
+
 }
 
 /**

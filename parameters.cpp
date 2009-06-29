@@ -27,7 +27,7 @@ Parameters::Parameters() {
 
 	interlacedVideo = true;
 	focusThreshold = 50;
-	correlationThreshold = 95;
+	correlationThreshold = 92;
 	expectedIrisDiameter = 250;
 }
 

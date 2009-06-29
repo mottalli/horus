@@ -27,6 +27,7 @@ VideoProcessor::~VideoProcessor()
 
 VideoProcessor::VideoStatus VideoProcessor::processFrame(const Image* frame)
 {
+	this->initializeBuffers(frame);
 	this->lastStatus = this->doProcess(frame);
 	return this->lastStatus;
 }
@@ -54,20 +55,20 @@ VideoProcessor::VideoStatus VideoProcessor::doProcess(const Image* frame)
 		}
 	}
 
-	SegmentationResult sr = segmentator.segmentImage(this->buffers.lastFrame);
+	this->lastSegmentationResult = segmentator.segmentImage(this->buffers.lastFrame);
 	/*if (!qualityChecker.segmentationScore(this->buffers.lastFrame, sr)) {
 		// No iris found on the image, or the segmentation is incorrect
 		return FOCUSED_NO_IRIS;
 	}*/
 
-	if (!qualityChecker.checkIrisQuality(this->buffers.lastFrame, sr)) {
+	if (!qualityChecker.checkIrisQuality(this->buffers.lastFrame, this->lastSegmentationResult)) {
 		// The image is kind of focused but the iris doesn't have enough quality
 		float q = 0.2;
 
-		if (sr.irisCircle.radius*2 < parameters->expectedIrisDiameter*q) {
+		if (this->lastSegmentationResult.irisCircle.radius*2 < parameters->expectedIrisDiameter*q) {
 			// Iris too far?
 			return IRIS_TOO_FAR;
-		} else if (sr.irisCircle.radius*2 > parameters->expectedIrisDiameter*q) {
+		} else if (this->lastSegmentationResult.irisCircle.radius*2 > parameters->expectedIrisDiameter*q) {
 			// Iris too close?
 			return IRIS_TOO_CLOSE;
 		} else {

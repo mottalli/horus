@@ -10,6 +10,7 @@
 
 #include "irisencoder.h"
 #include "parameters.h"
+#include "tools.h"
 
 IrisEncoder::IrisEncoder() :
 	filter(1.0/32.0, 0.5)
@@ -31,6 +32,24 @@ IrisTemplate IrisEncoder::generateTemplate(const Image* image, const Segmentatio
 	assert(image->nChannels == 1);
 	this->initializeBuffers(image);
 	IrisEncoder::normalizeIris(image, this->buffers.normalizedTexture, this->buffers.noiseMask, segmentationResult);
+
+	// Mask away pixels too far from the median
+	CvScalar smean, sdev;
+	cvAvgSdv(this->buffers.normalizedTexture, &smean, &sdev, this->buffers.noiseMask);
+	double mean = smean.val[0], dev = sdev.val[0];
+	uint8_t uthresh = uint8_t(mean+dev);
+	uint8_t lthresh = uint8_t(mean-dev);
+
+	for (int y = 0; y < this->buffers.normalizedTexture->height; y++) {
+		uint8_t* row = ((uint8_t*)this->buffers.normalizedTexture->imageData) + y*this->buffers.normalizedTexture->widthStep;
+		for (int x = 0; x < this->buffers.normalizedTexture->width; x++) {
+			uint8_t val = row[x];
+			if (val < lthresh || val > uthresh) {
+				cvSetReal2D(this->buffers.noiseMask, y, x, 0);
+			}
+		}
+	}
+
 
 	this->applyFilter();
 
