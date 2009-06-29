@@ -80,7 +80,10 @@ int main(int argc, char** argv) {
 
 void processImage(Image* image)
 {
-	cout << qualityChecker.checkFocus(image) << endl;
+	//videoProcessor.processFrame(image);
+	//cout << qualityChecker.checkFocus(image) << endl;
+	SegmentationResult sr = segmentator.segmentImage(image);
+	decorator.drawSegmentationResult(image, sr);
 	cvShowImage("video", image);
 }
 

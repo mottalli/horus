@@ -147,6 +147,8 @@ Contour PupilSegmentator::adjustPupilContour(const Image* image, const Circle& a
 	HelperFunctions::extractRing(image, this->buffers.adjustmentRing,
 			approximateCircle.xc, approximateCircle.yc, radiusMin, radiusMax);
 
+	int infraredThreshold = Parameters::getParameters()->infraredThreshold;
+
 	// Calculate the vertical gradient
 	cvSobel(this->buffers.adjustmentRing, this->buffers.adjustmentRingGradient,
 			0, 1, 3);
@@ -166,6 +168,17 @@ Contour PupilSegmentator::adjustPupilContour(const Image* image, const Circle& a
 			if (gxy > maxGrad) {
 				maxGrad = gxy;
 				bestY = y;
+			}
+
+			// A maximum in the gradient may have been caused by the reflections
+			// of the infrared LEDs. In this case, default to the original circle
+			bool hasInfraredLed = false;
+			hasInfraredLed = hasInfraredLed || (cvGetReal2D(this->buffers.adjustmentRing, bestY, x) > infraredThreshold);
+			hasInfraredLed = hasInfraredLed || (bestY-1 >= 0 && cvGetReal2D(this->buffers.adjustmentRing, bestY-1, x) > infraredThreshold);
+			hasInfraredLed = hasInfraredLed || (bestY+1 < this->buffers.adjustmentRing->height && cvGetReal2D(this->buffers.adjustmentRing, bestY+1, x) > infraredThreshold);
+			if (hasInfraredLed) {
+				// The middle point is where the original circular contour passes through
+				bestY = gradient->height/2;
 			}
 		}
 

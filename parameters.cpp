@@ -20,6 +20,8 @@ Parameters::Parameters() {
 	irisAdjustmentRingWidth = 100;
 	irisAdjustmentRingHeight = 90;
 
+	infraredThreshold = 230;
+
 	parabolicDetectorStep = 10;
 
 	templateWidth = 240;

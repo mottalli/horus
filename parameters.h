@@ -24,6 +24,8 @@ public:
 	int pupilAdjustmentRingWidth, pupilAdjustmentRingHeight;
 	int irisAdjustmentRingWidth, irisAdjustmentRingHeight;
 
+	int infraredThreshold;
+
 	int parabolicDetectorStep;
 
 	// Video processing parameters
