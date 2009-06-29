@@ -15,10 +15,15 @@ class Decorator {
 public:
 	Decorator();
 
+	CvScalar pupilColor;
+	CvScalar irisColor;
+	CvScalar upperEyelidColor;
+	CvScalar lowerEyelidColor;
+
 	void drawSegmentationResult(Image* image, const SegmentationResult& segmentationResult);
 private:
-	void drawContour(Image* image, const Contour& contour);
-	void drawParabola(Image* image, const Parabola& parabola, int xMin, int xMax);
+	void drawContour(Image* image, const Contour& contour, CvScalar color);
+	void drawParabola(Image* image, const Parabola& parabola, int xMin, int xMax, CvScalar color);
 };
 
 #endif /* DECORATOR_H_ */

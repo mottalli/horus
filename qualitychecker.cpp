@@ -100,10 +100,100 @@ double QualityChecker::checkFocus(const Image* image)
 /**
  * Checks if the segmentation is correct (heuristics - not 100% reliable)
  */
-bool QualityChecker::validateSegmentation(const Image* image, const SegmentationResult& segmentationResult)
+double QualityChecker::segmentationScore(const Image* image, const SegmentationResult& sr)
 {
-	//TODO
-	return true;
+	CvMat portionMat;
+	IplImage portion;
+	double d = 1.5;
+	double r = d*sr.irisCircle.radius;
+	int x0 = std::max(0.0, sr.irisCircle.xc-r);
+	int x1 = std::min(double(image->width), sr.irisCircle.xc+r);
+	int y0 = std::max(0, sr.irisCircle.yc-20);
+	int y1 = std::min(image->height, sr.irisCircle.yc+20);
+
+	cvGetSubRect(image, &portionMat, cvRect(x0, y0, x1-x0, y1-y0));
+	cvGetImage(&portionMat, &portion);
+
+	int xpupil = sr.pupilCircle.xc-x0, ypupil = sr.pupilCircle.yc-y0;
+	int xiris = sr.irisCircle.xc-x0, yiris = sr.irisCircle.yc-y0;
+	int rpupil2 = sr.pupilCircle.radius*sr.pupilCircle.radius;
+	int riris2 = sr.irisCircle.radius*sr.irisCircle.radius;
+
+	double pupilSum = 0, irisSum = 0, scleraSum = 0;
+	int pupilCount = 0, irisCount = 0, scleraCount = 0;
+
+	// Computes the mean for each part
+	for (int y = 0; y < portion.height; y++) {
+		const uint8_t* row = (const uint8_t*)portion.imageData + y*portion.widthStep;
+		for (int x = 0; x < portion.width; x++) {
+			double val = double(row[x]);
+
+			int dx2,dy2;
+
+			// Inside pupil?
+			dx2 = (x-xpupil)*(x-xpupil);
+			dy2 = (y-ypupil)*(y-ypupil);
+			if (dx2+dy2 < rpupil2) {
+				pupilSum += val;
+				pupilCount++;
+			} else {
+				// Inside iris?
+				dx2 = (x-xiris)*(x-xiris);
+				dy2 = (y-yiris)*(y-yiris);
+				if (dx2+dy2 < riris2) {
+					irisSum += val;
+					irisCount++;
+				} else {
+					// Inside sclera
+					scleraSum += val;
+					scleraCount++;
+				}
+			}
+		}
+	}
+
+
+	double meanPupil = pupilSum/double(pupilCount);
+	double meanIris = irisSum/double(irisCount);
+	double meanSclera = scleraSum/double(scleraCount);
+
+	// Computes the deviation
+	pupilSum = 0;
+	irisSum = 0;
+	scleraSum = 0;
+	for (int y = 0; y < portion.height; y++) {
+		const uint8_t* row = (const uint8_t*)portion.imageData + y*portion.widthStep;
+		for (int x = 0; x < portion.width; x++) {
+			double val = double(row[x]);
+			int dx2,dy2;
+
+			// Inside pupil?
+			dx2 = (x-xpupil)*(x-xpupil);
+			dy2 = (y-ypupil)*(y-ypupil);
+			if (dx2+dy2 < rpupil2) {
+				pupilSum += (val-meanPupil)*(val-meanPupil);
+			} else {
+				// Inside iris?
+				dx2 = (x-xiris)*(x-xiris);
+				dy2 = (y-yiris)*(y-yiris);
+				if (dx2+dy2 < riris2) {
+					irisSum += (val-meanIris)*(val-meanIris);
+				} else {
+					// Inside sclera
+					scleraSum += (val-meanSclera)*(val-meanSclera);
+				}
+			}
+		}
+	}
+
+	double varPupil = pupilSum/double(pupilCount);
+	double varIris = irisSum/double(irisCount);
+	double varSclera = scleraSum/double(scleraCount);
+
+	double zScorePupilIris = abs(meanPupil-meanIris) / sqrt((varPupil+varIris)/2.0);
+	//double zScoreIrisSclera = abs(meanSclera-meanIris) / sqrt((varSclera+varIris)/2.0);
+
+	return zScorePupilIris;
 }
 
 /**

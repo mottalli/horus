@@ -14,6 +14,9 @@ namespace Tools
 {
 	void packBits(const CvMat* src, CvMat* dest);
 	void unpackBits(const CvMat* src, CvMat* dest, int trueval = 1);
+
+	// Useful debugging functions
+	void drawHistogram(const IplImage* img);
 }
 
 #endif /* TOOLS_H_ */

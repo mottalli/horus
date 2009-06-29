@@ -22,7 +22,15 @@ public:
 		Image* lastFrame;
 	} buffers;
 
-	typedef enum { DEFOCUSED, FOCUSED_NO_IRIS, IRIS_LOW_QUALITY, IRIS_TOO_CLOSE, IRIS_TOO_FAR, FOCUSED_IRIS, GOT_TEMPLATE } VideoStatus;
+	typedef enum {
+		DEFOCUSED,
+		FOCUSED_NO_IRIS,
+		IRIS_LOW_QUALITY,
+		IRIS_TOO_CLOSE,
+		IRIS_TOO_FAR,
+		FOCUSED_IRIS,
+		GOT_TEMPLATE
+	} VideoStatus;
 
 	VideoStatus processFrame(const Image* frame);
 	IrisTemplate getTemplate();

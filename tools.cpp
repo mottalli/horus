@@ -79,3 +79,35 @@ bool getBit(uint8_t b, int bit)
 	return (b & BIT_MASK[bit]) ? true : false;
 }
 
+void Tools::drawHistogram(const IplImage* img)
+{
+	int bins = 256;
+	int hsize[] = { bins };
+
+	float xranges[] = { 0, 256 };
+	float* ranges[] =  { xranges };
+
+	IplImage* copy = cvCloneImage(img);
+	IplImage* planes[] = { copy };
+
+	CvHistogram* hist = cvCreateHist(1, hsize, CV_HIST_ARRAY, ranges, 1);
+	cvCalcHist(planes, hist, false);
+
+	float min_value = 0, max_value = 0;
+	cvGetMinMaxHistValue(hist, &min_value, &max_value);
+
+	IplImage* imgHist = cvCreateImage(cvSize(bins, 50), IPL_DEPTH_8U, 1);
+	cvSet(imgHist, cvScalar(255,0,0,0));
+	for (int i = 0; i < bins; i++) {
+		float value = cvQueryHistValue_1D(hist, i);
+		int normalized = cvRound(imgHist->height*(value/max_value));
+		cvLine(imgHist, cvPoint(i,imgHist->height), cvPoint(i, imgHist->height-normalized), CV_RGB(0,0,0));
+	}
+
+	cvNamedWindow("histogram");
+	cvShowImage("histogram", imgHist);
+
+	cvReleaseImage(&imgHist);
+	cvReleaseHist(&hist);
+	cvReleaseImage(&copy);
+}
