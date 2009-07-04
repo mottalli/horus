@@ -30,6 +30,8 @@ public:
     Parabola()
     { x0 = y0 = p = a = b = c = 0.0; }
 
+	~Parabola() {}
+
     Parabola(double x0_, double y0_, double p_)
     {
         x0 = x0_; y0 = y0_; p = p_;

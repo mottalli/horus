@@ -31,6 +31,7 @@ public:
 	// Video processing parameters
 	bool interlacedVideo;
 	int focusThreshold;
+	double segmentationScoreThreshold;
 	int correlationThreshold;
 	int expectedIrisDiameter;
 

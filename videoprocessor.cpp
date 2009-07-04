@@ -56,10 +56,12 @@ VideoProcessor::VideoStatus VideoProcessor::doProcess(const Image* frame)
 	}
 
 	this->lastSegmentationResult = segmentator.segmentImage(this->buffers.lastFrame);
-	/*if (!qualityChecker.segmentationScore(this->buffers.lastFrame, sr)) {
+
+	this->lastSegmentationScore = qualityChecker.segmentationScore(this->buffers.lastFrame, this->lastSegmentationResult);
+	if (this->lastSegmentationScore > parameters->segmentationScoreThreshold) {
 		// No iris found on the image, or the segmentation is incorrect
 		return FOCUSED_NO_IRIS;
-	}*/
+	}
 
 	if (!qualityChecker.checkIrisQuality(this->buffers.lastFrame, this->lastSegmentationResult)) {
 		// The image is kind of focused but the iris doesn't have enough quality

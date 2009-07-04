@@ -19,6 +19,7 @@
 
 %{
 #include "../clock.h"
+#include "../common.h"
 #include "../decorator.h"
 #include "../eyelidsegmentator.h"
 #include "../helperfunctions.h"
@@ -29,12 +30,15 @@
 #include "../pupilsegmentator.h"
 #include "../segmentationresult.h"
 #include "../segmentator.h"
+#include "../serializer.h"
 #include "../templatecomparator.h"
 #include "../tools.h"
+#include "../types.h"
 #include "../videoprocessor.h"
 %}
 
 %include "../clock.h"
+%include "../common.h"
 %include "../decorator.h"
 %include "../eyelidsegmentator.h"
 %include "../helperfunctions.h"
@@ -45,8 +49,10 @@
 %include "../pupilsegmentator.h"
 %include "../segmentationresult.h"
 %include "../segmentator.h"
+%include "../serializer.h"
 %include "../templatecomparator.h"
 %include "../tools.h"
+#include "../types.h"
 %include "../videoprocessor.h"
 
 

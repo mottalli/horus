@@ -65,6 +65,7 @@ void Decorator::drawParabola(Image* image, const Parabola& parabola, int xMin, i
 	CvPoint lastPoint = cvPoint(xMin, int(parabola.value(xMin)));
 	for (int x = xMin+1; x <= xMax; x++) {
 		CvPoint point = cvPoint(x, int(parabola.value(x)));
+
 		cvLine(image, lastPoint, point, color, 1);
 		lastPoint = point;
 	}

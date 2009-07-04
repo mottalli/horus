@@ -31,6 +31,7 @@ Parameters::Parameters() {
 	focusThreshold = 50;
 	correlationThreshold = 92;
 	expectedIrisDiameter = 250;
+	segmentationScoreThreshold = 50;
 }
 
 Parameters::~Parameters() {
