@@ -33,7 +33,21 @@ IrisTemplate IrisEncoder::generateTemplate(const Image* image, const Segmentatio
 	this->initializeBuffers(image);
 	IrisEncoder::normalizeIris(image, this->buffers.normalizedTexture, this->buffers.noiseMask, segmentationResult);
 
-	// Mask away pixels too far from the median
+	// Exclude the upper quarter (from 225 to 315 degrees, 5/4*pi to 7/4*pi radians)
+	CvMat upperQuarter;
+	int x0 = int(this->buffers.noiseMask->width * double(225.0/360));
+	int x1 = int(this->buffers.noiseMask->width * double(315.0/360));
+	cvGetSubRect(this->buffers.noiseMask, &upperQuarter, cvRect(x0, 0, x1-x0, this->buffers.noiseMask->height));
+	cvZero(&upperQuarter);
+
+	// Exclude the outer quarter
+	CvMat outerQuarter;
+	int y0 = this->buffers.noiseMask->height * 0.75;
+	int y1 = this->buffers.noiseMask->height;
+	cvGetSubRect(this->buffers.noiseMask, &outerQuarter, cvRect(0, y0, this->buffers.noiseMask->width, y1-y0));
+	cvZero(&outerQuarter);
+
+	// Mask away pixels too far from the mean
 	CvScalar smean, sdev;
 	cvAvgSdv(this->buffers.normalizedTexture, &smean, &sdev, this->buffers.noiseMask);
 	double mean = smean.val[0], dev = sdev.val[0];
@@ -49,7 +63,6 @@ IrisTemplate IrisEncoder::generateTemplate(const Image* image, const Segmentatio
 			}
 		}
 	}
-
 
 	this->applyFilter();
 
@@ -72,6 +85,7 @@ void IrisEncoder::normalizeIris(const Image* image, Image* dest, CvMat* destMask
 
 	//assert(std::abs(double(pupilContour[0].y - irisContour[0].y)) < 2);		// Both contours must be aligned
 
+	// Initialize the mask to 1 (all bits enabled)
 	cvSet(destMask, cvScalar(1,1,1));
 	for (int x = 0; x < normalizedWidth; x++) {
 		double q = double(x)/double(normalizedWidth);
