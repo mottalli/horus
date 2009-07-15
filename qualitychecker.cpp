@@ -139,6 +139,9 @@ double QualityChecker::segmentationScore(const Image* image, const SegmentationR
 		for (int x = 0; x < portion.width; x++) {
 			double val = double(row[x]);
 
+			// Ignore reflections
+			if (val > 200) continue;
+
 			int dx2,dy2;
 
 			// Inside pupil?
@@ -176,6 +179,8 @@ double QualityChecker::segmentationScore(const Image* image, const SegmentationR
 		const uint8_t* row = (const uint8_t*)portion.imageData + y*portion.widthStep;
 		for (int x = 0; x < portion.width; x++) {
 			double val = double(row[x]);
+			if (val > 200) continue;
+
 			int dx2,dy2;
 
 			// Inside pupil?

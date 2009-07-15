@@ -24,6 +24,8 @@ public:
 	int pupilAdjustmentRingWidth, pupilAdjustmentRingHeight;
 	int irisAdjustmentRingWidth, irisAdjustmentRingHeight;
 
+	bool segmentEyelids;
+
 	int infraredThreshold;
 
 	int parabolicDetectorStep;

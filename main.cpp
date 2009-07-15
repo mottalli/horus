@@ -21,7 +21,7 @@ using namespace std;
 
 double correlation(Image* X, Image* Y);
 void processImage(Image* image);
-void captured(Image* image);
+void captured();
 
 Segmentator segmentator;
 QualityChecker qualityChecker;
@@ -58,7 +58,6 @@ int main(int argc, char** argv) {
 	CvSize size = cvGetSize(framecolor);
 
 	Image* frame = cvCreateImage(size, IPL_DEPTH_8U, 1);
-	cvNamedWindow("video");
 
 	while (true) {
 		framecolor = cvQueryFrame(capture);
@@ -80,25 +79,61 @@ int main(int argc, char** argv) {
 
 void processImage(Image* image)
 {
-	//videoProcessor.processFrame(image);
-	//cout << qualityChecker.checkFocus(image) << endl;
-	SegmentationResult sr = segmentator.segmentImage(image);
-	decorator.drawSegmentationResult(image, sr);
+	VideoProcessor::VideoStatus vs = videoProcessor.processFrame(image);
+	switch (vs) {
+	case VideoProcessor::DEFOCUSED:
+		sprintf(BUFFER, "DEFOCUSED");
+		break;
+	case VideoProcessor::INTERLACED:
+		sprintf(BUFFER, "INTERLACED");
+		break;
+	case VideoProcessor::FOCUSED_NO_IRIS:
+		sprintf(BUFFER, "FOCUSED_NO_IRIS");
+		break;
+	case VideoProcessor::IRIS_LOW_QUALITY:
+		sprintf(BUFFER, "IRIS_LOW_QUALITY");
+		break;
+	case VideoProcessor::IRIS_TOO_CLOSE:
+		sprintf(BUFFER, "IRIS_TOO_CLOSE");
+		break;
+	case VideoProcessor::IRIS_TOO_FAR:
+		sprintf(BUFFER, "IRIS_TOO_FAR");
+		break;
+	case VideoProcessor::FOCUSED_IRIS:
+		sprintf(BUFFER, "FOCUSED_IRIS");
+		break;
+	case VideoProcessor::GOT_TEMPLATE:
+		sprintf(BUFFER, "GOT_TEMPLATE");
+		captured();
+		break;
+	}
+	cvPutText(image, BUFFER, cvPoint(400, 300), &FONT, CV_RGB(255,255,255));
+
+	sprintf(BUFFER, "Focus: %.2f", videoProcessor.lastFocusScore);
+	cvPutText(image, BUFFER, cvPoint(400, 330), &FONT, CV_RGB(255,255,255));
+	sprintf(BUFFER, "S. score: %.2f", videoProcessor.lastSegmentationScore);
+	cvPutText(image, BUFFER, cvPoint(400, 360), &FONT, CV_RGB(255,255,255));
+
+	cvNamedWindow("video");
 	cvShowImage("video", image);
+
 }
 
-void captured(Image* image)
+void captured()
 {
-	IrisTemplate irisTemplate = irisEncoder.generateTemplate(image, videoProcessor.lastSegmentationResult);
+	IrisTemplate irisTemplate = videoProcessor.getTemplate();
 
-	IplImage* imgTemplate = irisTemplate.getTemplateImage();
-	IplImage* imgMask = irisTemplate.getNoiseMaskImage();
+	IplImage* image = cvCloneImage(videoProcessor.buffers.bestFrame);
+	decorator.drawTemplate(image, irisTemplate);
+	decorator.drawSegmentationResult(image, videoProcessor.lastSegmentationResult);
+
+	sprintf(BUFFER, "Focus: %.2f", videoProcessor.lastFocusScore);
+	cvPutText(image, BUFFER, cvPoint(400, 330), &FONT, CV_RGB(255,255,255));
+	sprintf(BUFFER, "S. score: %.2f", videoProcessor.lastSegmentationScore);
+	cvPutText(image, BUFFER, cvPoint(400, 360), &FONT, CV_RGB(255,255,255));
+
 
 	cvNamedWindow("template");
-	cvNamedWindow("mask");
-	cvShowImage("template", imgTemplate);
-	cvShowImage("mask", imgMask);
-
-	cvReleaseImage(&imgTemplate);
-	cvReleaseImage(&imgMask);
+	cvShowImage("template", image);
+	cvReleaseImage(&image);
 }

@@ -70,3 +70,40 @@ void Decorator::drawParabola(Image* image, const Parabola& parabola, int xMin, i
 		lastPoint = point;
 	}
 }
+
+void Decorator::drawTemplate(Image* image, const IrisTemplate& irisTemplate)
+{
+	IplImage* imgTemplate = irisTemplate.getTemplateImage();
+	IplImage* imgMask = irisTemplate.getNoiseMaskImage();
+
+	CvSize size = cvGetSize(imgTemplate);
+
+	CvMat region;
+	CvPoint topleftTemplate, topleftMask;
+
+	topleftTemplate = cvPoint(10, 10);
+	topleftMask = cvPoint(topleftTemplate.x, image->height-10-size.height);
+
+	cvGetSubRect(image, &region, cvRect(topleftTemplate.x, topleftTemplate.y, size.width, size.height));
+	if (image->nChannels == 3) {
+		cvMerge(imgTemplate, NULL, NULL, NULL, &region);
+		cvMerge(NULL, imgTemplate, NULL, NULL, &region);
+		cvMerge(NULL, NULL, imgTemplate, NULL, &region);
+	} else {
+		cvCopy(imgTemplate, &region);
+	}
+	cvRectangle(image, topleftTemplate, cvPoint(topleftTemplate.x+size.width-1, topleftTemplate.y+size.height-1), CV_RGB(0,0,0), 1);
+
+	cvGetSubRect(image, &region, cvRect(topleftMask.x, topleftMask.y, size.width, size.height));
+	if (image->nChannels == 3) {
+		cvMerge(imgMask, NULL, NULL, NULL, &region);
+		cvMerge(NULL, imgMask, NULL, NULL, &region);
+		cvMerge(NULL, NULL, imgMask, NULL, &region);
+	} else {
+		cvCopy(imgMask, &region);
+	}
+	cvRectangle(image, topleftMask, cvPoint(topleftMask.x+size.width-1, topleftMask.y+size.height-1), CV_RGB(0,0,0), 1);
+
+	cvReleaseImage(&imgTemplate);
+	cvReleaseImage(&imgMask);
+}

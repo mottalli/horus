@@ -29,9 +29,6 @@ public:
 		double resizeFactor;
 	} buffers;
 
-	// For debugging purposes
-	const Image* getSimilarityImage() const { return this->buffers.similarityImage; };
-
 private:
 	void setupBuffers(const Image* image);
 	void similarityTransform();

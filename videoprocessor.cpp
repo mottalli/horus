@@ -34,36 +34,41 @@ VideoProcessor::VideoStatus VideoProcessor::processFrame(const Image* frame)
 
 VideoProcessor::VideoStatus VideoProcessor::doProcess(const Image* frame)
 {
+	const Image* image;
 	if (frame->nChannels == 1) {
-		cvCopy(frame, this->buffers.lastFrame);
+		//cvCopy(frame, this->buffers.lastFrame);
+		image = frame;
 	} else {
 		cvCvtColor(frame, this->buffers.lastFrame, CV_BGR2GRAY);
+		image = this->buffers.lastFrame;
 	}
 
 	Parameters* parameters = Parameters::getParameters();
 
-	double focus = this->qualityChecker.checkFocus(this->buffers.lastFrame);
-	if (focus < parameters->focusThreshold) {
+	this->lastFocusScore = this->qualityChecker.checkFocus(image);
+	if (this->lastFocusScore < parameters->focusThreshold) {
 		return DEFOCUSED;
 	}
 
 	if (parameters->interlacedVideo) {
-		double interlacedCorrelation = this->qualityChecker.interlacedCorrelation(this->buffers.lastFrame);
+		double interlacedCorrelation = this->qualityChecker.interlacedCorrelation(image);
 		if (interlacedCorrelation < parameters->correlationThreshold) {
-			return DEFOCUSED;
-
+			return INTERLACED;
 		}
 	}
 
-	this->lastSegmentationResult = segmentator.segmentImage(this->buffers.lastFrame);
+	this->lastSegmentationResult = segmentator.segmentImage(image);
+	if (parameters->segmentEyelids) {
+		segmentator.segmentEyelids(image, this->lastSegmentationResult);
+	}
 
-	this->lastSegmentationScore = qualityChecker.segmentationScore(this->buffers.lastFrame, this->lastSegmentationResult);
-	if (this->lastSegmentationScore > parameters->segmentationScoreThreshold) {
+	this->lastSegmentationScore = qualityChecker.segmentationScore(image, this->lastSegmentationResult);
+	if (this->lastSegmentationScore < parameters->segmentationScoreThreshold) {
 		// No iris found on the image, or the segmentation is incorrect
 		return FOCUSED_NO_IRIS;
 	}
 
-	if (!qualityChecker.checkIrisQuality(this->buffers.lastFrame, this->lastSegmentationResult)) {
+	if (!qualityChecker.checkIrisQuality(image, this->lastSegmentationResult)) {
 		// The image is kind of focused but the iris doesn't have enough quality
 		float q = 0.2;
 
@@ -81,22 +86,23 @@ VideoProcessor::VideoStatus VideoProcessor::doProcess(const Image* frame)
 
 	// At this point we have a good quality image and we have enough reasons to believe
 	// it's properly segmented.
-	if (true) {
+	if (false) {
+		//TODO: wait for the "best" image
 		return FOCUSED_IRIS;
 	} else {
-		//TODO
+		// Got a good iris image
+		cvCopy(image, this->buffers.bestFrame);
 		return GOT_TEMPLATE;
 	}
 }
 
 IrisTemplate VideoProcessor::getTemplate()
 {
-	if (this->lastStatus != FOCUSED_IRIS || this->lastStatus != GOT_TEMPLATE) {
+	if (this->lastStatus != GOT_TEMPLATE) {
 		throw std::runtime_error("Requested iris template but no iris detected in image");
 	}
 
-	//TODO
-	return IrisTemplate();
+	return this->irisEncoder.generateTemplate(this->buffers.bestFrame, this->lastSegmentationResult);
 }
 
 void VideoProcessor::initializeBuffers(const Image* frame)
@@ -104,7 +110,9 @@ void VideoProcessor::initializeBuffers(const Image* frame)
 	if (this->buffers.lastFrame == NULL || !SAME_SIZE(this->buffers.lastFrame, frame)) {
 		if (this->buffers.lastFrame != NULL) {
 			cvReleaseImage(&this->buffers.lastFrame);
+			cvReleaseImage(&this->buffers.bestFrame);
 		}
 		this->buffers.lastFrame = cvCreateImage(cvGetSize(frame), IPL_DEPTH_8U, 1);
+		this->buffers.bestFrame = cvCreateImage(cvGetSize(frame), IPL_DEPTH_8U, 1);
 	}
 }

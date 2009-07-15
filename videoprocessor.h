@@ -20,10 +20,12 @@ public:
 
 	struct {
 		Image* lastFrame;
+		Image* bestFrame;
 	} buffers;
 
 	typedef enum {
 		DEFOCUSED,
+		INTERLACED,
 		FOCUSED_NO_IRIS,
 		IRIS_LOW_QUALITY,
 		IRIS_TOO_CLOSE,
@@ -42,6 +44,7 @@ public:
 	VideoStatus lastStatus;
 	SegmentationResult lastSegmentationResult;
 	double lastSegmentationScore;
+	double lastFocusScore;
 
 
 private:

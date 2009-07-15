@@ -20,6 +20,8 @@ Parameters::Parameters() {
 	irisAdjustmentRingWidth = 100;
 	irisAdjustmentRingHeight = 90;
 
+	segmentEyelids = false;
+
 	infraredThreshold = 230;
 
 	parabolicDetectorStep = 10;
@@ -28,10 +30,10 @@ Parameters::Parameters() {
 	templateHeight = 28;
 
 	interlacedVideo = true;
-	focusThreshold = 50;
+	focusThreshold = 60;
 	correlationThreshold = 92;
 	expectedIrisDiameter = 250;
-	segmentationScoreThreshold = 50;
+	segmentationScoreThreshold = 1.7;
 }
 
 Parameters::~Parameters() {
