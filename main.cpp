@@ -28,12 +28,40 @@ QualityChecker qualityChecker;
 Decorator decorator;
 VideoProcessor videoProcessor;
 IrisEncoder irisEncoder;
+Parameters* parameters = Parameters::getParameters();
 
 CvFont FONT;
 char BUFFER[1000];
 
-
 int main(int argc, char** argv) {
+    const char* imagePath = "/home/marcelo/Mis_Documentos/Facu/Tesis/Bases de datos/Bath/0008/L/0011.jpg";
+    IplImage* image = cvLoadImage(imagePath, 1);
+
+    parameters->irisAdjustmentRingHeight = 100;
+    parameters->irisAdjustmentRingWidth = 200;
+
+    SegmentationResult res = segmentator.segmentImage(image);
+    decorator.drawSegmentationResult(image, res);
+    //cvCircle(image, cvPoint(res.pupilCircle.xc, res.pupilCircle.yc), res.pupilCircle.radius, CV_RGB(255,255,255), 1);
+
+
+    cvNamedWindow("image");
+    cvShowImage("image", image);
+
+    cvNamedWindow("debug");
+    IplImage* foo = cvCreateImage(cvGetSize(segmentator._irisSegmentator.buffers.adjustmentRingGradient), IPL_DEPTH_8U, 1);
+    cvNormalize(segmentator._irisSegmentator.buffers.adjustmentRingGradient, foo, 0, 255, CV_MINMAX);
+    for (int x = 0; x < segmentator._irisSegmentator.buffers.adjustmentSnake->width; x++) {
+	cvCircle(foo, cvPoint(x, cvGetReal2D(segmentator._irisSegmentator.buffers.adjustmentSnake, 0, x)), 1, CV_RGB(255,255,255), 1);
+    }
+    cvShowImage("debug", foo);
+
+    cvWaitKey(0);
+
+    return 0;
+}
+
+int main1(int argc, char** argv) {
 	CvCapture* capture = cvCaptureFromCAM(0);
 	if (!capture) {
 		cout << "No se puede capturar" << endl;

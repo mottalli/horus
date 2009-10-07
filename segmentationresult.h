@@ -22,6 +22,8 @@ public:
     Parabola upperEyelid;
     Parabola lowerEyelid;
 
+	double pupilContourQuality;
+
     bool eyelidsSegmented;
 private:
 

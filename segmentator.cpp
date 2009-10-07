@@ -41,6 +41,7 @@ SegmentationResult Segmentator::segmentImage(const Image* image) {
 	result.pupilCircle = pupilResult.second;
 	result.irisContour = irisResult.first;
 	result.irisCircle = irisResult.second;
+	result.pupilContourQuality = this->_pupilSegmentator.getPupilContourQuality();
 
 	result.eyelidsSegmented = false;
 

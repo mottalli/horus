@@ -21,11 +21,21 @@ IrisSegmentator::~IrisSegmentator() {
 
 ContourAndCloseCircle IrisSegmentator::segmentIris(const Image* image, const ContourAndCloseCircle& pupilSegmentation)
 {
+	return this->segmentIrisRecursive(image, pupilSegmentation, -1, -1);
+}
+
+ContourAndCloseCircle IrisSegmentator::segmentIrisRecursive(const Image* image, const ContourAndCloseCircle& pupilSegmentation, int radiusMax, int radiusMin)
+{
 	this->setupBuffers(image);
 
 	Circle pupilCircle = pupilSegmentation.second;
-	int radiusMin = pupilCircle.radius * 1.3;
-	int radiusMax = pupilCircle.radius * 5.0;
+	if (radiusMin < 0) {
+	    radiusMin = pupilCircle.radius * 1.3;
+	}
+
+	if (radiusMax < 0) {
+	    radiusMax = pupilCircle.radius * 5.0;
+	}
 
 	HelperFunctions::extractRing(image, this->buffers.adjustmentRing, pupilCircle.xc, pupilCircle.yc, radiusMin, radiusMax);
 	cvSmooth(this->buffers.adjustmentRing, this->buffers.adjustmentRing, CV_GAUSSIAN, 3, 15);
@@ -76,6 +86,16 @@ ContourAndCloseCircle IrisSegmentator::segmentIris(const Image* image, const Con
 			bestY2 = y;
 		}
 	}
+
+	// If there's a big difference between bestY1 and bestY2, it probably means something wasn't right.
+	if (abs(bestY1-bestY2) > gradient->height*0.2) {
+		// Try again with a smaller radiusMax (less chances of error)
+		radiusMax = radiusMax - pupilCircle.radius/2;
+		if (radiusMax > radiusMin) {
+			return this->segmentIrisRecursive(image, pupilSegmentation, radiusMax);
+		}
+	}
+
 
 	for (int x = x0; x < x1; x++) {
 		cvSetReal2D(snake, 0, XIMAGE(x), bestY1);

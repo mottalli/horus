@@ -206,7 +206,10 @@ Contour PupilSegmentator::adjustPupilContour(const Image* image, const Circle& a
 		cvSetReal2D(snake, 0, x, bestY);
 	}
 
-	HelperFunctions::smoothSnakeFourier(snake, 5);
+	HelperFunctions::smoothSnakeFourier(snake, 10);
+
+	// Use the snake to calculate the quality of the pupil border
+        //this->pupilContourQuality = this->calculatePupilContourQuality(this->buffers.adjustmentRing, this->buffers.adjustmentRingGradient, snake);
 
 	// Now, transform the points from the ring coordinates to the image coordinates
 	Contour result(snake->cols);
@@ -216,10 +219,8 @@ Contour PupilSegmentator::adjustPupilContour(const Image* image, const Circle& a
 		double radius = (double(y) / double(gradient->height - 1))
 				* double(radiusMax - radiusMin) + double(radiusMin);
 
-		int ximag =
-				int(double(approximateCircle.xc) + std::cos(theta) * radius);
-		int yimag =
-				int(double(approximateCircle.yc) + std::sin(theta) * radius);
+		int ximag = int(double(approximateCircle.xc) + std::cos(theta) * radius);
+		int yimag = int(double(approximateCircle.yc) + std::sin(theta) * radius);
 
 		result[x] = cvPoint(ximag, yimag);
 	}
@@ -445,4 +446,32 @@ void PupilSegmentator::similarityTransform()
 
 	cvLUT(this->buffers.equalizedImage, this->buffers.similarityImage,
 			this->buffers.LUT);
+}
+
+double PupilSegmentator::calculatePupilContourQuality(const Image* region, const Image* regionGradient, const CvMat* contourSnake, int delta)
+{
+	assert(regionGradient->width == contourSnake->width);
+	assert(regionGradient->depth == int(IPL_DEPTH_16S));
+
+	double sum2 = 0;
+	for (int x = 0; x < regionGradient->width; x++) {
+		int yborder = int(cvGetReal2D(contourSnake, 0, x));
+		int ymin = std::max(0, yborder-delta);
+		int ymax = std::min(regionGradient->height, yborder+delta);
+
+		char* row = regionGradient->imageData + ymin*regionGradient->widthStep;
+		for (int y = ymin; y < (ymax-ymin); y++) {
+			double v = (double)((int16_t*)row)[x];
+			sum2 += v*v;
+			row += regionGradient->widthStep;
+		}
+	}
+
+	double norm2 = cvNorm(regionGradient, NULL, CV_L2);
+	norm2 *= norm2;
+
+	assert(sum2 < norm2);
+	assert(norm2 > 0 && sum2 > 0);
+
+	return sum2/norm2;
 }

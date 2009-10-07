@@ -21,10 +21,11 @@ public:
         CvMat* adjustmentSnake;
     } buffers;
 
-    ContourAndCloseCircle segmentIris(const Image* image, const ContourAndCloseCircle& pupilSegmentation);
+	ContourAndCloseCircle segmentIris(const Image* image, const ContourAndCloseCircle& pupilSegmentation);
 
 private:
 	void setupBuffers(const Image* image);
+	ContourAndCloseCircle segmentIrisRecursive(const Image* image, const ContourAndCloseCircle& pupilSegmentation, int radiusMax=-1, int radiusMin=-1);
 
 };
 

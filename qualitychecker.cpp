@@ -10,7 +10,6 @@
 
 QualityChecker::QualityChecker()
 {
-
 }
 
 QualityChecker::~QualityChecker(){
@@ -65,37 +64,6 @@ double QualityChecker::interlacedCorrelation(const Image* frame)
 
 double QualityChecker::checkFocus(const Image* image)
 {
-	/*Image* src = cvCreateImage(cvGetSize(image), IPL_DEPTH_32F, 1);
-	cvConvert(image, src);
-
-	cvDCT(src, src, CV_DXT_FORWARD);
-	cvAbs(src, src);
-
-	int r0 = image->width/30;
-	int r1 = image->width/15;
-
-	double S0 = 0;
-	double S1 = 0;
-
-	int r02 = r0*r0;
-	int r12 = r1*r1;
-	for (int y = 1; y < r1; y++) {
-		for (int x = 1; x < r1; x++) {
-			if (x*x+y*y < r02) {
-				S0 += cvGetReal2D(src, y, x);
-			} else if (x*x+y*y < r12) {
-				S1 += cvGetReal2D(src, y, x);
-			}
-
-		}
-	}
-
-	double q = S1/S0;
-	double c = 0.6;
-
-	cvReleaseImage(&src);
-	return 100.0*q*q/(q*q+c*c);*/
-
 	Image* src = cvCreateImage(cvGetSize(image), IPL_DEPTH_32F, 1);
 	cvConvert(image, src);
 	cvSobel(src, src, 0, 1, 3);
@@ -209,7 +177,10 @@ double QualityChecker::segmentationScore(const Image* image, const SegmentationR
 	double zScorePupilIris = abs(meanPupil-meanIris) / sqrt((varPupil+varIris)/2.0);
 	//double zScoreIrisSclera = abs(meanSclera-meanIris) / sqrt((varSclera+varIris)/2.0);
 
-	return zScorePupilIris;
+	double c = 2.0;
+	double s = zScorePupilIris;
+
+	return 100.0*s*s/(s*s+c*c);
 }
 
 /**
