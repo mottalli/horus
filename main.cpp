@@ -33,35 +33,46 @@ Parameters* parameters = Parameters::getParameters();
 CvFont FONT;
 char BUFFER[1000];
 
-int main(int argc, char** argv) {
-    const char* imagePath = "/home/marcelo/Mis_Documentos/Facu/Tesis/Bases de datos/Bath/0008/L/0011.jpg";
+int main1(int argc, char** argv) {
+	const char* imagePath = "/home/marcelo/Mis_Documentos/Facu/Tesis/Bases de datos/Bath/0019/R/0009.jpg";
     IplImage* image = cvLoadImage(imagePath, 1);
-
-    parameters->irisAdjustmentRingHeight = 100;
-    parameters->irisAdjustmentRingWidth = 200;
 
     SegmentationResult res = segmentator.segmentImage(image);
     decorator.drawSegmentationResult(image, res);
-    //cvCircle(image, cvPoint(res.pupilCircle.xc, res.pupilCircle.yc), res.pupilCircle.radius, CV_RGB(255,255,255), 1);
-
 
     cvNamedWindow("image");
     cvShowImage("image", image);
 
-    cvNamedWindow("debug");
-    IplImage* foo = cvCreateImage(cvGetSize(segmentator._irisSegmentator.buffers.adjustmentRingGradient), IPL_DEPTH_8U, 1);
+	cvNamedWindow("debug1");
+	IplImage* foo = cvCreateImage(cvGetSize(segmentator._irisSegmentator.buffers.adjustmentRingGradient), IPL_DEPTH_8U, 1);
     cvNormalize(segmentator._irisSegmentator.buffers.adjustmentRingGradient, foo, 0, 255, CV_MINMAX);
     for (int x = 0; x < segmentator._irisSegmentator.buffers.adjustmentSnake->width; x++) {
-	cvCircle(foo, cvPoint(x, cvGetReal2D(segmentator._irisSegmentator.buffers.adjustmentSnake, 0, x)), 1, CV_RGB(255,255,255), 1);
+		cvCircle(foo, cvPoint(x, cvGetReal2D(segmentator._irisSegmentator.buffers.adjustmentSnake, 0, x)), 1, CV_RGB(255,255,255), 1);
     }
-    cvShowImage("debug", foo);
+	cvShowImage("debug1", foo);
+	cvReleaseImage(&foo);
 
-    cvWaitKey(0);
+	cvNamedWindow("debug2");
+	foo = cvCreateImage(cvGetSize(segmentator._pupilSegmentator.buffers.adjustmentRingGradient), IPL_DEPTH_8U, 1);
+	cvNormalize(segmentator._pupilSegmentator.buffers.adjustmentRingGradient, foo, 0, 255, CV_MINMAX);
+	for (int x = 0; x < segmentator._pupilSegmentator.buffers.adjustmentSnake->width; x++) {
+		cvCircle(foo, cvPoint(x, cvGetReal2D(segmentator._pupilSegmentator.buffers.adjustmentSnake, 0, x)), 1, CV_RGB(255,255,255), 1);
+	}
+	cvShowImage("debug2", foo);
+	cvReleaseImage(&foo);
+
+
+	while (true) {
+		char k = cvWaitKey(0);
+		if (k == 'q') {
+			break;
+		}
+	}
 
     return 0;
 }
 
-int main1(int argc, char** argv) {
+int main(int argc, char** argv) {
 	CvCapture* capture = cvCaptureFromCAM(0);
 	if (!capture) {
 		cout << "No se puede capturar" << endl;
@@ -154,11 +165,6 @@ void captured()
 	IplImage* image = cvCloneImage(videoProcessor.buffers.bestFrame);
 	decorator.drawTemplate(image, irisTemplate);
 	decorator.drawSegmentationResult(image, videoProcessor.lastSegmentationResult);
-
-	sprintf(BUFFER, "Focus: %.2f", videoProcessor.lastFocusScore);
-	cvPutText(image, BUFFER, cvPoint(400, 330), &FONT, CV_RGB(255,255,255));
-	sprintf(BUFFER, "S. score: %.2f", videoProcessor.lastSegmentationScore);
-	cvPutText(image, BUFFER, cvPoint(400, 360), &FONT, CV_RGB(255,255,255));
 
 
 	cvNamedWindow("template");

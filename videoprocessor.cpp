@@ -72,7 +72,7 @@ VideoProcessor::VideoStatus VideoProcessor::doProcess(const Image* frame)
 		// The image is kind of focused but the iris doesn't have enough quality
 		float q = 0.2;
 
-		if (this->lastSegmentationResult.irisCircle.radius*2 < parameters->expectedIrisDiameter*q) {
+		/*if (this->lastSegmentationResult.irisCircle.radius*2 < parameters->expectedIrisDiameter*q) {
 			// Iris too far?
 			return IRIS_TOO_FAR;
 		} else if (this->lastSegmentationResult.irisCircle.radius*2 > parameters->expectedIrisDiameter*q) {
@@ -81,7 +81,8 @@ VideoProcessor::VideoStatus VideoProcessor::doProcess(const Image* frame)
 		} else {
 			// Low quality for some reason...
 			return IRIS_LOW_QUALITY;
-		}
+		}*/
+		return IRIS_LOW_QUALITY;
 	}
 
 	// At this point we have a good quality image and we have enough reasons to believe

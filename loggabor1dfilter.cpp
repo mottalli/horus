@@ -9,6 +9,14 @@
 #include <cmath>
 #include <iostream>
 
+LogGabor1DFilter::LogGabor1DFilter()
+{
+	this->f0 = 1/32.0;
+	this->sigmaOnF = 0.5;
+	this->buffers.filter = NULL;
+}
+
+
 LogGabor1DFilter::LogGabor1DFilter(double f0, double sigmanOnF):
 	f0(f0), sigmaOnF(sigmanOnF)
 {
@@ -17,7 +25,9 @@ LogGabor1DFilter::LogGabor1DFilter(double f0, double sigmanOnF):
 
 LogGabor1DFilter::~LogGabor1DFilter()
 {
-	cvReleaseImage(&this->buffers.filter);
+	if (this->buffers.filter) {
+		cvReleaseImage(&this->buffers.filter);
+	}
 }
 
 void LogGabor1DFilter::applyFilter(const Image* image, Image* dest)

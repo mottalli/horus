@@ -13,7 +13,7 @@
 #include "tools.h"
 
 IrisEncoder::IrisEncoder() :
-	filter(1.0/32.0, 0.5)
+	filter(1.0/40.0, 0.5)
 {
 	this->buffers.noiseMask = NULL;
 	this->buffers.normalizedTexture = NULL;
@@ -73,7 +73,7 @@ void IrisEncoder::applyFilter()
 {
 	this->filter.applyFilter(this->buffers.normalizedTexture, this->buffers.filteredTexture);
 	cvSplit(this->buffers.filteredTexture, this->buffers.filteredTextureReal, this->buffers.filteredTextureImag, NULL, NULL);
-	cvThreshold(this->buffers.filteredTextureImag, this->buffers.thresholdedTexture, 0, 1, CV_THRESH_BINARY);
+	cvThreshold(this->buffers.filteredTextureReal, this->buffers.thresholdedTexture, 0, 1, CV_THRESH_BINARY);
 }
 
 void IrisEncoder::normalizeIris(const Image* image, Image* dest, CvMat* destMask, const SegmentationResult& segmentationResult)
@@ -133,6 +133,8 @@ void IrisEncoder::normalizeIris(const Image* image, Image* dest, CvMat* destMask
 			}
 		}
 	}
+
+	cvDilate(destMask, destMask);
 }
 
 void IrisEncoder::initializeBuffers(const Image* image)

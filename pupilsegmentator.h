@@ -17,7 +17,7 @@ public:
 	virtual ~PupilSegmentator();
 
 	ContourAndCloseCircle segmentPupil(const Image* image);
-	inline double getPupilContourQuality() { return this->pupilContourQuality; }
+	inline int getPupilContourQuality() const { return this->pupilContourQuality; }
 
 	struct {
 		Image* similarityImage;
@@ -35,9 +35,9 @@ private:
 	void similarityTransform();
 	Circle approximatePupil(const Image* image);
 	Circle cascadedIntegroDifferentialOperator(const Image* image);
-	double calculatePupilContourQuality(const Image* region, const Image* regionGradient, const CvMat* contourSnake, int delta = 5);
+	int calculatePupilContourQuality(const Image* region, const Image* regionGradient, const CvMat* contourSnake);
 
-	double pupilContourQuality;
+	int pupilContourQuality;
 
 	typedef struct {
 		int maxRad;

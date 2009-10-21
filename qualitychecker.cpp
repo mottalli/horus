@@ -188,6 +188,5 @@ double QualityChecker::segmentationScore(const Image* image, const SegmentationR
  */
 bool QualityChecker::checkIrisQuality(const Image* image, const SegmentationResult& segmentationResult)
 {
-	//TODO
-	return true;
+	return (segmentationResult.pupilContourQuality >= Parameters::getParameters()->minimumContourQuality);
 }

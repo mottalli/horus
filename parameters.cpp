@@ -22,7 +22,7 @@ Parameters::Parameters() {
 
 	segmentEyelids = false;
 
-	infraredThreshold = 230;
+	infraredThreshold = 200;
 
 	parabolicDetectorStep = 10;
 
@@ -30,10 +30,11 @@ Parameters::Parameters() {
 	templateHeight = 28;
 
 	interlacedVideo = true;
-	focusThreshold = 60;
+	focusThreshold = 50;
 	correlationThreshold = 92;
 	expectedIrisDiameter = 250;
 	segmentationScoreThreshold = 1.7;
+	minimumContourQuality = 70;
 }
 
 Parameters::~Parameters() {

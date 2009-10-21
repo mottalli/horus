@@ -187,14 +187,15 @@ Contour PupilSegmentator::adjustPupilContour(const Image* image, const Circle& a
 
 	// Smooth the snake
 	HelperFunctions::smoothSnakeFourier(snake, 3);
+	int delta = gradient->height * 0.1;
 
 	// Improve the estimation
 	for (int x = 0; x < gradient->width; x++) {
 		int maxGrad = INT_MIN;
 		int bestY = 0;
 		int v = cvGetReal2D(snake, 0, x);
-		int ymin = std::max(0, v - 5);
-		int ymax = std::min(gradient->height, v + 5);
+		int ymin = std::max(0, v - delta);
+		int ymax = std::min(gradient->height, v + delta);
 		for (int y = ymin; y < ymax; y++) {
 			int gxy = cvGetReal2D(gradient, y, x);
 			if (gxy > maxGrad) {
@@ -209,7 +210,8 @@ Contour PupilSegmentator::adjustPupilContour(const Image* image, const Circle& a
 	HelperFunctions::smoothSnakeFourier(snake, 10);
 
 	// Use the snake to calculate the quality of the pupil border
-        //this->pupilContourQuality = this->calculatePupilContourQuality(this->buffers.adjustmentRing, this->buffers.adjustmentRingGradient, snake);
+	this->pupilContourQuality = this->calculatePupilContourQuality(this->buffers.adjustmentRing, this->buffers.adjustmentRingGradient, snake);
+	std::cout << this->pupilContourQuality << std::endl;
 
 	// Now, transform the points from the ring coordinates to the image coordinates
 	Contour result(snake->cols);
@@ -448,30 +450,63 @@ void PupilSegmentator::similarityTransform()
 			this->buffers.LUT);
 }
 
-double PupilSegmentator::calculatePupilContourQuality(const Image* region, const Image* regionGradient, const CvMat* contourSnake, int delta)
+int PupilSegmentator::calculatePupilContourQuality(const Image* region, const Image* regionGradient, const CvMat* contourSnake)
 {
 	assert(regionGradient->width == contourSnake->width);
 	assert(regionGradient->depth == int(IPL_DEPTH_16S));
+	assert(region->width == regionGradient->width && region->height == regionGradient->height);
+
+	int infraredThreshold = Parameters::getParameters()->infraredThreshold;
+
+	int delta = region->height * 0.1;
+	//const int delta = 2;
+
+	IplImage* foo = cvCreateImage(cvGetSize(regionGradient), IPL_DEPTH_8U, 1);
+	cvNormalize(regionGradient, foo, 0, 255, CV_MINMAX);
+	cvNamedWindow("grad");
+
+
 
 	double sum2 = 0;
+	double norm2 = 0;
+	double v;
 	for (int x = 0; x < regionGradient->width; x++) {
+		// Skip this row if there's an infrared reflection
+		bool skip = false;
+		for (int y = 0; y < region->height; y++) {
+			if (cvGetReal2D(region, y, x) >= infraredThreshold) {
+				skip = true;
+				break;
+			}
+		}
+		if (skip) continue;
+
 		int yborder = int(cvGetReal2D(contourSnake, 0, x));
 		int ymin = std::max(0, yborder-delta);
 		int ymax = std::min(regionGradient->height, yborder+delta);
 
-		char* row = regionGradient->imageData + ymin*regionGradient->widthStep;
-		for (int y = ymin; y < (ymax-ymin); y++) {
-			double v = (double)((int16_t*)row)[x];
-			sum2 += v*v;
-			row += regionGradient->widthStep;
+		if (yborder < 0) return 0;
+
+		for (int y = 0; y < regionGradient->height; y++) {
+			v = cvGetReal2D(regionGradient, y, x);
+			norm2 += v*v;
+			if (y >= ymin && y < ymax) {
+				sum2 += v*v;
+				cvSetReal2D(foo, y, x, 255);
+			}
 		}
+
 	}
 
-	double norm2 = cvNorm(regionGradient, NULL, CV_L2);
-	norm2 *= norm2;
+	if (!norm2) {
+		return 0;
+	}
 
 	assert(sum2 < norm2);
 	assert(norm2 > 0 && sum2 > 0);
 
-	return sum2/norm2;
+	cvShowImage("grad", foo);
+	cvReleaseImage(&foo);
+
+	return int((100.0*sum2)/norm2);
 }

@@ -36,6 +36,7 @@ public:
 	double segmentationScoreThreshold;
 	int correlationThreshold;
 	int expectedIrisDiameter;
+	int minimumContourQuality;
 
 	// Template generation parameters
 	int templateWidth;
