@@ -5,7 +5,7 @@ from PyQt4 import QtCore
 from opencv import cvGetSize, cvCvtColor, cvCreateImage, cvReleaseImage, IPL_DEPTH_8U, CV_BGR2GRAY
 import horus
 
-#sigAvailableFrame = QtCore.SIGNAL("availableFrame(PyQt_PyObject)")
+sigProcessedFrame = QtCore.SIGNAL("processedFrame(PyQt_PyObject, PyQt_PyObject)")
 
 class ProcessingThread(QtCore.QThread):
 	def __init__(self):
@@ -18,6 +18,17 @@ class ProcessingThread(QtCore.QThread):
 		
 	def run(self):
 		res = self.videoProcessor.processFrame(self.lastFrame)
+		"""typedef enum {
+			DEFOCUSED,
+			INTERLACED,
+			FOCUSED_NO_IRIS,
+			IRIS_LOW_QUALITY,
+			IRIS_TOO_CLOSE,
+			IRIS_TOO_FAR,
+			FOCUSED_IRIS,
+			GOT_TEMPLATE
+		} VideoStatus;"""
+		self.emit(sigProcessedFrame, res, self.videoProcessor)
 	
 	def availableFrame(self, frame):
 		if self.isRunning():

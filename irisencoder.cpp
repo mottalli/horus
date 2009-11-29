@@ -33,7 +33,7 @@ IrisTemplate IrisEncoder::generateTemplate(const Image* image, const Segmentatio
 	this->initializeBuffers(image);
 	IrisEncoder::normalizeIris(image, this->buffers.normalizedTexture, this->buffers.noiseMask, segmentationResult);
 
-	// Exclude the upper quarter (from 225 to 315 degrees, 5/4*pi to 7/4*pi radians)
+	/*// Exclude the upper quarter (from 225 to 315 degrees, 5/4*pi to 7/4*pi radians)
 	CvMat upperQuarter;
 	int x0 = int(this->buffers.noiseMask->width * double(225.0/360));
 	int x1 = int(this->buffers.noiseMask->width * double(315.0/360));
@@ -45,7 +45,7 @@ IrisTemplate IrisEncoder::generateTemplate(const Image* image, const Segmentatio
 	int y0 = this->buffers.noiseMask->height * 0.75;
 	int y1 = this->buffers.noiseMask->height;
 	cvGetSubRect(this->buffers.noiseMask, &outerQuarter, cvRect(0, y0, this->buffers.noiseMask->width, y1-y0));
-	cvZero(&outerQuarter);
+	cvZero(&outerQuarter);*/
 
 	// Mask away pixels too far from the mean
 	CvScalar smean, sdev;
@@ -83,21 +83,29 @@ void IrisEncoder::normalizeIris(const Image* image, Image* dest, CvMat* destMask
 	const Contour& irisContour = segmentationResult.irisContour;
 	CvPoint p0, p1;
 
-	//assert(std::abs(double(pupilContour[0].y - irisContour[0].y)) < 2);		// Both contours must be aligned
-
 	// Initialize the mask to 1 (all bits enabled)
 	cvSet(destMask, cvScalar(1,1,1));
-	for (int x = 0; x < normalizedWidth; x++) {
-		double q = double(x)/double(normalizedWidth);
 
-		double w = q*double(pupilContour.size());
+	// We want to exclude the upper quarter.
+	double theta0 = -M_PI/4.0;
+	double theta1 = (5.0/4.0) * M_PI;
+	double radiusToUse = 0.75;		// Only use three-quarters of the radius
+
+	for (int x = 0; x < normalizedWidth; x++) {
+		double theta = (double(x)/double(normalizedWidth)) * (theta1-theta0) + theta0;
+		if (theta < 0) theta = 2.0 * M_PI + theta;
+
+		// Remember we're mapping pupilContour[0] to 0 degrees and pupilContour[size-1] to "almost" 360 degrees
+		assert(theta >= 0 && theta <= 2.0*M_PI);
+		double w = (theta/(2.0*M_PI))*double(pupilContour.size());
+
 		p0 = pupilContour[int(std::floor(w))];
 		p1 = pupilContour[int(std::ceil(w)) % pupilContour.size()];
 		double prop = w-std::floor(w);
 		double xfrom = double(p0.x) + double(p1.x-p0.x)*prop;
 		double yfrom = double(p0.y) + double(p1.y-p0.y)*prop;
 
-		w = q*double(irisContour.size());
+		w = (theta/(2.0*M_PI))*double(irisContour.size());
 		p0 = irisContour[int(std::floor(w))];
 		p1 = irisContour[int(std::ceil(w)) % irisContour.size()];
 		prop = w-std::floor(w);
@@ -105,7 +113,7 @@ void IrisEncoder::normalizeIris(const Image* image, Image* dest, CvMat* destMask
 		double yto = double(p0.y) + double(p1.y-p0.y)*prop;
 
 		for (int y = 0; y < normalizedHeight; y++) {
-			w = double(y)/double(normalizedHeight-1);
+			w = (double(y)/double(normalizedHeight-1)) * radiusToUse;
 			double ximage = xfrom + w*(xto-xfrom);
 			double yimage = yfrom + w*(yto-yfrom);
 

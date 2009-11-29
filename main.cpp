@@ -33,14 +33,24 @@ Parameters* parameters = Parameters::getParameters();
 CvFont FONT;
 char BUFFER[1000];
 
-int main1(int argc, char** argv) {
+int main(int argc, char** argv) {
 	const char* imagePath = "/home/marcelo/Mis_Documentos/Facu/Tesis/Bases de datos/Bath/0019/R/0009.jpg";
-    IplImage* image = cvLoadImage(imagePath, 1);
+	IplImage* image = cvLoadImage(imagePath, 0);
 
     SegmentationResult res = segmentator.segmentImage(image);
     decorator.drawSegmentationResult(image, res);
 
-    cvNamedWindow("image");
+	IrisTemplate irisTemplate = irisEncoder.generateTemplate(image, res);
+
+	IplImage* noiseMask = irisTemplate.getNoiseMaskImage();
+	IplImage* templateImage = irisTemplate.getTemplateImage();
+
+	cvNamedWindow("template");
+	cvShowImage("template", templateImage);
+	cvNamedWindow("mask");
+	cvShowImage("mask", noiseMask);
+
+	/*cvNamedWindow("image");
     cvShowImage("image", image);
 
 	cvNamedWindow("debug1");
@@ -59,7 +69,7 @@ int main1(int argc, char** argv) {
 		cvCircle(foo, cvPoint(x, cvGetReal2D(segmentator._pupilSegmentator.buffers.adjustmentSnake, 0, x)), 1, CV_RGB(255,255,255), 1);
 	}
 	cvShowImage("debug2", foo);
-	cvReleaseImage(&foo);
+	cvReleaseImage(&foo);*/
 
 
 	while (true) {
@@ -69,10 +79,13 @@ int main1(int argc, char** argv) {
 		}
 	}
 
-    return 0;
+	cvReleaseImage(&noiseMask);
+	cvReleaseImage(&templateImage);
+
+	return 0;
 }
 
-int main(int argc, char** argv) {
+int main1(int argc, char** argv) {
 	CvCapture* capture = cvCaptureFromCAM(0);
 	if (!capture) {
 		cout << "No se puede capturar" << endl;

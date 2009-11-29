@@ -14,10 +14,10 @@ Parameters::Parameters() {
 	muPupil = 5.0;
 	sigmaPupil = 5.0;
 
-	pupilAdjustmentRingWidth = 200;
+	pupilAdjustmentRingWidth = 256;
 	pupilAdjustmentRingHeight = 100;
 
-	irisAdjustmentRingWidth = 100;
+	irisAdjustmentRingWidth = 512;
 	irisAdjustmentRingHeight = 90;
 
 	segmentEyelids = false;

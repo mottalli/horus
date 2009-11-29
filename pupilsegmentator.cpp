@@ -207,11 +207,10 @@ Contour PupilSegmentator::adjustPupilContour(const Image* image, const Circle& a
 		cvSetReal2D(snake, 0, x, bestY);
 	}
 
-	HelperFunctions::smoothSnakeFourier(snake, 10);
+	HelperFunctions::smoothSnakeFourier(snake, 5);
 
 	// Use the snake to calculate the quality of the pupil border
 	this->pupilContourQuality = this->calculatePupilContourQuality(this->buffers.adjustmentRing, this->buffers.adjustmentRingGradient, snake);
-	std::cout << this->pupilContourQuality << std::endl;
 
 	// Now, transform the points from the ring coordinates to the image coordinates
 	Contour result(snake->cols);
@@ -461,12 +460,6 @@ int PupilSegmentator::calculatePupilContourQuality(const Image* region, const Im
 	int delta = region->height * 0.1;
 	//const int delta = 2;
 
-	IplImage* foo = cvCreateImage(cvGetSize(regionGradient), IPL_DEPTH_8U, 1);
-	cvNormalize(regionGradient, foo, 0, 255, CV_MINMAX);
-	cvNamedWindow("grad");
-
-
-
 	double sum2 = 0;
 	double norm2 = 0;
 	double v;
@@ -492,10 +485,8 @@ int PupilSegmentator::calculatePupilContourQuality(const Image* region, const Im
 			norm2 += v*v;
 			if (y >= ymin && y < ymax) {
 				sum2 += v*v;
-				cvSetReal2D(foo, y, x, 255);
 			}
 		}
-
 	}
 
 	if (!norm2) {
@@ -504,9 +495,6 @@ int PupilSegmentator::calculatePupilContourQuality(const Image* region, const Im
 
 	assert(sum2 < norm2);
 	assert(norm2 > 0 && sum2 > 0);
-
-	cvShowImage("grad", foo);
-	cvReleaseImage(&foo);
 
 	return int((100.0*sum2)/norm2);
 }

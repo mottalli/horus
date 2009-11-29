@@ -20,13 +20,14 @@ public:
 	IrisTemplate(const IrisTemplate& otherTemplate);
 	IrisTemplate(const CvMat* binaryTemplate, const CvMat* binaryMask);
 
+	// NOTE: Caller must release these!
 	IplImage* getTemplateImage(void) const;
 	IplImage* getNoiseMaskImage(void) const;
 	CvMat* getUnpackedTemplate() const;
 	CvMat* getUnpackedMask() const;
 
-	inline const CvMat* getPackedTemplate() const { return this->irisTemplate; };
-	inline const CvMat* getPackedMask() const { return this->mask; };
+	inline const CvMat* getPackedTemplate() const { return this->irisTemplate; }
+	inline const CvMat* getPackedMask() const { return this->mask; }
 
 	IrisTemplate& operator=(const IrisTemplate& otherTemplate);
 

@@ -38,11 +38,18 @@
            </widget>
           </item>
           <item>
+           <widget class="QPushButton" name="pushButton_4">
+            <property name="text">
+             <string>Capturar</string>
+            </property>
+           </widget>
+          </item>
+          <item>
            <layout class="QHBoxLayout" name="horizontalLayout">
             <item>
              <widget class="QLabel" name="focusLabel">
               <property name="text">
-               <string>Focus</string>
+               <string>Enfoque</string>
               </property>
              </widget>
             </item>
@@ -94,21 +101,21 @@
             <item>
              <widget class="QPushButton" name="pushButton">
               <property name="text">
-               <string>Identify</string>
+               <string>Identificar</string>
               </property>
              </widget>
             </item>
             <item>
              <widget class="QPushButton" name="pushButton_2">
               <property name="text">
-               <string>Register in DB</string>
+               <string>Registrar</string>
               </property>
              </widget>
             </item>
             <item>
              <widget class="QPushButton" name="pushButton_3">
               <property name="text">
-               <string>Save image</string>
+               <string>Guardar imagen</string>
               </property>
              </widget>
             </item>
