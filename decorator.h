@@ -23,6 +23,7 @@ public:
 
 	void drawSegmentationResult(Image* image, const SegmentationResult& segmentationResult);
 	void drawTemplate(Image* image, const IrisTemplate& irisTemplate);
+	void drawEncodingZone(Image* image, const SegmentationResult& segmentationResult);
 private:
 	void drawContour(Image* image, const Contour& contour, CvScalar color);
 	void drawParabola(Image* image, const Parabola& parabola, int xMin, int xMax, CvScalar color);

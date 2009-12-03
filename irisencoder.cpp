@@ -87,9 +87,9 @@ void IrisEncoder::normalizeIris(const Image* image, Image* dest, CvMat* destMask
 	cvSet(destMask, cvScalar(1,1,1));
 
 	// We want to exclude the upper quarter.
-	double theta0 = -M_PI/4.0;
-	double theta1 = (5.0/4.0) * M_PI;
-	double radiusToUse = 0.75;		// Only use three-quarters of the radius
+	double theta0 = IrisEncoder::THETA0;
+	double theta1 = IrisEncoder::THETA1;
+	double radiusToUse = IrisEncoder::RADIUS_TO_USE;		// Only use three-quarters of the radius
 
 	for (int x = 0; x < normalizedWidth; x++) {
 		double theta = (double(x)/double(normalizedWidth)) * (theta1-theta0) + theta0;

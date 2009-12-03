@@ -56,10 +56,8 @@
 %include "../videoprocessor.h"
 
 
-
-
-#namespace std
-#{
-#	%template(somevector) vector<sometype>;
-#}
+namespace std
+{
+	%template(vectord) vector<double>;
+}
 

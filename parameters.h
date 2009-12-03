@@ -39,6 +39,8 @@ public:
 	int minimumContourQuality;
 
 	// Template generation parameters
+        int normalizationWidth;
+        int normalizationHeight;
 	int templateWidth;
 	int templateHeight;
 

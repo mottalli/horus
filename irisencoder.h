@@ -15,6 +15,10 @@
 
 class IrisEncoder {
 public:
+	static const double THETA0 = -M_PI/4.0;
+	static const double THETA1 = (5.0/4.0) * M_PI;
+	static const double RADIUS_TO_USE = 0.75;
+	
 	IrisEncoder();
 	virtual ~IrisEncoder();
 
@@ -23,7 +27,10 @@ public:
 
 	struct {
 		Image* normalizedTexture;
-		CvMat* noiseMask;
+                Image* resizedTexture;
+                CvMat* normalizedNoiseMask;
+                CvMat* resizedNoiseMask;
+
 		Image* filteredTexture;
 		Image* filteredTextureReal;
 		Image* filteredTextureImag;

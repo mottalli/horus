@@ -26,8 +26,10 @@ Parameters::Parameters() {
 
 	parabolicDetectorStep = 10;
 
-	templateWidth = 320;
-	templateHeight = 28;
+	templateWidth = 32*8;		// Must be a multiple of 32
+	templateHeight = 20;
+        normalizationWidth = templateWidth;
+        normalizationHeight = templateHeight;
 
 	interlacedVideo = true;
 	focusThreshold = 50;

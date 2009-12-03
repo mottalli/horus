@@ -6,6 +6,7 @@
  */
 
 #include "decorator.h"
+#include "irisencoder.h"
 #include <cmath>
 
 Decorator::Decorator()
@@ -33,6 +34,57 @@ void Decorator::drawSegmentationResult(Image* image, const SegmentationResult& s
 	/*cvCircle(image, cvPoint(segmentationResult.irisCircle.xc,segmentationResult.irisCircle.yc), segmentationResult.irisCircle.radius, CV_RGB(255,255,255), 1);
 	cvCircle(image, cvPoint(segmentationResult.pupilCircle.xc,segmentationResult.pupilCircle.yc), segmentationResult.pupilCircle.radius, CV_RGB(255,255,255), 1);*/
 }
+
+void Decorator::drawEncodingZone(Image* image, const SegmentationResult& segmentationResult)
+{
+	// Most of the code taken from irisencoder.cpp
+	Parameters* parameters = Parameters::getParameters();
+	int normalizedWidth = parameters->templateWidth, normalizedHeight = parameters->templateHeight;
+	CvPoint p0, p1;
+
+	double theta0 = IrisEncoder::THETA0;
+	double theta1 = IrisEncoder::THETA1;
+	double radiusToUse = IrisEncoder::RADIUS_TO_USE;		// Only use three-quarters of the radius
+	
+	const Contour& pupilContour = segmentationResult.pupilContour;
+	const Contour& irisContour = segmentationResult.irisContour;
+
+	
+	for (int x = 0; x < normalizedWidth; x++) {
+		double theta = (double(x)/double(normalizedWidth)) * (theta1-theta0) + theta0;
+		if (theta < 0) theta = 2.0 * M_PI + theta;
+		assert(theta >= 0 && theta <= 2.0*M_PI);
+		double w = (theta/(2.0*M_PI))*double(pupilContour.size());
+		p0 = pupilContour[int(std::floor(w))];
+		p1 = pupilContour[int(std::ceil(w)) % pupilContour.size()];
+		double prop = w-std::floor(w);
+		double xfrom = double(p0.x) + double(p1.x-p0.x)*prop;
+		double yfrom = double(p0.y) + double(p1.y-p0.y)*prop;
+		w = (theta/(2.0*M_PI))*double(irisContour.size());
+		p0 = irisContour[int(std::floor(w))];
+		p1 = irisContour[int(std::ceil(w)) % irisContour.size()];
+		prop = w-std::floor(w);
+		double xto = double(p0.x) + double(p1.x-p0.x)*prop;
+		double yto = double(p0.y) + double(p1.y-p0.y)*prop;
+		for (int y = 0; y < normalizedHeight; y++) {
+			w = (double(y)/double(normalizedHeight-1)) * radiusToUse;
+			double ximage = xfrom + w*(xto-xfrom);
+			double yimage = yfrom + w*(yto-yfrom);
+
+			int ximage0 = int(std::floor(ximage));
+			int ximage1 = int(std::ceil(ximage));
+			int yimage0 = int(std::floor(yimage));
+			int yimage1 = int(std::ceil(yimage));			
+
+			if (ximage0 < 0 || ximage1 >= image->width || yimage0 < 0 || yimage1 >= image->height) {
+			} else if (segmentationResult.eyelidsSegmented && (yimage <= segmentationResult.upperEyelid.value(ximage) || yimage >= segmentationResult.lowerEyelid.value(ximage))) {
+			} else {
+				cvSet2D(image, yimage, ximage, CV_RGB(255,255,0));
+			}
+		}
+	}
+}
+
 
 void Decorator::drawContour(Image* image, const Contour& contour, CvScalar color)
 {

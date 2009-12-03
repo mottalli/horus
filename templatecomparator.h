@@ -20,6 +20,9 @@ public:
 
 	void setSrcTemplate(const IrisTemplate& irisTemplate);
 	double compare(const IrisTemplate& otherTemplate);
+	
+	// For "a contrario" matching
+	std::vector<double> compareParts(const IrisTemplate& otherTemplate, int nParts = 4);
 
 	struct {
 		CvMat* maskIntersection;
@@ -27,7 +30,7 @@ public:
 	} buffers;
 
 private:
-	double hammingDistance(const CvMat* template1, const CvMat* mask1, const CvMat* template2, const CvMat* mask2);
+	double packedHammingDistance(const CvMat* template1, const CvMat* mask1, const CvMat* template2, const CvMat* mask2);
 	void rotateMatrix(const CvMat* src, CvMat* dest, int step);
 
 	int nRots, rotStep;

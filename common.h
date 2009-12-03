@@ -16,6 +16,7 @@
 #include <iostream>
 #include <vector>
 #include <limits.h>
+#include <stdint.h>
 
 
 #include "types.h"
