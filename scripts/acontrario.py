@@ -1,12 +1,9 @@
 #!/usr/bin/python
 # -*- coding: UTF8 -*-
 import AContrarioMatching
-from horusutils import Database
+import Database
 from optparse import OptionParser
 import Estadisticas
-
-nombreBase = 'casia3p'
-base = Database.getDatabase(nombreBase)
 
 parser = OptionParser()
 parser.add_option('-b', dest='base', help="Base")

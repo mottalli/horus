@@ -1,5 +1,6 @@
 import sqlite3
 import os.path
+import horus
 
 INSTALLED_BASES = ['casia1', 'casia3', 'casia3p', 'mmu', 'bath']
 PATHS_BASES = {
@@ -28,4 +29,22 @@ def getDatabase(name):
 	if not name in INSTALLED_BASES:
 		raise Exception('Base ' + name + 'doesn\'t exist')
 	
-	return IrisDatabase(PATHS_BASES[name])
+	database = IrisDatabase(PATHS_BASES[name])
+	loadParameters(name)
+	return database
+
+def loadParameters(name):
+	parameters = horus.Parameters.getParameters()
+	
+	if name == 'mmu':
+		#parameters.normalizationWidth = parameters.templateWidth
+		#parameters.normalizationHeight = parameters.templateHeight
+		pass
+	elif name == 'casia1':
+		#parameters.normalizationWidth = parameters.templateWidth
+		#parameters.normalizationHeight = parameters.templateHeight
+		pass
+	elif name == 'bath':
+		parameters.normalizationWidth = parameters.templateWidth
+		parameters.normalizationHeight = parameters.templateHeight
+		pass

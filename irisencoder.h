@@ -23,13 +23,12 @@ public:
 	virtual ~IrisEncoder();
 
 	IrisTemplate generateTemplate(const Image* image, const SegmentationResult& segmentationResult);
-	static void normalizeIris(const Image* image, Image* dest, CvMat* destMask, const SegmentationResult& segmentationResult);
 
 	struct {
 		Image* normalizedTexture;
-                Image* resizedTexture;
-                CvMat* normalizedNoiseMask;
-                CvMat* resizedNoiseMask;
+		Image* resizedTexture;
+		CvMat* normalizedNoiseMask;
+		CvMat* resizedNoiseMask;
 
 		Image* filteredTexture;
 		Image* filteredTextureReal;
@@ -37,7 +36,11 @@ public:
 		CvMat* thresholdedTexture;
 	} buffers;
 
+	// For debugging purposes
+	const Image* getNormalizedTexture() const { return this->buffers.normalizedTexture; }
+
 private:
+	static void normalizeIris(const Image* image, Image* dest, CvMat* destMask, const SegmentationResult& segmentationResult);
 	void initializeBuffers(const Image* image);
 	LogGabor1DFilter filter;
 	void applyFilter();

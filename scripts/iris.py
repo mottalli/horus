@@ -5,11 +5,13 @@ import sys
 sys.path.append('/home/marcelo/Mis_Documentos/Facu/Tesis/implementacion/scripts_nuevos')
 
 import horus
-from horusutils import Database
+import Database
 from optparse import OptionParser
 import os
 import Segmentar
 import Matching
+import Estadisticas
+import Procesador
 
 parser = OptionParser()
 parser.add_option('-b', dest='base', help="Base")
@@ -25,6 +27,7 @@ parser.add_option('-v', dest='soloVer', action="store_true", default=False, help
 parser.add_option('--graficos', dest='graficos', action="store_true", default=False)
 parser.add_option('--comparar', dest='comparar')
 parser.add_option('-m', '--matching', dest='matching', action="store_true", default=False, help="Hacer las pruebas de matching")
+parser.add_option('-p', dest='procesar', action='store_true', help='Procesar las imagenes especificadas')
 
 (options, args) = parser.parse_args()
 
@@ -33,7 +36,6 @@ parameters.muPupil = 10
 parameters.sigmaPupil = 10
 
 base = Database.getDatabase(options.base)
-
 
 # Base por default
 #if not options.base: options.base = 'casia3p'
@@ -45,3 +47,8 @@ if __name__ == '__main__':
 		Segmentar.segmentarUna(options)
 	elif options.matching:
 		Matching.testMatching(base)
+		Estadisticas.estadisticas(base)
+	elif options.estadisticas:
+		Estadisticas.estadisticas(base)
+	elif options.procesar:
+		Procesador.procesar(base, options)

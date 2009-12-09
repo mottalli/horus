@@ -1,5 +1,5 @@
 # -*- coding: UTF8 -*-
-from horusutils import Database
+import Database
 import horus
 import os.path
 from opencv import *
@@ -32,7 +32,7 @@ def hacerComparaciones(base):
 	base.conn.execute('DELETE FROM comparaciones_a_contrario')
 	base.conn.commit()
 	for idImagen1 in templates.keys():
-		print "Imagen %i..." % (idImagen1)
+		print "Comparando partes de imagen %i..." % (idImagen1)
 		comparator = horus.TemplateComparator(templates[idImagen1], 20, 2)
 		for idImagen2 in templates.keys():
 			ds = comparator.compareParts(templates[idImagen2], CANTIDAD_PARTES)
@@ -55,10 +55,10 @@ def correrMatchAContrario(base):
 	# Proceso cada imagen por separado
 	base.conn.execute('DELETE FROM nfa_a_contrario')
 	for idImagen in clases.keys():
-		print "Imagen %i..." % (idImagen)
-		correrTestImagen(idImagen, clases)
+		print "Haciendo matching de imagen %i..." % (idImagen)
+		correrTestImagen(base, idImagen, clases)
 		
-def correrTestImagen(idImagen, clases):
+def correrTestImagen(base, idImagen, clases):
 	# Calculo los histogramas de distancias para cada parte
 	histogramasPartes = []
 	histAcumPartes = []

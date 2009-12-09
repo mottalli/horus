@@ -1,4 +1,4 @@
-/*
+	/*
  * File:   parameters.cpp
  * Author: marcelo
  *
@@ -20,7 +20,7 @@ Parameters::Parameters() {
 	irisAdjustmentRingWidth = 512;
 	irisAdjustmentRingHeight = 90;
 
-	segmentEyelids = false;
+	segmentEyelids = true;
 
 	infraredThreshold = 200;
 
@@ -28,8 +28,8 @@ Parameters::Parameters() {
 
 	templateWidth = 32*8;		// Must be a multiple of 32
 	templateHeight = 20;
-        normalizationWidth = templateWidth;
-        normalizationHeight = templateHeight;
+	normalizationWidth = 2*templateWidth;
+	normalizationHeight = 2*templateHeight;
 
 	interlacedVideo = true;
 	focusThreshold = 50;
