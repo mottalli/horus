@@ -1,6 +1,6 @@
 # -*- coding: UTF8 -*-
-from PyIrisLib import BaseIris
 import horus
+import Database
 import os
 from opencv import *
 from opencv.highgui import *
@@ -19,7 +19,7 @@ segmentator = horus.Segmentator()
 decorator = horus.Decorator()
 
 def segmentarBase(options):
-	BASE = BaseIris.cargarBase(options.base)
+	BASE = Database.getDatabase(options.base)
 	q = "SELECT * FROM base_iris WHERE 1=1"
 	o = []
 	
@@ -50,7 +50,8 @@ def segmentarBase(options):
 
 		(idImagen, idClase, pathImagen, segmentacion, segmentacionCorrecta, codigoDCT, codigoGabor, mascaraCodigo) = filas[i]
 		
-		fullPathImagen = str(os.path.join(BASE.pathBase, pathImagen))
+		#fullPathImagen = str(os.path.join(BASE.pathBase, pathImagen))
+		fullPathImagen = BASE.fullPath(pathImagen)
 		
 		if options.soloVer and segmentacion:
 			imagen = cvLoadImage(fullPathImagen, 0)

@@ -3,12 +3,13 @@ import os.path
 import horus
 
 INSTALLED_BASES = ['casia1', 'casia3', 'casia3p', 'mmu', 'bath']
+PATH_BASE = '/home/marcelo/iris/BBDD'
 PATHS_BASES = {
-		'casia1': '/home/marcelo/Mis_Documentos/Facu/Tesis/Bases de datos/CASIA1',
+		'casia1': str(os.path.join(PATH_BASE, 'CASIA1')),
 		'casia3': '/home/marcelo/Mis_Documentos/Facu/Tesis/Bases de datos/CASIA-IrisV3-Interval',
-		'casia3p': '/home/marcelo/Mis_Documentos/Facu/Tesis/Bases de datos/CASIA3-Preprocesada',
-		'mmu': '/home/marcelo/Mis_Documentos/Facu/Tesis/Bases de datos/MMU Iris Database',
-		'bath': '/home/marcelo/Mis_Documentos/Facu/Tesis/Bases de datos/Bath',
+		'casia3p': str(os.path.join(PATH_BASE, 'CASIA3-Preprocesada')),
+		'mmu': str(os.path.join(PATH_BASE, 'MMU')),
+		'bath': str(os.path.join(PATH_BASE, 'Bath'))
 	}
 
 class IrisDatabase:
@@ -41,6 +42,10 @@ def loadParameters(name):
 		parameters.normalizationHeight = parameters.templateHeight
 		pass
 	elif name == 'casia1':
+		#parameters.normalizationWidth = parameters.templateWidth
+		#parameters.normalizationHeight = parameters.templateHeight
+		pass
+	elif name == 'casia3p':
 		#parameters.normalizationWidth = parameters.templateWidth
 		#parameters.normalizationHeight = parameters.templateHeight
 		pass

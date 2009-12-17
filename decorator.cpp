@@ -39,7 +39,7 @@ void Decorator::drawEncodingZone(Image* image, const SegmentationResult& segment
 {
 	// Most of the code taken from irisencoder.cpp
 	Parameters* parameters = Parameters::getParameters();
-	int normalizedWidth = parameters->templateWidth, normalizedHeight = parameters->templateHeight;
+	int normalizedWidth = parameters->normalizationWidth, normalizedHeight = parameters->normalizationHeight;
 	CvPoint p0, p1;
 
 	double theta0 = IrisEncoder::THETA0;
