@@ -37,14 +37,14 @@ def loadParameters(name):
 	parameters = horus.Parameters.getParameters()
 	
 	if name == 'mmu':
-		#parameters.normalizationWidth = parameters.templateWidth
-		#parameters.normalizationHeight = parameters.templateHeight
+		parameters.normalizationWidth = parameters.templateWidth
+		parameters.normalizationHeight = parameters.templateHeight
 		pass
 	elif name == 'casia1':
 		#parameters.normalizationWidth = parameters.templateWidth
 		#parameters.normalizationHeight = parameters.templateHeight
 		pass
 	elif name == 'bath':
-		parameters.normalizationWidth = parameters.templateWidth
-		parameters.normalizationHeight = parameters.templateHeight
+		#parameters.normalizationWidth = parameters.templateWidth
+		#parameters.normalizationHeight = parameters.templateHeight
 		pass

@@ -6,6 +6,7 @@
  */
 
 #include <iostream>
+#include <stdio.h>
 
 #include "common.h"
 #include "segmentator.h"
@@ -127,6 +128,8 @@ int main1(int argc, char** argv) {
 			break;
 		}
 	}
+
+	return 0;
 }
 
 void processImage(Image* image)

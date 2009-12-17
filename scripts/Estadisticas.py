@@ -16,11 +16,12 @@ def FRR(valoresIntra, threshold):
 	except IndexError:
 		return 0		# No hay falsos rechazos (genera una excepción "tuple index out of range")
 
-def calcularTablaFAR(nfaInter, epsilons):
+def calcularTablaFAR(nfaInter, nfaIntra, epsilons):
 	ret = []
 	for epsilon in epsilons:
-		a = (len(where(nfaInter <= epsilon)[0]) / float(len(nfaInter))) * 100.0
-		ret.append( (epsilon, a) )
+		far = (len(where(nfaInter <= epsilon)[0]) / float(len(nfaInter))) * 100.0
+		frr = (len(where(nfaIntra >= epsilon)[0]) / float(len(nfaIntra))) * 100.0
+		ret.append( (epsilon, far, frr) )
 	
 	return ret
 
@@ -162,7 +163,7 @@ def estadisticasAContrario(base, doShow=True):
 
 		show()
 
-	tablaFAR = calcularTablaFAR(nfaInter, range(-5, 0))
+	tablaFAR = calcularTablaFAR(nfaInter, nfaIntra, range(-5, 0))
 	return (separabilidad, thresholdOptimo, EER, tablaFAR)
 
 def estadisticasFull(base):
@@ -176,17 +177,17 @@ def estadisticasFull(base):
 	print 'Separabilidad:', separabilidad
 	print 'Threshold optimo (DH):', thresholdOptimo
 	print 'EER (%):', EER
-
+	print
 	print 'A Contrario'
 	print '-------------'
 	print 'Separabilidad:', separabilidadAC
 	print 'Threshold optimo (epsilon-significatividad):', thresholdOptimoAC
 	print 'EER (%):', EERAC
-	
+	print
 	print 'Tabla FAR'
-	print 'epsilon   |   FAR (%)'
-	print '-----------------'
-	for (epsilon, far) in tablaFAR:
-		print '10^%i     | %f' % (epsilon, far)
+	print 'epsilon   |   FAR (%)    |  FRR (%)'
+	print '-----------------------------------'
+	for (epsilon, far, frr) in tablaFAR:
+		print '10^%i     | %f     | %f' % (epsilon, far, frr)
 
 	show()

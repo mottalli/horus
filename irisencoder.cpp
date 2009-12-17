@@ -13,7 +13,7 @@
 #include "tools.h"
 
 IrisEncoder::IrisEncoder() :
-	filter(1.0/40.0, 0.5)
+	filter(1.0/32.0, 0.5)
 {
 	this->buffers.normalizedTexture = NULL;
 	this->buffers.resizedTexture = NULL;
