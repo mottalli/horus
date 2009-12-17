@@ -1,5 +1,6 @@
-#include "serializer.h"
 #include <sstream>
+#include "serializer.h"
+#include "helperfunctions.h"
 
 
 std::string Serializer::serializeParabola(const Parabola& parabola)
@@ -42,6 +43,9 @@ SegmentationResult Serializer::unserializeSegmentationResult(const std::string& 
 		stream >> c; assert(c == ',');
 		res.lowerEyelid = unserializeParabola(stream);
 	}
+
+	res.irisCircle = HelperFunctions::approximateCircle(res.irisContour);
+	res.pupilCircle = HelperFunctions::approximateCircle(res.pupilContour);
 
 	return res;
 }
