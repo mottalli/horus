@@ -10,6 +10,7 @@
 
 #include "common.h"
 #include "segmentationresult.h"
+#include "iristemplate.h"
 
 namespace Serializer
 {
@@ -20,6 +21,9 @@ namespace Serializer
 	SegmentationResult unserializeSegmentationResult(const std::string& s);
 	Contour unserializeContour(std::istringstream& stream);
 	Parabola unserializeParabola(std::istringstream& stream);
+
+	std::string serializeIrisTemplate(const IrisTemplate& irisTemplate);
+	IrisTemplate unserializeIrisTemplate(const std::string& serializedTemplate);
 };
 
 #endif	/* _SERIALIZER_H */

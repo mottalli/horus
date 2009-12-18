@@ -17,6 +17,7 @@
 #include "templatecomparator.h"
 #include "qualitychecker.h"
 #include "tools.h"
+#include "serializer.h"
 
 using namespace std;
 
@@ -46,11 +47,6 @@ int main(int argc, char** argv) {
 	IplImage* noiseMask = irisTemplate.getNoiseMaskImage();
 	IplImage* templateImage = irisTemplate.getTemplateImage();
 
-	cvNamedWindow("template");
-	cvShowImage("template", templateImage);
-	cvNamedWindow("mask");
-	cvShowImage("mask", noiseMask);
-
 	/*cvNamedWindow("image");
     cvShowImage("image", image);
 
@@ -73,12 +69,36 @@ int main(int argc, char** argv) {
 	cvReleaseImage(&foo);*/
 
 
+
+	string serialized = Serializer::serializeIrisTemplate(irisTemplate);
+	cout << serialized << endl;
+	IrisTemplate unserialized = Serializer::unserializeIrisTemplate(serialized);
+	noiseMask = unserialized.getNoiseMaskImage();
+	templateImage = unserialized.getTemplateImage();
+	cvNamedWindow("template");
+	cvShowImage("template", templateImage);
+	cvNamedWindow("mask");
+	cvShowImage("mask", noiseMask);
 	while (true) {
 		char k = cvWaitKey(0);
 		if (k == 'q') {
 			break;
 		}
 	}
+
+
+
+	/*cvNamedWindow("template");
+	cvShowImage("template", templateImage);
+	cvNamedWindow("mask");
+	cvShowImage("mask", noiseMask);
+	while (true) {
+		char k = cvWaitKey(0);
+		if (k == 'q') {
+			break;
+		}
+	}*/
+
 
 	cvReleaseImage(&noiseMask);
 	cvReleaseImage(&templateImage);

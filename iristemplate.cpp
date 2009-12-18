@@ -6,6 +6,7 @@
  */
 
 #include <iostream>
+#include <sstream>
 #include "iristemplate.h"
 #include "tools.h"
 
@@ -89,3 +90,4 @@ CvMat* IrisTemplate::getUnpackedMask() const
 	Tools::unpackBits(this->mask, unpacked);
 	return unpacked;
 }
+
