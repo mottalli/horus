@@ -8,7 +8,6 @@ from opencv.highgui import *
 def testMatching(base):
 	rows = base.conn.execute('SELECT * FROM base_iris WHERE segmentacion_correcta=1')
 	
-	irisEncoder = horus.IrisEncoder()
 	templateComparator = horus.TemplateComparator()
 	
 	templates = {}
@@ -19,13 +18,17 @@ def testMatching(base):
 		idClase = int(row[1])
 		imagePath = base.fullPath(row[2])
 		serializedSegmentationResult = str(row[3])
+		serializedTemplate = str(row[6])
+		
 	
-		image = cvLoadImage(imagePath, 0)
-		print "Codificando %i..." % idImagen
-		
-		segmentationResult = horus.unserializeSegmentationResult(serializedSegmentationResult)
-		
-		templates[idImagen] = irisEncoder.generateTemplate(image, segmentationResult)
+		print "Cargando %i..." % idImagen
+
+		if not len(serializedTemplate):
+			raise Exception('No se codificaron todas las imagenes!  (correr iris.py con el parametro -c)')
+		#image = cvLoadImage(imagePath, 0)
+		#segmentationResult = horus.unserializeSegmentationResult(serializedSegmentationResult)
+		#templates[idImagen] = irisEncoder.generateTemplate(image, segmentationResult)
+		templates[idImagen] = horus.unserializeIrisTemplate(serializedTemplate)
 		clases[idImagen] = idClase
 		
 	idsImagenes = templates.keys()

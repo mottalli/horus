@@ -41,7 +41,7 @@ def segmentarBase(options):
 	buffer = []
 	
 	if not filas:
-		print "No hay imagenes a procesar"
+		print "No hay imagenes nuevas a procesar (usar -f para volver a procesar las imagenes)"
 		sys.exit(0)
 	while 1:
 		if i >= len(filas): 
@@ -59,6 +59,7 @@ def segmentarBase(options):
 				raise Exception('No se pudo abrir la imagen ' + imagen)
 
 			resultadoSegmentacion = horus.unserializeSegmentationResult(str(segmentacion))
+			print 'Mostrando %i (%s)' % (idImagen, fullPathImagen)
 			decorada = mostrarSegmentada(imagen, resultadoSegmentacion)
 		else:
 			print 'Segmentando %i (%s)' % (idImagen, fullPathImagen)
@@ -73,6 +74,7 @@ def segmentarBase(options):
 				i = i+1
 				break
 			elif accion == ACCION_SEGMENTACION_CORRECTA or accion == ACCION_SEGMENTACION_ERRONEA:
+				print 'Guardando resultado...'
 				buffer = filter(lambda x: x['id_imagen'] != idImagen, buffer)		# La quito si ya está
 				buffer.append({
 						'id_imagen': idImagen,

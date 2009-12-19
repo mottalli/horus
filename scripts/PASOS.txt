@@ -1,0 +1,10 @@
+1) Segmentar las imágenes con ./iris -b <base> -S
+2) Generar los códigos en la base de datos con ./iris -b <base> -c
+3) Correr el matching con ./iris -b <base> -m
+
+-- A contrario
+1) Hacer todo lo anterior
+2) Hacer las comparaciones entre partes con ./acontrario -b <base> -c
+3) Hacer el matching a contrario con ./acontrario -b <base> -m
+
+la opción --full hace los pasos 2) y 3)

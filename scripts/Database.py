@@ -3,7 +3,8 @@ import os.path
 import horus
 
 INSTALLED_BASES = ['casia1', 'casia3', 'casia3p', 'mmu', 'bath']
-PATH_BASE = '/home/marcelo/iris/BBDD'
+#PATH_BASE = '/home/marcelo/iris/BBDD'
+PATH_BASE = '/home/marcelo/Mis_Documentos/Facu/Tesis/Bases de datos'
 PATHS_BASES = {
 		'casia1': str(os.path.join(PATH_BASE, 'CASIA1')),
 		'casia3': '/home/marcelo/Mis_Documentos/Facu/Tesis/Bases de datos/CASIA-IrisV3-Interval',
@@ -52,4 +53,6 @@ def loadParameters(name):
 	elif name == 'bath':
 		#parameters.normalizationWidth = parameters.templateWidth
 		#parameters.normalizationHeight = parameters.templateHeight
+		parameters.muPupil = 0
+		parameters.sigmaPupil = 5
 		pass

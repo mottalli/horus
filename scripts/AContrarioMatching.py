@@ -12,27 +12,46 @@ CANTIDAD_PARTES = 4
 	
 def hacerComparaciones(base):
 	encoder = horus.IrisEncoder()
+	decorator = horus.Decorator()
 	
 	templates = {}
 	clases = {}
+	segmentaciones = {}
+	paths = {}
 	
-	for (idImagen,idClase,pathImagen,resultadoSegmentacionSerializado) in base.conn.execute("SELECT id_imagen,id_clase,imagen,segmentacion FROM base_iris WHERE segmentacion_correcta=1 AND segmentacion IS NOT NULL"):
-		resultadoSegmentacion = horus.unserializeSegmentationResult(str(resultadoSegmentacionSerializado))
-		fullPathImagen = base.fullPath(pathImagen)
-		
+	for (idImagen,idClase,pathImagen,resultadoSegmentacionSerializado,templateSerializado) in base.conn.execute("SELECT id_imagen,id_clase,imagen,segmentacion,codigo_gabor FROM base_iris WHERE segmentacion_correcta=1 AND segmentacion IS NOT NULL"):
+		"""resultadoSegmentacion = horus.unserializeSegmentationResult(str(resultadoSegmentacionSerializado))
 		print "Codificando imagen %i (%s...)" % (idImagen ,fullPathImagen)
-		
 		imagen = cvLoadImage(fullPathImagen, 0)
 		if not imagen: raise Exception('No se pudo abrir %s' % (fullPathImagen))
-		templates[idImagen] = encoder.generateTemplate(imagen, resultadoSegmentacion)
+		templates[idImagen] = encoder.generateTemplate(imagen, resultadoSegmentacion)"""
+		
+		fullPathImagen = base.fullPath(pathImagen)
+		
+		print "Cargando codigo %i (%s...)" % (idImagen ,fullPathImagen)
+		if not len(templateSerializado):
+			raise Exception('No se codificaron todas las imagenes! (correr iris.py con el parametro -c)')
+		templates[idImagen] = horus.unserializeIrisTemplate(str(templateSerializado))
 		clases[idImagen] = idClase
+		segmentaciones[idImagen] = horus.unserializeSegmentationResult(str(resultadoSegmentacionSerializado))
+		paths[idImagen] = fullPathImagen
 
 	# Ahora comparo todas contra todas
 	print 'Comparando...'
+	cvNamedWindow("Imagen")
 	base.conn.execute('DELETE FROM comparaciones_a_contrario')
 	base.conn.commit()
 	for idImagen1 in templates.keys():
 		print "Comparando partes de imagen %i..." % (idImagen1)
+		
+		####### Decoracion estética nomás #######
+		imagen = cvLoadImage(paths[idImagen1])
+		decorator.drawSegmentationResult(imagen, segmentaciones[idImagen1])
+		decorator.drawTemplate(imagen, templates[idImagen1])
+		cvShowImage("Imagen", imagen)
+		cvWaitKey(10)
+		#######      Fin decoración       #######
+		
 		comparator = horus.TemplateComparator(templates[idImagen1], 20, 2)
 		for idImagen2 in templates.keys():
 			ds = comparator.compareParts(templates[idImagen2], CANTIDAD_PARTES)
@@ -43,6 +62,7 @@ def hacerComparaciones(base):
 		if idImagen1 % 10 == 0: 
 			base.conn.commit()
 	
+	cvDestroyWindow("Imagen")
 	base.conn.commit()
 
 ######################################################################

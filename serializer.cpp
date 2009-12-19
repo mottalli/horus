@@ -135,6 +135,7 @@ IrisTemplate Serializer::unserializeIrisTemplate(const std::string& serializedTe
 	CvMat* packedMask = Tools::base64DecodeMat(strbuffer);
 
 	IrisTemplate res;
+	// Note that by doing this, irisTemplate takes posession of the template and the mask
 	res.irisTemplate = packedTemplate;
 	res.mask = packedMask;
 
