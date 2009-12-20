@@ -41,14 +41,13 @@ base = Database.getDatabase(options.base)
 if __name__ == '__main__':
 	if options.segmentarBase:
 		Segmentar.segmentarBase(options)
-	elif options.segmentarUna:
+	if options.segmentarUna:
 		Segmentar.segmentarUna(options)
-	elif options.matching:
-		Matching.testMatching(base)
-		Estadisticas.estadisticas(base)
-	elif options.estadisticas:
-		Estadisticas.estadisticas(base)
-	elif options.procesar:
-		Procesador.procesar(base, options)
-	elif options.codificar:
+	if options.codificar:
 		Procesador.codificar(base, options)
+	if options.matching:
+		Matching.testMatching(base)
+	if options.estadisticas:
+		Estadisticas.estadisticas(base)
+	if options.procesar:
+		Procesador.procesar(base, options)

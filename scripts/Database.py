@@ -2,15 +2,15 @@ import sqlite3
 import os.path
 import horus
 
-INSTALLED_BASES = ['casia1', 'casia3', 'casia3p', 'mmu', 'bath']
 #PATH_BASE = '/home/marcelo/iris/BBDD'
 PATH_BASE = '/home/marcelo/Mis_Documentos/Facu/Tesis/Bases de datos'
 PATHS_BASES = {
+		'unificada': PATH_BASE,
 		'casia1': str(os.path.join(PATH_BASE, 'CASIA1')),
-		'casia3': '/home/marcelo/Mis_Documentos/Facu/Tesis/Bases de datos/CASIA-IrisV3-Interval',
+		#'casia3': '/home/marcelo/Mis_Documentos/Facu/Tesis/Bases de datos/CASIA-IrisV3-Interval',
 		'casia3p': str(os.path.join(PATH_BASE, 'CASIA3-Preprocesada')),
 		'mmu': str(os.path.join(PATH_BASE, 'MMU')),
-		'bath': str(os.path.join(PATH_BASE, 'Bath'))
+		'bath': str(os.path.join(PATH_BASE, 'Bath')),
 	}
 
 class IrisDatabase:
@@ -28,8 +28,8 @@ class IrisDatabase:
 		return str(os.path.join(self.path, path))
 		
 def getDatabase(name):
-	if not name in INSTALLED_BASES:
-		raise Exception('Base ' + name + 'doesn\'t exist')
+	if not name in PATHS_BASES.keys():
+		raise Exception('Base ' + name + ' doesn\'t exist')
 	
 	database = IrisDatabase(PATHS_BASES[name])
 	loadParameters(name)

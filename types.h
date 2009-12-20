@@ -10,6 +10,7 @@
 
 #include <vector>
 #include <opencv/cv.h>
+#include <stdint.h>
 
 typedef std::vector<CvPoint> Contour;
 typedef IplImage Image;

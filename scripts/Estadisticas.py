@@ -45,16 +45,15 @@ def calcularROC_EER(valoresIntra, valoresInter, thresholds):
 	return (FARs, FRRs, EER, thresholdOptimo)
 
 def estadisticas(base, doShow=True):
-	n = base.conn.execute('SELECT COUNT(*) FROM comparaciones').fetchall()
-	n = n[0][0]
-	if n == 0:
+	n = base.conn.execute('SELECT COUNT(*) FROM comparaciones').fetchone()
+	if n[0] == 0:
 		raise Exception('No hay datos en la tabla comparaciones!')
 	
-	print 'Cargando datos...'
-	datosIntra = array(base.conn.execute('SELECT * FROM comparaciones WHERE intra_clase=1').fetchall())
-	datosInter = array(base.conn.execute('SELECT * FROM comparaciones WHERE intra_clase=0').fetchall())
-	distanciasIntra = datosIntra[:, 2]
-	distanciasInter = datosInter[:, 2]
+	print 'Cargando datos... (%i comparaciones)' % (n[0])
+	datosIntra = array(base.conn.execute('SELECT distancia FROM comparaciones WHERE intra_clase=1').fetchall())
+	datosInter = array(base.conn.execute('SELECT distancia FROM comparaciones WHERE intra_clase=0').fetchall())
+	distanciasIntra = datosIntra[:, 0]
+	distanciasInter = datosInter[:, 0]
 	
 	figure()
 
@@ -76,8 +75,8 @@ def estadisticas(base, doShow=True):
 	xlabel('FAR')
 	ylabel('FRR')
 
-	distanciasIntra = array(datosIntra[:, 2])
-	distanciasInter = array(datosInter[:, 2])
+	#distanciasIntra = array(datosIntra[:, 2])
+	#distanciasInter = array(datosInter[:, 2])
 
 	subplot(122)
 	(h1, b1) = histogram(distanciasInter, bins=30)
