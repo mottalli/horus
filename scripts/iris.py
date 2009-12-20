@@ -21,10 +21,11 @@ parser.add_option('-S', dest='segmentarBase', action='store_true', default=False
 parser.add_option('-f', dest='forzar', action="store_true", default=False, help="Fuerza a procesar todas las imagenes")
 parser.add_option('--malas', dest='soloMalas', action="store_true", default=False, help="Procesar solo las imagenes mal segmentadas")
 parser.add_option('--buenas', dest='soloBuenas', action="store_true", default=False, help="Procesar solo las imagenes bien segmentadas")
-parser.add_option('--estadisticas', dest='estadisticas', action="store_true", default=False)
+parser.add_option('-e', '--estadisticas', dest='estadisticas', action="store_true", default=False)
 parser.add_option('-v', dest='soloVer', action="store_true", default=False, help="Solo ver, no segmentar (usar solo el resultado guardado)")
 parser.add_option('-m', '--matching', dest='matching', action="store_true", default=False, help="Hacer las pruebas de matching")
 parser.add_option('-p', dest='procesar', action='store_true', help='Procesar las imagenes especificadas')
+parser.add_option('--full', dest='full', action='store_true', default=False, help='Equivalente a -cme')
 parser.add_option('-c', dest='codificar', action='store_true', default=False, help='Codificar todas las imagenes de la base')
 
 (options, args) = parser.parse_args()
@@ -43,11 +44,11 @@ if __name__ == '__main__':
 		Segmentar.segmentarBase(options)
 	if options.segmentarUna:
 		Segmentar.segmentarUna(options)
-	if options.codificar:
+	if options.codificar or options.full:
 		Procesador.codificar(base, options)
-	if options.matching:
+	if options.matching or options.full:
 		Matching.testMatching(base)
-	if options.estadisticas:
+	if options.estadisticas or options.full:
 		Estadisticas.estadisticas(base)
 	if options.procesar:
 		Procesador.procesar(base, options)

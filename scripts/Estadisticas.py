@@ -45,15 +45,29 @@ def calcularROC_EER(valoresIntra, valoresInter, thresholds):
 	return (FARs, FRRs, EER, thresholdOptimo)
 
 def estadisticas(base, doShow=True):
-	n = base.conn.execute('SELECT COUNT(*) FROM comparaciones').fetchone()
-	if n[0] == 0:
+	nIntra = (base.conn.execute('SELECT COUNT(*) FROM comparaciones WHERE intra_clase=1').fetchone())[0]
+	nInter = (base.conn.execute('SELECT COUNT(*) FROM comparaciones WHERE intra_clase=0').fetchone())[0]
+
+	print 'Cargando datos... (%i comparaciones)' % (nIntra+nInter)
+	if nIntra == 0 or nInter == 0:
 		raise Exception('No hay datos en la tabla comparaciones!')
 	
-	print 'Cargando datos... (%i comparaciones)' % (n[0])
-	datosIntra = array(base.conn.execute('SELECT distancia FROM comparaciones WHERE intra_clase=1').fetchall())
-	datosInter = array(base.conn.execute('SELECT distancia FROM comparaciones WHERE intra_clase=0').fetchall())
-	distanciasIntra = datosIntra[:, 0]
-	distanciasInter = datosInter[:, 0]
+	# De este modo es más rápido y consume menos memoria
+	distanciasIntra = zeros(nIntra)
+	distanciasInter = zeros(nInter)
+	rs = base.conn.execute('SELECT distancia FROM comparaciones WHERE intra_clase=1')
+	i = 0
+	for (d,) in rs:
+		distanciasIntra[i] = d
+		i = i+1
+
+	rs = base.conn.execute('SELECT distancia FROM comparaciones WHERE intra_clase=0')
+	i = 0
+	for (d,) in rs:
+		distanciasInter[i] = d
+		i = i+1
+	
+	print "Datos cargados. Calculando..."
 	
 	figure()
 
@@ -88,26 +102,40 @@ def estadisticas(base, doShow=True):
 	xlabel('Hamming distance')
 
 	if doShow: 
+		print "Sobre un total de %i comparaciones intra-clase y %i comparaciones inter-clase:" % (len(distanciasIntra), len(distanciasInter))
 		print "Separabilidad: ", separabilidad
 		print "Threshold optimo:", thresholdOptimo
-		print "EER:", EER
+		print "EER (%):", EER
 
 		show()
 	
 	return (separabilidad, thresholdOptimo, EER)
 
 def estadisticasAContrario(base, doShow=True):
-	print 'Cargando datos...'
-	
-	n = base.conn.execute('SELECT COUNT(*) FROM nfa_a_contrario').fetchall()
-	n = n[0][0]
-	if n == 0:
+
+	nIntra = (base.conn.execute('SELECT COUNT(*) FROM nfa_a_contrario WHERE intra_clase=1').fetchone())[0]
+	nInter = (base.conn.execute('SELECT COUNT(*) FROM nfa_a_contrario WHERE intra_clase=0').fetchone())[0]
+
+	print 'Cargando datos... (%i comparaciones)' % (nIntra+nInter)
+	if nIntra == 0 or nInter == 0:
 		raise Exception('No hay datos en la tabla nfa_a_contrario!')
 	
-	datosIntra = array(base.conn.execute('SELECT * FROM nfa_a_contrario WHERE intra_clase=1').fetchall())
-	datosInter = array(base.conn.execute('SELECT * FROM nfa_a_contrario WHERE intra_clase=0').fetchall())
-	nfaIntra = datosIntra[:, 2]
-	nfaInter = datosInter[:, 2]
+	# De este modo es más rápido y consume menos memoria
+	nfaIntra = zeros(nIntra)
+	nfaInter = zeros(nInter)
+	rs = base.conn.execute('SELECT nfa FROM nfa_a_contrario WHERE intra_clase=1')
+	i = 0
+	for (d,) in rs:
+		nfaIntra[i] = d
+		i = i+1
+
+	rs = base.conn.execute('SELECT nfa FROM nfa_a_contrario WHERE intra_clase=0')
+	i = 0
+	for (d,) in rs:
+		nfaInter[i] = d
+		i = i+1
+	
+	print "Datos cargados. Calculando..."	
 	
 	figure()
 
