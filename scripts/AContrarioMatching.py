@@ -54,6 +54,7 @@ def hacerComparaciones(base):
 		
 		comparator = horus.TemplateComparator(templates[idImagen1], 20, 2)
 		for idImagen2 in templates.keys():
+			if idImagen1 == idImagen2: continue
 			ds = comparator.compareParts(templates[idImagen2], CANTIDAD_PARTES)
 			for numParte in range(CANTIDAD_PARTES):
 				base.conn.execute('INSERT INTO comparaciones_a_contrario(id_imagen1,id_imagen2,distancia,parte, intra_clase) VALUES(%i,%i,%f,%i,%i)'
@@ -94,6 +95,7 @@ def correrTestImagen(base, idImagen, clases):
 	# Contra qué imágenes comparé
 	imagenesContra = []
 	for id_imagen2 in base.conn.execute('SELECT DISTINCT id_imagen2 FROM comparaciones_a_contrario WHERE id_imagen1=%i ORDER BY id_imagen1, id_imagen2, parte' % (idImagen)):
+		if idImagen == id_imagen2: continue	# No debería pasar
 		imagenesContra.append(id_imagen2)
 		
 	matchesSignificativos = []

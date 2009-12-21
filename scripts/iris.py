@@ -2,7 +2,6 @@
 # -*- coding: UTF8 -*-
 
 import sys
-sys.path.append('/home/marcelo/Mis_Documentos/Facu/Tesis/implementacion/scripts_nuevos')
 
 import horus
 import Database
@@ -29,11 +28,6 @@ parser.add_option('--full', dest='full', action='store_true', default=False, hel
 parser.add_option('-c', dest='codificar', action='store_true', default=False, help='Codificar todas las imagenes de la base')
 
 (options, args) = parser.parse_args()
-
-parameters = horus.Parameters.getParameters()
-parameters.muPupil = 10
-parameters.sigmaPupil = 10
-
 base = Database.getDatabase(options.base)
 
 # Base por default
