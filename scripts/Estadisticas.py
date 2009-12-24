@@ -124,16 +124,12 @@ def estadisticasAContrario(base, doShow=True):
 	nfaIntra = zeros(nIntra)
 	nfaInter = zeros(nInter)
 	rs = base.conn.execute('SELECT nfa FROM nfa_a_contrario WHERE intra_clase=1')
-	i = 0
-	for (d,) in rs:
-		nfaIntra[i] = d
-		i = i+1
+	for (i,d) in enumerate(rs):
+		nfaIntra[i] = d[0]
 
 	rs = base.conn.execute('SELECT nfa FROM nfa_a_contrario WHERE intra_clase=0')
-	i = 0
-	for (d,) in rs:
-		nfaInter[i] = d
-		i = i+1
+	for (i,d) in enumerate(rs):
+		nfaInter[i] = d[0]
 	
 	print "Datos cargados. Calculando..."	
 	

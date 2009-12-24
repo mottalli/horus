@@ -20,17 +20,12 @@ def hacerComparaciones(base):
 	paths = {}
 	
 	for (idImagen,idClase,pathImagen,resultadoSegmentacionSerializado,templateSerializado) in base.conn.execute("SELECT id_imagen,id_clase,imagen,segmentacion,codigo_gabor FROM base_iris WHERE segmentacion_correcta=1 AND segmentacion IS NOT NULL"):
-		"""resultadoSegmentacion = horus.unserializeSegmentationResult(str(resultadoSegmentacionSerializado))
-		print "Codificando imagen %i (%s...)" % (idImagen ,fullPathImagen)
-		imagen = cvLoadImage(fullPathImagen, 0)
-		if not imagen: raise Exception('No se pudo abrir %s' % (fullPathImagen))
-		templates[idImagen] = encoder.generateTemplate(imagen, resultadoSegmentacion)"""
-		
 		fullPathImagen = base.fullPath(pathImagen)
 		
 		print "Cargando codigo %i (%s...)" % (idImagen ,fullPathImagen)
 		if not len(templateSerializado):
 			raise Exception('No se codificaron todas las imagenes! (correr iris.py con el parametro -c)')
+
 		templates[idImagen] = horus.unserializeIrisTemplate(str(templateSerializado))
 		clases[idImagen] = idClase
 		segmentaciones[idImagen] = horus.unserializeSegmentationResult(str(resultadoSegmentacionSerializado))
@@ -38,20 +33,12 @@ def hacerComparaciones(base):
 
 	# Ahora comparo todas contra todas
 	print 'Comparando...'
-	cvNamedWindow("Imagen")
 	base.conn.execute('DELETE FROM comparaciones_a_contrario')
+	base.conn.execute('DELETE FROM nfa_a_contrario')
 	base.conn.commit()
 	for idImagen1 in templates.keys():
 		print "Comparando partes de imagen %i..." % (idImagen1)
-		
-		####### Decoracion estética nomás #######
-		imagen = cvLoadImage(paths[idImagen1])
-		decorator.drawSegmentationResult(imagen, segmentaciones[idImagen1])
-		decorator.drawTemplate(imagen, templates[idImagen1])
-		cvShowImage("Imagen", imagen)
-		cvWaitKey(10)
-		#######      Fin decoración       #######
-		
+
 		comparator = horus.TemplateComparator(templates[idImagen1], 20, 2)
 		for idImagen2 in templates.keys():
 			if idImagen1 == idImagen2: continue
@@ -63,7 +50,6 @@ def hacerComparaciones(base):
 		if idImagen1 % 10 == 0: 
 			base.conn.commit()
 	
-	cvDestroyWindow("Imagen")
 	base.conn.commit()
 
 ######################################################################
@@ -84,33 +70,30 @@ def correrTestImagen(base, idImagen, clases):
 	histogramasPartes = []
 	histAcumPartes = []
 	binsPartes = []
+	imagenesContra = []
 	for parte in range(CANTIDAD_PARTES):
-		distancias = array(base.conn.execute('SELECT distancia FROM comparaciones_a_contrario WHERE id_imagen1=%i AND parte=%i' % (idImagen, parte)).fetchall())
+		res = array(base.conn.execute('SELECT id_imagen2,distancia FROM comparaciones_a_contrario WHERE id_imagen1=%i AND parte=%i' % (idImagen, parte)).fetchall())
+		if len(imagenesContra) == 0: 
+			imagenesContra = res[:, 0]		# Contra qué imágenes comparé
+
+		distancias = res[:, 1]
 		(histograma, bins) = histogram(distancias, bins=50)
 		histograma = histograma / float(len(distancias))
 		histogramasPartes.append(histograma)
 		histAcumPartes.append(cumsum(histograma))
 		binsPartes.append(bins[:-1])
-
-	# Contra qué imágenes comparé
-	imagenesContra = []
-	for id_imagen2 in base.conn.execute('SELECT DISTINCT id_imagen2 FROM comparaciones_a_contrario WHERE id_imagen1=%i ORDER BY id_imagen1, id_imagen2, parte' % (idImagen)):
-		if idImagen == id_imagen2: continue	# No debería pasar
-		imagenesContra.append(id_imagen2)
 		
 	matchesSignificativos = []
 	c = 0
-	for (idOtraImagen,) in imagenesContra:
+
+	for (i,idOtraImagen) in enumerate(imagenesContra.flat):
 		c += 1
-		comparaciones = array(base.conn.execute('SELECT * FROM comparaciones_a_contrario WHERE id_imagen1=%i AND id_imagen2=%i'%(idImagen, idOtraImagen)).fetchall())
+		comparaciones = array(base.conn.execute('SELECT * FROM comparaciones_a_contrario WHERE id_imagen1=%i AND id_imagen2=%i ORDER BY parte ASC'%(idImagen, idOtraImagen)).fetchall())
 		assert len(comparaciones) == CANTIDAD_PARTES
 
 		# NOTA: uso el logaritmo!
 		lNFA = log10(len(imagenesContra)) + sum([log10(probaAcum(comparaciones[parte,2], histAcumPartes[parte], binsPartes[parte])) for parte in range(CANTIDAD_PARTES)])
 		base.conn.execute('INSERT INTO nfa_a_contrario VALUES(%i,%i,%f,%i)'%(idImagen, idOtraImagen, lNFA, 1 if clases[idImagen] == clases[idOtraImagen] else 0))
-
-		if c % 10 == 0:
-			base.conn.commit()
 
 	base.conn.commit()
 

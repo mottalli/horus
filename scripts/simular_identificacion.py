@@ -26,6 +26,8 @@ for (id_imagen, id_clase) in base.conn.execute('SELECT id_imagen, id_clase FROM 
 cantidadClases = len(clases)
 
 def simularHamming():
+	print "Con distancia de Hamming"
+	print "------------------------"
 	distancias = {}
 
 	print 'Cargando distancias...'
@@ -62,8 +64,11 @@ def simularHamming():
 
 	print "Total identificaciones incorrectas: %i (%.2f%%)" % (matchesMalos, 100.0*matchesMalos/cantidadImagenes)
 
+############################## Método a contrario
+
 def simularAContrario():
-	############################## Método a contrario
+	print "Con método a contrario"
+	print "----------------------"
 	print 'Cargando NFAs...'
 	nfas = {}
 	# Recordar que nfa(id_imagen1, id_imagen2) != nfa(id_imagen2, id_imagen1)
@@ -101,4 +106,5 @@ def simularAContrario():
 
 if __name__ == '__main__':
 	if options.hamming: simularHamming()
+	print
 	if options.acontrario: simularAContrario()
