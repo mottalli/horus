@@ -1,11 +1,12 @@
 # -*- coding: UTF8 -*-
-from horus import Segmentator, IrisEncoder, Decorator, unserializeSegmentationResult, serializeIrisTemplate, unserializeIrisTemplate, TemplateComparator
+from horus import Segmentator, IrisEncoder, Decorator, unserializeSegmentationResult, serializeIrisTemplate, unserializeIrisTemplate, TemplateComparator, IrisDCTEncoder
 from opencv import *
 from opencv.highgui import *
 
 segmentator = Segmentator()
 decorator = Decorator()
 encoder = IrisEncoder()
+#encoder = IrisDCTEncoder()
 
 def procesar(base, options):
 	imagenes = options.imagen.split(',')

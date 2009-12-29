@@ -56,7 +56,7 @@ std::vector<double> TemplateComparator::compareParts(const IrisTemplate& otherTe
 	// Note: the width of the template must be a multiple of 8*nParts (remember this->irisTemplate has packed bits)
 	int templateWidth = this->rotatedTemplates[0].getPackedTemplate()->width;
 	int templateHeight = this->rotatedTemplates[0].getPackedTemplate()->height;
-	
+
 	assert((templateWidth % nParts) == 0);
 	
 	int partWidth = templateWidth / nParts;

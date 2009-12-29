@@ -39,7 +39,7 @@ public:
 	// For debugging purposes
 	const Image* getNormalizedTexture() const { return this->buffers.normalizedTexture; }
 
-private:
+protected:
 	static void normalizeIris(const Image* image, Image* dest, CvMat* destMask, const SegmentationResult& segmentationResult);
 	void initializeBuffers(const Image* image);
 	LogGabor1DFilter filter;

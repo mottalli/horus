@@ -35,6 +35,7 @@
 #include "../tools.h"
 #include "../types.h"
 #include "../videoprocessor.h"
+#include "../irisdctencoder.h"
 %}
 
 %include "../clock.h"
@@ -54,6 +55,7 @@
 %include "../tools.h"
 #include "../types.h"
 %include "../videoprocessor.h"
+%include "../irisdctencoder.h"
 
 
 namespace std

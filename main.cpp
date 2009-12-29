@@ -12,6 +12,7 @@
 #include "segmentator.h"
 #include "decorator.h"
 #include "irisencoder.h"
+#include "irisdctencoder.h"
 #include "parameters.h"
 #include "videoprocessor.h"
 #include "templatecomparator.h"
@@ -30,6 +31,7 @@ QualityChecker qualityChecker;
 Decorator decorator;
 VideoProcessor videoProcessor;
 IrisEncoder irisEncoder;
+IrisDCTEncoder irisDCTEncoder;
 Parameters* parameters = Parameters::getParameters();
 
 CvFont FONT;
@@ -42,66 +44,24 @@ int main(int argc, char** argv) {
     SegmentationResult res = segmentator.segmentImage(image);
     decorator.drawSegmentationResult(image, res);
 
-	IrisTemplate irisTemplate = irisEncoder.generateTemplate(image, res);
+	//IrisTemplate irisTemplate = irisEncoder.generateTemplate(image, res);
+	IrisTemplate irisTemplate = irisDCTEncoder.generateTemplate(image, res);
+	irisTemplate = irisDCTEncoder.generateTemplate(image, res);
+	irisTemplate = irisDCTEncoder.generateTemplate(image, res);
+	irisTemplate = irisDCTEncoder.generateTemplate(image, res);
 
-	IplImage* noiseMask = irisTemplate.getNoiseMaskImage();
-	IplImage* templateImage = irisTemplate.getTemplateImage();
+	cvNamedWindow("Test1");
+	IplImage* img = irisTemplate.getTemplateImage();
+	cvShowImage("Test1", img);
 
-	/*cvNamedWindow("image");
-    cvShowImage("image", image);
+	cvNamedWindow("Test2");
+	CvMat* t = irisDCTEncoder.buffers.codelets;
+	CvMat* n = cvCreateMat(t->rows, t->cols, CV_8U);
+	cvNormalize(t, n, 0, 255, CV_MINMAX);
+	cvShowImage("Test2", n);
 
-	cvNamedWindow("debug1");
-	IplImage* foo = cvCreateImage(cvGetSize(segmentator._irisSegmentator.buffers.adjustmentRingGradient), IPL_DEPTH_8U, 1);
-    cvNormalize(segmentator._irisSegmentator.buffers.adjustmentRingGradient, foo, 0, 255, CV_MINMAX);
-    for (int x = 0; x < segmentator._irisSegmentator.buffers.adjustmentSnake->width; x++) {
-		cvCircle(foo, cvPoint(x, cvGetReal2D(segmentator._irisSegmentator.buffers.adjustmentSnake, 0, x)), 1, CV_RGB(255,255,255), 1);
-    }
-	cvShowImage("debug1", foo);
-	cvReleaseImage(&foo);
+	cvWaitKey(0);
 
-	cvNamedWindow("debug2");
-	foo = cvCreateImage(cvGetSize(segmentator._pupilSegmentator.buffers.adjustmentRingGradient), IPL_DEPTH_8U, 1);
-	cvNormalize(segmentator._pupilSegmentator.buffers.adjustmentRingGradient, foo, 0, 255, CV_MINMAX);
-	for (int x = 0; x < segmentator._pupilSegmentator.buffers.adjustmentSnake->width; x++) {
-		cvCircle(foo, cvPoint(x, cvGetReal2D(segmentator._pupilSegmentator.buffers.adjustmentSnake, 0, x)), 1, CV_RGB(255,255,255), 1);
-	}
-	cvShowImage("debug2", foo);
-	cvReleaseImage(&foo);*/
-
-
-
-	string serialized = Serializer::serializeIrisTemplate(irisTemplate);
-	cout << serialized << endl;
-	IrisTemplate unserialized = Serializer::unserializeIrisTemplate(serialized);
-	noiseMask = unserialized.getNoiseMaskImage();
-	templateImage = unserialized.getTemplateImage();
-	cvNamedWindow("template");
-	cvShowImage("template", templateImage);
-	cvNamedWindow("mask");
-	cvShowImage("mask", noiseMask);
-	while (true) {
-		char k = cvWaitKey(0);
-		if (k == 'q') {
-			break;
-		}
-	}
-
-
-
-	/*cvNamedWindow("template");
-	cvShowImage("template", templateImage);
-	cvNamedWindow("mask");
-	cvShowImage("mask", noiseMask);
-	while (true) {
-		char k = cvWaitKey(0);
-		if (k == 'q') {
-			break;
-		}
-	}*/
-
-
-	cvReleaseImage(&noiseMask);
-	cvReleaseImage(&templateImage);
 
 	return 0;
 }
