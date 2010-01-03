@@ -17,7 +17,7 @@ public:
 
     void start();
     double stop();
-    double time();
+	inline double time() const { return _time; };
 private:
     double _time;
     std::clock_t _tic, _toc;

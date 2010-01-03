@@ -25,7 +25,3 @@ double Clock::stop() {
 
     return  _time;
 }
-
-double Clock::time() {
-    return _time;
-}
