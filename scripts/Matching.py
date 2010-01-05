@@ -9,6 +9,7 @@ def testMatching(base):
 	rows = base.conn.execute('SELECT * FROM base_iris WHERE segmentacion_correcta=1')
 	
 	templateComparator = horus.TemplateComparator()
+	irisDatabase = horus.IrisDatabase()
 	
 	templates = {}
 	clases = {}
@@ -20,16 +21,15 @@ def testMatching(base):
 		serializedSegmentationResult = str(row[3])
 		serializedTemplate = str(row[6])
 		
-	
 		print "Cargando %i..." % idImagen
 
 		if not len(serializedTemplate):
-			raise Exception('No se codificaron todas las imagenes!  (correr iris.py con el parametro -c)')
-		#image = cvLoadImage(imagePath, 0)
-		#segmentationResult = horus.unserializeSegmentationResult(serializedSegmentationResult)
-		#templates[idImagen] = irisEncoder.generateTemplate(image, segmentationResult)
+			raise Exception('No se codificaron todas las imagenes! (correr iris.py con el parametro -c)')
+
 		templates[idImagen] = horus.unserializeIrisTemplate(serializedTemplate)
 		clases[idImagen] = idClase
+		
+		irisDatabase.addTemplate(idImagen, templates[idImagen])
 		
 	idsImagenes = templates.keys()
 	comparaciones = []
@@ -40,19 +40,17 @@ def testMatching(base):
 	for i in range(len(idsImagenes)):
 		idImagen1 = idsImagenes[i]
 		print "Comparando imagen %i... " % idImagen1,
-		templateComparator.setSrcTemplate(templates[idImagen1])
 		
-		clock = horus.Clock()
-		clock.start()
+		irisDatabase.doMatch(templates[idImagen1])
+		print "Tiempo: %.2f ms." % irisDatabase.getMatchingTime()
 		
-		for j in range(i+1, len(idsImagenes)):
-			idImagen2 = idsImagenes[j]
-			hd = templateComparator.compare(templates[idImagen2])
-			intraClase = clases[idImagen1] == clases[idImagen2]
-			base.conn.execute("INSERT INTO comparaciones(id_imagen1, id_imagen2, distancia, intra_clase) VALUES(%i,%i,%f,%i)" % (idImagen1, idImagen2, hd, 1 if intraClase else 0))
-		
-		print "Tiempo: %.2f ms." % clock.stop()
-		
-		if i % 10 == 0:
+		distances = irisDatabase.resultDistances
+		for (j, distance) in enumerate(distances):
+			idImagen2 = irisDatabase.ids[j]
+			if idImagen1 == idImagen2: continue
+			intraClase = (clases[idImagen1] == clases[idImagen2])
+			base.conn.execute("INSERT INTO comparaciones(id_imagen1, id_imagen2, distancia, intra_clase) VALUES(%i,%i,%f,%i)" % (idImagen1, idImagen2, distance, 1 if intraClase else 0))
+		if i % 20 == 0:
 			base.conn.commit()
+		
 	base.conn.commit()

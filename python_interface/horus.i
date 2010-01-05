@@ -26,6 +26,7 @@
 #include "../irisencoder.h"
 #include "../irissegmentator.h"
 #include "../iristemplate.h"
+#include "../irisdatabase.h"
 #include "../parameters.h"
 #include "../pupilsegmentator.h"
 #include "../segmentationresult.h"
@@ -46,6 +47,7 @@
 %include "../irisencoder.h"
 %include "../irissegmentator.h"
 %include "../iristemplate.h"
+%include "../irisdatabase.h"
 %include "../parameters.h"
 %include "../pupilsegmentator.h"
 %include "../segmentationresult.h"
@@ -61,5 +63,16 @@
 namespace std
 {
 	%template(vectord) vector<double>;
+	%template(vectori) vector<int>;
+        %template(vectorvectord) vector< vector<double> >;
 }
 
+%include "exception.i"
+
+%exception {
+  try {
+    $action
+  } catch (const std::exception& e) {
+    SWIG_exception(SWIG_RuntimeError, e.what());
+  }
+}

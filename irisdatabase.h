@@ -29,7 +29,12 @@ public:
 	inline double getMatchingTime() const { return this->clock.time(); };
 
 	vector<int> ids;
-	vector<float> resultDistances;
+
+	vector<double> resultDistances;
+
+	vector< vector<double> > resultPartsDistances;
+	vector<double> resultNFAs;
+
 
 	int ignoreId;
 

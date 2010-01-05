@@ -5,7 +5,7 @@
 
 IrisDatabase::IrisDatabase()
 {
-	this->ignoreId = 0;
+	this->ignoreId = -1;
 }
 
 IrisDatabase::~IrisDatabase()
@@ -50,8 +50,7 @@ void IrisDatabase::doMatch(const IrisTemplate& irisTemplate, void (*statusCallba
 	this->minDistanceId = 0;
 	this->minDistance = 1.0;
 
-	this->resultDistances.clear();
-	this->resultDistances.reserve(this->templates.size());
+	this->resultDistances = vector<double>(n);
 
 	for (size_t i = 0; i < n; i++) {
 		double hammingDistance = comparator.compare(*(this->templates[i]));
@@ -79,6 +78,8 @@ void IrisDatabase::doAContrarioMatch(const IrisTemplate& irisTemplate, int nPart
 
 	IplImage* distances[nParts];			// Should be CvMat but OpenCV doesn't let you use CvMat for calculating histograms
 	size_t n = this->templates.size();
+	this->resultPartsDistances = vector< vector<double> >(nParts, vector<double>(n));		// This is a copy in a better format to interface with Python
+
 
 	for (int p = 0; p < nParts; p++) {
 		//distances[p] = cvCreateMat(1, n, CV_32F);
@@ -94,6 +95,7 @@ void IrisDatabase::doAContrarioMatch(const IrisTemplate& irisTemplate, int nPart
 
 		for (int p = 0; p < nParts; p++) {
 			cvSetReal1D(distances[p], i, partsDistances[p]);
+			this->resultPartsDistances[p][i] = partsDistances[p];
 		}
 	}
 
@@ -110,7 +112,7 @@ void IrisDatabase::doAContrarioMatch(const IrisTemplate& irisTemplate, int nPart
 		cvCalcHist(a, histograms[p]);
 	}
 
-	// Calculate the cummulative of the histograms
+	// Calculate the cumulative of the histograms
 	float* cumhists[nParts];
 	for (int p = 0; p < nParts; p++) {
 		float* cumhist = (float*)malloc(BINS*sizeof(float));
@@ -123,26 +125,28 @@ void IrisDatabase::doAContrarioMatch(const IrisTemplate& irisTemplate, int nPart
 		cumhists[p] = cumhist;
 	}
 	
-	std::vector<double> lNFAs(n);
+
+	// Now calculate the NFA between the template and all the templates in the database
+	this->resultNFAs = vector<double>(n);
 	this->minNFA = INT_MAX;
 
 	for (int i = 0; i < n; i++) {
 		double sum = 0.0;
 		
-		lNFAs[i] = std::log10(double(n));
+		this->resultNFAs[i] = std::log10(double(n));
 
 		for (int p = 0; p < nParts; p++) {
 			double distance = cvGetReal1D(distances[p], i);
 			int bin = std::floor( distance / ((BIN_MAX-BIN_MIN)/BINS) );
 			assert(bin < BINS);
 
-			lNFAs[i] += std::log10( double(cumhists[p][bin]) / double(n) );		// The accumulated histogram has to be normalized, so we divide by n
+			this->resultNFAs[i] += std::log10( double(cumhists[p][bin]) / double(n) );		// The accumulated histogram has to be normalized, so we divide by n
 		}
 
 		int matchId = this->ids[i];
 
-		if (matchId != this->ignoreId && lNFAs[i] < this->minNFA) {
-			this->minNFA = lNFAs[i];
+		if (matchId != this->ignoreId && this->resultNFAs[i] < this->minNFA) {
+			this->minNFA = this->resultNFAs[i];
 			this->minNFAId = matchId;
 		}
 	}
