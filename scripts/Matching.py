@@ -39,14 +39,19 @@ def testMatching(base):
 
 	for i in range(len(idsImagenes)):
 		idImagen1 = idsImagenes[i]
-		print "Comparando imagen %i..." % idImagen1
+		print "Comparando imagen %i... " % idImagen1,
 		templateComparator.setSrcTemplate(templates[idImagen1])
+		
+		clock = horus.Clock()
+		clock.start()
 		
 		for j in range(i+1, len(idsImagenes)):
 			idImagen2 = idsImagenes[j]
 			hd = templateComparator.compare(templates[idImagen2])
 			intraClase = clases[idImagen1] == clases[idImagen2]
 			base.conn.execute("INSERT INTO comparaciones(id_imagen1, id_imagen2, distancia, intra_clase) VALUES(%i,%i,%f,%i)" % (idImagen1, idImagen2, hd, 1 if intraClase else 0))
+		
+		print "Tiempo: %.2f ms." % clock.stop()
 		
 		if i % 10 == 0:
 			base.conn.commit()

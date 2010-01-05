@@ -1,5 +1,5 @@
 HEADERS = $(shell find .. -name "*h")
-CPPS = $(shell find .. -name "*cpp" | grep -v "main.cpp")
+CPPS = $(shell find .. -name "*cpp" | grep -v "main.cpp" | grep -v "prueba_cuda.cpp")
 
 all:	horus.py horus_wrap.cxx $(CPPS)
 	python setup.py install

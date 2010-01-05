@@ -69,3 +69,88 @@ void IrisDatabase::doMatch(const IrisTemplate& irisTemplate, void (*statusCallba
 
 	this->clock.stop();
 }
+
+void IrisDatabase::doAContrarioMatch(const IrisTemplate& irisTemplate, int nParts, void (*statusCallback)(int), int nRots, int rotStep)
+{
+	this->clock.start();
+	unsigned const int BINS = 70;
+	const float BIN_MIN = 0.0f;
+	const float BIN_MAX = 0.7f;
+
+	IplImage* distances[nParts];			// Should be CvMat but OpenCV doesn't let you use CvMat for calculating histograms
+	size_t n = this->templates.size();
+
+	for (int p = 0; p < nParts; p++) {
+		//distances[p] = cvCreateMat(1, n, CV_32F);
+		distances[p] = cvCreateImage(cvSize(1, n), IPL_DEPTH_32F, 1);
+	}
+
+	TemplateComparator comparator(irisTemplate, nRots, rotStep);
+
+	// Calculate the distances between the parts
+	for (size_t i = 0; i < n; i++) {
+		std::vector<double> partsDistances = comparator.compareParts(*(this->templates[i]), nParts);
+		assert(partsDistances.size() == nParts);
+
+		for (int p = 0; p < nParts; p++) {
+			cvSetReal1D(distances[p], i, partsDistances[p]);
+		}
+	}
+
+	// Calculate the histogram for the distances of each part
+	float l_range[] = {BIN_MIN, BIN_MAX};		// The histogram has BINS bins equally distributed between BIN_MIN and BIN_MAX
+	float* range[] = { l_range };
+	int size[] = { BINS };
+
+	CvHistogram* histograms[nParts];
+
+	for (int p = 0; p < nParts; p++) {
+		histograms[p] = cvCreateHist(1, size, CV_HIST_ARRAY, range, 1);
+		IplImage* a[] = { distances[p] };
+		cvCalcHist(a, histograms[p]);
+	}
+
+	// Calculate the cummulative of the histograms
+	float* cumhists[nParts];
+	for (int p = 0; p < nParts; p++) {
+		float* cumhist = (float*)malloc(BINS*sizeof(float));
+
+		cumhist[0] = cvQueryHistValue_1D(histograms[p], 0);
+		for (int i = 1; i < BINS; i++) {
+			cumhist[i] = cumhist[i-1] + cvQueryHistValue_1D(histograms[p], i);
+		}
+
+		cumhists[p] = cumhist;
+	}
+	
+	std::vector<double> lNFAs(n);
+	this->minNFA = INT_MAX;
+
+	for (int i = 0; i < n; i++) {
+		double sum = 0.0;
+		
+		lNFAs[i] = std::log10(double(n));
+
+		for (int p = 0; p < nParts; p++) {
+			double distance = cvGetReal1D(distances[p], i);
+			int bin = std::floor( distance / ((BIN_MAX-BIN_MIN)/BINS) );
+			assert(bin < BINS);
+
+			lNFAs[i] += std::log10( double(cumhists[p][bin]) / double(n) );		// The accumulated histogram has to be normalized, so we divide by n
+		}
+
+		int matchId = this->ids[i];
+
+		if (matchId != this->ignoreId && lNFAs[i] < this->minNFA) {
+			this->minNFA = lNFAs[i];
+			this->minNFAId = matchId;
+		}
+	}
+
+	for (int p = 0; p < nParts; p++) {
+		cvReleaseHist(&histograms[p]);
+		free(cumhists[p]);
+	}
+
+	this->clock.stop();
+}

@@ -7,7 +7,7 @@ import fnmatch
 SOURCES = ["horus_wrap.cxx"]
 archivos = os.listdir('..')
 for archivo in archivos:
-	if fnmatch.fnmatch(archivo, '*.cpp') and archivo <> 'main.cpp':
+	if fnmatch.fnmatch(archivo, '*.cpp') and archivo <> 'main.cpp' and archivo <> 'prueba_cuda.cpp':
 		SOURCES.append('../'+archivo)
 
 LIBRARIES = ['cv', 'cxcore', 'highgui']

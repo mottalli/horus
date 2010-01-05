@@ -11,18 +11,21 @@
 
 int countNonZeroBits(const CvMat* mat);
 
-TemplateComparator::TemplateComparator(int nRots, int rotStep) :
-	nRots(nRots), rotStep(rotStep)
+TemplateComparator::TemplateComparator(int nRots, int rotStep)
 {
 	this->buffers.maskIntersection = NULL;
 	this->buffers.xorBuffer = NULL;
+	this->nRots = nRots;
+	this->rotStep = rotStep;
 }
 
-TemplateComparator::TemplateComparator(const IrisTemplate& irisTemplate, int nRots, int rotStep) :
-	nRots(nRots), rotStep(rotStep)
+TemplateComparator::TemplateComparator(const IrisTemplate& irisTemplate, int nRots, int rotStep)
 {
 	this->buffers.maskIntersection = NULL;
 	this->buffers.xorBuffer = NULL;
+	this->nRots = nRots;
+	this->rotStep = rotStep;
+
 	this->setSrcTemplate(irisTemplate);
 }
 
