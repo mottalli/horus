@@ -10,99 +10,56 @@ import herramientas
 
 CANTIDAD_PARTES = 4
 	
-def hacerComparaciones(base):
-	encoder = horus.IrisEncoder()
-	decorator = horus.Decorator()
+def correrMatchAContrario(base):
+	irisDatabase = horus.IrisDatabase()
+
+	rows = base.conn.execute('SELECT * FROM base_iris WHERE segmentacion_correcta=1')
 	
 	templates = {}
 	clases = {}
-	segmentaciones = {}
-	paths = {}
-	
-	for (idImagen,idClase,pathImagen,resultadoSegmentacionSerializado,templateSerializado) in base.conn.execute("SELECT id_imagen,id_clase,imagen,segmentacion,codigo_gabor FROM base_iris WHERE segmentacion_correcta=1 AND segmentacion IS NOT NULL"):
-		fullPathImagen = base.fullPath(pathImagen)
+
+	for row in rows:
+		idImagen = int(row[0])
+		idClase = int(row[1])
+		imagePath = base.fullPath(row[2])
+		serializedSegmentationResult = str(row[3])
+		serializedTemplate = str(row[6])
 		
-		print "Cargando codigo %i (%s...)" % (idImagen ,fullPathImagen)
-		if not len(templateSerializado):
+		print "Cargando %i..." % idImagen
+
+		if not len(serializedTemplate):
 			raise Exception('No se codificaron todas las imagenes! (correr iris.py con el parametro -c)')
 
-		templates[idImagen] = horus.unserializeIrisTemplate(str(templateSerializado))
+		templates[idImagen] = horus.unserializeIrisTemplate(serializedTemplate)
 		clases[idImagen] = idClase
-		segmentaciones[idImagen] = horus.unserializeSegmentationResult(str(resultadoSegmentacionSerializado))
-		paths[idImagen] = fullPathImagen
+		
+		irisDatabase.addTemplate(idImagen, templates[idImagen])
 
-	# Ahora comparo todas contra todas
-	print 'Comparando...'
-	base.conn.execute('DELETE FROM comparaciones_a_contrario')
-	base.conn.execute('DELETE FROM nfa_a_contrario')
+	print "Borrando datos viejos..."
+	base.conn.execute("DELETE FROM comparaciones_a_contrario")
+	base.conn.execute("DELETE FROM nfa_a_contrario")
 	base.conn.commit()
-	for idImagen1 in templates.keys():
-		print "Comparando partes de imagen %i..." % (idImagen1)
 
-		comparator = horus.TemplateComparator(templates[idImagen1], 20, 2)
-		for idImagen2 in templates.keys():
+	idsImagenes = templates.keys()
+	for i in range(len(idsImagenes)):
+		idImagen1 = idsImagenes[i]
+		print "Haciendo matching a contrario de imagen %i... " % idImagen1,
+
+		irisDatabase.doAContrarioMatch(templates[idImagen1], CANTIDAD_PARTES)
+		print "Tiempo: %.2f ms." % irisDatabase.getMatchingTime()
+		
+		# Escribe los datos
+		for (j, nfa) in enumerate(irisDatabase.resultNFAs):
+			idImagen2 = irisDatabase.ids[j]
 			if idImagen1 == idImagen2: continue
-			ds = comparator.compareParts(templates[idImagen2], CANTIDAD_PARTES)
-			for numParte in range(CANTIDAD_PARTES):
-				base.conn.execute('INSERT INTO comparaciones_a_contrario(id_imagen1,id_imagen2,distancia,parte, intra_clase) VALUES(%i,%i,%f,%i,%i)'
-					% (idImagen1, idImagen2, ds[numParte], numParte, 1 if clases[idImagen1] == clases[idImagen2] else 0))
+			intraClase = 1 if clases[idImagen1] == clases[idImagen2] else 0
+			base.conn.execute('INSERT INTO nfa_a_contrario VALUES(?,?,?,?)', [idImagen1, idImagen2, nfa, intraClase])
 		
-		if idImagen1 % 10 == 0: 
-			base.conn.commit()
-	
-	base.conn.commit()
-
-######################################################################
-
-def correrMatchAContrario(base):
-	clases = {}
-	for (idImagen, idClase) in base.conn.execute('SELECT id_imagen,id_clase FROM base_iris WHERE segmentacion_correcta=1 AND segmentacion IS NOT NULL').fetchall():
-		clases[idImagen] = idClase
-
-	# Proceso cada imagen por separado
-	base.conn.execute('DELETE FROM nfa_a_contrario')
-	for idImagen in clases.keys():
-		print "Haciendo matching de imagen %i..." % (idImagen)
-		correrTestImagen(base, idImagen, clases)
+		for (parte, distancias) in enumerate(irisDatabase.resultPartsDistances):
+			for (j, distancia) in enumerate(distancias):
+				idImagen2 = irisDatabase.ids[j]
+				if idImagen1 == idImagen2: continue
+				intraClase = 1 if clases[idImagen1] == clases[idImagen2] else 0
+				base.conn.execute('INSERT INTO comparaciones_a_contrario VALUES(?,?,?,?,?)', [idImagen1, idImagen2, distancia, parte, intraClase])
 		
-def correrTestImagen(base, idImagen, clases):
-	# Calculo los histogramas de distancias para cada parte
-	histogramasPartes = []
-	histAcumPartes = []
-	binsPartes = []
-	imagenesContra = []
-	for parte in range(CANTIDAD_PARTES):
-		res = array(base.conn.execute('SELECT id_imagen2,distancia FROM comparaciones_a_contrario WHERE id_imagen1=%i AND parte=%i' % (idImagen, parte)).fetchall())
-		if len(imagenesContra) == 0: 
-			imagenesContra = res[:, 0]		# Contra qué imágenes comparé
-
-		distancias = res[:, 1]
-		(histograma, bins) = histogram(distancias, bins=50)
-		histograma = histograma / float(len(distancias))
-		histogramasPartes.append(histograma)
-		histAcumPartes.append(cumsum(histograma))
-		binsPartes.append(bins[:-1])
-		
-	matchesSignificativos = []
-	c = 0
-
-	for (i,idOtraImagen) in enumerate(imagenesContra.flat):
-		c += 1
-		comparaciones = array(base.conn.execute('SELECT * FROM comparaciones_a_contrario WHERE id_imagen1=%i AND id_imagen2=%i ORDER BY parte ASC'%(idImagen, idOtraImagen)).fetchall())
-		assert len(comparaciones) == CANTIDAD_PARTES
-
-		# NOTA: uso el logaritmo!
-		lNFA = log10(len(imagenesContra)) + sum([log10(probaAcum(comparaciones[parte,2], histAcumPartes[parte], binsPartes[parte])) for parte in range(CANTIDAD_PARTES)])
-		base.conn.execute('INSERT INTO nfa_a_contrario VALUES(%i,%i,%f,%i)'%(idImagen, idOtraImagen, lNFA, 1 if clases[idImagen] == clases[idOtraImagen] else 0))
-
-	base.conn.commit()
-
-def probaAcum(d, acum, bins):
-	assert len(acum) == len(bins)
-	i = -1
-	for i in range(len(bins)):
-		if bins[i] >= d:
-			break
-
-	assert i >= 0
-	return acum[i]
+		base.conn.commit()
