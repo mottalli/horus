@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>839</width>
-    <height>531</height>
+    <height>540</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -18,7 +18,7 @@
     <item row="0" column="0">
      <widget class="QTabWidget" name="mainTabs">
       <property name="currentIndex">
-       <number>0</number>
+       <number>1</number>
       </property>
       <widget class="QWidget" name="videoTab">
        <attribute name="title">
@@ -141,7 +141,7 @@
       </widget>
       <widget class="SetupForm" name="setupTab">
        <attribute name="title">
-        <string>Setup</string>
+        <string>Configuración</string>
        </attribute>
        <layout class="QGridLayout" name="gridLayout_3">
         <item row="0" column="0">
@@ -184,12 +184,12 @@
      <x>0</x>
      <y>0</y>
      <width>839</width>
-     <height>23</height>
+     <height>24</height>
     </rect>
    </property>
    <widget class="QMenu" name="menu_File">
     <property name="title">
-     <string>&amp;File</string>
+     <string>&amp;Archivo</string>
     </property>
     <addaction name="actionE_xit"/>
    </widget>
@@ -198,7 +198,7 @@
   <widget class="QStatusBar" name="statusbar"/>
   <action name="actionE_xit">
    <property name="text">
-    <string>E&amp;xit</string>
+    <string>&amp;Salir</string>
    </property>
   </action>
  </widget>

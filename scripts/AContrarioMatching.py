@@ -58,8 +58,10 @@ def correrMatchAContrario(base):
 		for (parte, distancias) in enumerate(irisDatabase.resultPartsDistances):
 			for (j, distancia) in enumerate(distancias):
 				idImagen2 = irisDatabase.ids[j]
-				if idImagen1 == idImagen2: continue
+				if idImagen1 >= idImagen2: continue
 				intraClase = 1 if clases[idImagen1] == clases[idImagen2] else 0
 				base.conn.execute('INSERT INTO comparaciones_a_contrario VALUES(?,?,?,?,?)', [idImagen1, idImagen2, distancia, parte, intraClase])
 		
-		base.conn.commit()
+		if i % 10 == 0: base.conn.commit()
+	
+	base.conn.commit()

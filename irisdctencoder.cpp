@@ -9,6 +9,19 @@ IrisDCTEncoder::IrisDCTEncoder()
 
 IrisDCTEncoder::~IrisDCTEncoder()
 {
+	if (this->buffers.normalizedTexture != NULL) {
+		cvReleaseMat(&this->buffers.normalizedTexture);
+		cvReleaseMat(&this->buffers.rotatedTexture);
+		cvReleaseMat(&this->buffers.normalizedNoiseMask);
+		cvReleaseMat(&this->buffers.patch);
+		cvReleaseMat(&this->buffers.horizHanningWindow);
+		cvReleaseMat(&this->buffers.vertHanningWindow);
+		cvReleaseMat(&this->buffers.averagedPatch);
+		cvReleaseMat(&this->buffers.patchDCT);
+		cvReleaseMat(&this->buffers.dctOutput);
+		cvReleaseMat(&this->buffers.codelets);
+		cvReleaseMat(&this->buffers.codeletDiff);
+	}
 }
 
 IrisTemplate IrisDCTEncoder::generateTemplate(const Image* image, const SegmentationResult& segmentationResult)

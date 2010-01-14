@@ -45,3 +45,4 @@ for path_base in paths_bases:
 print "Actualizando BATH 0002 y CASIA3 224..."
 unificada.execute("UPDATE base_iris SET id_clase=(SELECT id_clase FROM base_iris WHERE imagen='Bath/0002/R/0001.jpg') WHERE id_imagen IN (SELECT id_imagen FROM base_iris WHERE imagen LIKE 'CASIA3-Preprocesada/224/R/%')")
 unificada.execute("UPDATE base_iris SET id_clase=(SELECT id_clase FROM base_iris WHERE imagen='Bath/0002/L/0001.jpg') WHERE id_imagen IN (SELECT id_imagen FROM base_iris WHERE imagen LIKE 'CASIA3-Preprocesada/224/L/%')")
+unificada.commit()

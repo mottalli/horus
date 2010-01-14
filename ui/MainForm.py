@@ -15,7 +15,6 @@ class MainForm(QtGui.QMainWindow, Ui_MainForm):
 		self.setupUi(self)
 		
 		QtCore.QObject.connect(self.mainTabs, QtCore.SIGNAL("currentChanged(int)"), self.changedTab)
-		
 		self.changedTab(self.mainTabs.currentIndex())
 
 	@QtCore.pyqtSignature("int")

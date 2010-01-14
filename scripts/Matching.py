@@ -46,7 +46,7 @@ def testMatching(base):
 		distances = irisDatabase.resultDistances
 		for (j, distance) in enumerate(distances):
 			idImagen2 = irisDatabase.ids[j]
-			if idImagen1 == idImagen2: continue
+			if idImagen1 >= idImagen2: continue
 			intraClase = (clases[idImagen1] == clases[idImagen2])
 			base.conn.execute("INSERT INTO comparaciones(id_imagen1, id_imagen2, distancia, intra_clase) VALUES(%i,%i,%f,%i)" % (idImagen1, idImagen2, distance, 1 if intraClase else 0))
 		if i % 20 == 0:
