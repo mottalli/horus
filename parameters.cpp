@@ -36,7 +36,7 @@ Parameters::Parameters() {
 	correlationThreshold = 92;
 	expectedIrisDiameter = 250;
 	segmentationScoreThreshold = 1.7;
-	minimumContourQuality = 70;
+	minimumContourQuality = 60;
 }
 
 Parameters::~Parameters() {

@@ -17,7 +17,6 @@ class ProcessingThread(QtCore.QThread):
 		self.videoProcessor = horus.VideoProcessor()
 		
 	def run(self):
-		print "run"
 		res = self.videoProcessor.processFrame(self.lastFrame)
 		"""typedef enum {
 			DEFOCUSED,

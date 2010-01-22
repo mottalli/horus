@@ -6,10 +6,14 @@ import sys
 import MainForm
 import VideoThread
 import ProcessingThread
+import horus
 
 app = QtGui.QApplication(sys.argv)
 mainForm = MainForm.MainForm()
 mainForm.show()
+
+parameters = horus.Parameters.getParameters()
+parameters.segmentEyelids = False
 
 VideoThread.videoThread.start()
 

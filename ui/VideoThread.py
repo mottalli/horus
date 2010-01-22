@@ -39,7 +39,9 @@ class VideoThreadCamera(VideoThread):
 			
 			# Extract the borders (they usually come with black bands)
 			delta = 10
-			portion = cvGetSubRect(captured, cvRect(delta, 0, frame.width-2*delta, frame.height))
+			#subwindow = cvRect(delta, 0, frame.width-2*delta, frame.height)
+			subwindow = cvRect(60, 40, frame.width-70, frame.height-40)
+			portion = cvGetSubRect(captured, subwindow)
 			self.emit(sigAvailableFrame, portion)
 	
 videoThread = VideoThreadCamera()
