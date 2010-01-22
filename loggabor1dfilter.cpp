@@ -30,9 +30,10 @@ LogGabor1DFilter::~LogGabor1DFilter()
 	}
 }
 
-void LogGabor1DFilter::applyFilter(const Image* image, Image* dest)
+void LogGabor1DFilter::applyFilter(const Image* image, Image* dest, CvMat* mask)
 {
 	assert(SAME_SIZE(image, dest));
+	assert(SAME_SIZE(image, mask));
 	assert(dest->nChannels == 2);
 	assert(dest->depth == IPL_DEPTH_32F);
 
@@ -68,6 +69,23 @@ void LogGabor1DFilter::applyFilter(const Image* image, Image* dest)
 	}
 
 	cvMerge(resultReal, resultImag, NULL, NULL, dest);
+
+	// Filter out elements with low response to the filter
+	IplImage* absResponse = cvCreateImage(cvGetSize(image), IPL_DEPTH_32F, 1);
+	IplImage* tmp = cvCreateImage(cvGetSize(image), IPL_DEPTH_32F, 1);
+	IplImage* responseMask = cvCreateImage(cvGetSize(image), IPL_DEPTH_8U, 1);
+	// real^2+imag^2
+	cvMul(resultReal, resultReal, tmp);
+	cvMul(resultImag, resultImag, absResponse);
+	cvAdd(absResponse, tmp, absResponse);
+
+	cvThreshold(absResponse, responseMask, 0.001, 1, CV_THRESH_BINARY);
+	// Add the bits to the mask
+	cvAnd(mask, responseMask, mask);
+
+	cvReleaseImage(&absResponse);
+	cvReleaseImage(&tmp);
+	cvReleaseImage(&responseMask);
 
 	cvReleaseImage(&src);
 	cvReleaseImage(&lineReal);

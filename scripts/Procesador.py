@@ -44,7 +44,8 @@ def procesar(base, options):
 			if id_imagen1 == id_imagen2: continue
 			print "Distancia de hamming entre %i y %i: %.4f" % (id_imagen1, id_imagen2, comparator.compare(template2))
 	
-	cvWaitKey(0)
+	while True:
+		if cvWaitKey(0) == 'q': break
 
 def codificar(base, options):
 	filas = base.conn.execute('SELECT id_imagen,imagen,segmentacion FROM base_iris WHERE segmentacion_correcta=1').fetchall()

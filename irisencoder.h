@@ -44,6 +44,7 @@ protected:
 	void initializeBuffers(const Image* image);
 	LogGabor1DFilter filter;
 	void applyFilter();
+	void extendMask();
 };
 
 #endif /* IRISENCODER_H_ */

@@ -35,6 +35,16 @@ IrisTemplate IrisEncoder::generateTemplate(const Image* image, const Segmentatio
 	this->initializeBuffers(image);
 	IrisEncoder::normalizeIris(image, this->buffers.normalizedTexture, this->buffers.normalizedNoiseMask, segmentationResult);
 
+	// Improve the iris mask
+	this->extendMask();
+
+	this->applyFilter();
+
+	return IrisTemplate(this->buffers.thresholdedTexture, this->buffers.resizedNoiseMask);
+}
+
+void IrisEncoder::extendMask()
+{
 	// Mask away pixels too far from the mean
 	CvScalar smean, sdev;
 	cvAvgSdv(this->buffers.normalizedTexture, &smean, &sdev, this->buffers.normalizedNoiseMask);
@@ -51,10 +61,6 @@ IrisTemplate IrisEncoder::generateTemplate(const Image* image, const Segmentatio
 			}
 		}
 	}
-
-	this->applyFilter();
-
-	return IrisTemplate(this->buffers.thresholdedTexture, this->buffers.resizedNoiseMask);
 }
 
 void IrisEncoder::applyFilter()
@@ -68,7 +74,7 @@ void IrisEncoder::applyFilter()
 		cvResize(this->buffers.normalizedNoiseMask, this->buffers.resizedNoiseMask);
 	}
 
-	this->filter.applyFilter(this->buffers.resizedTexture, this->buffers.filteredTexture);
+	this->filter.applyFilter(this->buffers.resizedTexture, this->buffers.filteredTexture, this->buffers.resizedNoiseMask);
 	cvSplit(this->buffers.filteredTexture, this->buffers.filteredTextureReal, this->buffers.filteredTextureImag, NULL, NULL);
 	cvThreshold(this->buffers.filteredTextureReal, this->buffers.thresholdedTexture, 0, 1, CV_THRESH_BINARY);
 }

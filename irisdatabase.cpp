@@ -131,8 +131,6 @@ void IrisDatabase::doAContrarioMatch(const IrisTemplate& irisTemplate, int nPart
 	this->minNFA = INT_MAX;
 
 	for (int i = 0; i < n; i++) {
-		double sum = 0.0;
-		
 		this->resultNFAs[i] = std::log10(double(n));
 
 		for (int p = 0; p < nParts; p++) {

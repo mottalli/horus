@@ -23,7 +23,7 @@ public:
 		Image* filter;		// Filter in the frequency domain
 	} buffers;
 
-	void applyFilter(const Image* image, Image* dest);
+	void applyFilter(const Image* image, Image* dest, CvMat* mask);
 
 private:
 	double f0, sigmaOnF;
