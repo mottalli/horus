@@ -14,34 +14,72 @@ void cvShiftDFT(CvArr * src_arr, CvArr * dst_arr );
 
 VideoProcessor::VideoProcessor()
 {
-	this->buffers.lastFrame = NULL;
+	this->lastFrame = NULL;
 	this->lastStatus = DEFOCUSED;
+	this->templateWaitCount = 0;
+	this->templateIrisQuality = 0.0;
+	this->waitingBestTemplate = false;
+	this->framesToSkip = 0;
 }
 
 VideoProcessor::~VideoProcessor()
 {
-	if (this->buffers.lastFrame != NULL) {
-		cvReleaseImage(&this->buffers.lastFrame);
+	if (this->lastFrame != NULL) {
+		cvReleaseImage(&this->lastFrame);
+		cvReleaseImage(&this->templateFrame);
 	}
 }
 
 VideoProcessor::VideoStatus VideoProcessor::processFrame(const Image* frame)
 {
 	this->initializeBuffers(frame);
+	
+	if (this->framesToSkip > 0) {
+		this->framesToSkip--;
+		this->lastStatus = UNPROCESSED;
+		return UNPROCESSED;
+	}
+	
 	this->lastStatus = this->doProcess(frame);
+	
+	if (this->lastStatus == FOCUSED_IRIS) {
+		this->waitingBestTemplate = true;
+	}
+	
+	if (this->waitingBestTemplate) {
+		if (this->lastStatus == FOCUSED_IRIS && this->lastIrisQuality > this->templateIrisQuality) {
+			// Got a better quality image
+			cvCopy(this->lastFrame, this->templateFrame);
+			this->templateIrisQuality = this->lastIrisQuality;
+			this->templateSegmentation = this->lastSegmentationResult;
+			this->templateWaitCount = 0;
+		}
+		
+		this->templateWaitCount++;
+		if (this->templateWaitCount == BEST_FRAME_WAIT_COUNT) {
+			// Got the iris template
+			this->lastStatus = GOT_TEMPLATE;
+			this->templateWaitCount = 0;
+			this->waitingBestTemplate = false;
+			this->templateIrisQuality = 0;
+			
+			// Wait before processing more images
+			this->framesToSkip = 10;
+		}
+	}
+	
 	return this->lastStatus;
 }
 
 VideoProcessor::VideoStatus VideoProcessor::doProcess(const Image* frame)
 {
-	const Image* image;
 	if (frame->nChannels == 1) {
-		//cvCopy(frame, this->buffers.lastFrame);
-		image = frame;
+		cvCopy(frame, this->lastFrame);
 	} else {
-		cvCvtColor(frame, this->buffers.lastFrame, CV_BGR2GRAY);
-		image = this->buffers.lastFrame;
+		cvCvtColor(frame, this->lastFrame, CV_BGR2GRAY);
 	}
+	
+	const IplImage* image = this->lastFrame;
 
 	Parameters* parameters = Parameters::getParameters();
 
@@ -62,17 +100,17 @@ VideoProcessor::VideoStatus VideoProcessor::doProcess(const Image* frame)
 		segmentator.segmentEyelids(image, this->lastSegmentationResult);
 	}
 
-	this->lastSegmentationScore = qualityChecker.segmentationScore(image, this->lastSegmentationResult);
-	if (this->lastSegmentationScore < parameters->segmentationScoreThreshold) {
+	if (!qualityChecker.validateIris(image, this->lastSegmentationResult)) {
 		// No iris found on the image, or the segmentation is incorrect
 		return FOCUSED_NO_IRIS;
 	}
 
-	if (!qualityChecker.checkIrisQuality(image, this->lastSegmentationResult)) {
+	this->lastIrisQuality = qualityChecker.getIrisQuality(image, this->lastSegmentationResult);
+	if (this->lastIrisQuality < parameters->minimumContourQuality) {
 		// The image is kind of focused but the iris doesn't have enough quality
-		float q = 0.2;
+		/*float q = 0.2;
 
-		/*if (this->lastSegmentationResult.irisCircle.radius*2 < parameters->expectedIrisDiameter*q) {
+		if (this->lastSegmentationResult.irisCircle.radius*2 < parameters->expectedIrisDiameter*q) {
 			// Iris too far?
 			return IRIS_TOO_FAR;
 		} else if (this->lastSegmentationResult.irisCircle.radius*2 > parameters->expectedIrisDiameter*q) {
@@ -87,14 +125,7 @@ VideoProcessor::VideoStatus VideoProcessor::doProcess(const Image* frame)
 
 	// At this point we have a good quality image and we have enough reasons to believe
 	// it's properly segmented.
-	if (false) {
-		//TODO: wait for the "best" image
-		return FOCUSED_IRIS;
-	} else {
-		// Got a good iris image
-		cvCopy(image, this->buffers.bestFrame);
-		return GOT_TEMPLATE;
-	}
+	return FOCUSED_IRIS;
 }
 
 IrisTemplate VideoProcessor::getTemplate()
@@ -103,17 +134,17 @@ IrisTemplate VideoProcessor::getTemplate()
 		throw std::runtime_error("Requested iris template but no iris detected in image");
 	}
 
-	return this->irisEncoder.generateTemplate(this->buffers.bestFrame, this->lastSegmentationResult);
+	return this->irisEncoder.generateTemplate(this->templateFrame, this->templateSegmentation);
 }
 
 void VideoProcessor::initializeBuffers(const Image* frame)
 {
-	if (this->buffers.lastFrame == NULL || !SAME_SIZE(this->buffers.lastFrame, frame)) {
-		if (this->buffers.lastFrame != NULL) {
-			cvReleaseImage(&this->buffers.lastFrame);
-			cvReleaseImage(&this->buffers.bestFrame);
+	if (this->lastFrame == NULL || !SAME_SIZE(this->lastFrame, frame)) {
+		if (this->lastFrame != NULL) {
+			cvReleaseImage(&this->lastFrame);
+			cvReleaseImage(&this->templateFrame);
 		}
-		this->buffers.lastFrame = cvCreateImage(cvGetSize(frame), IPL_DEPTH_8U, 1);
-		this->buffers.bestFrame = cvCreateImage(cvGetSize(frame), IPL_DEPTH_8U, 1);
+		this->lastFrame = cvCreateImage(cvGetSize(frame), IPL_DEPTH_8U, 1);
+		this->templateFrame = cvCreateImage(cvGetSize(frame), IPL_DEPTH_8U, 1);
 	}
 }

@@ -16,13 +16,11 @@ class VideoProcessor {
 public:
 	VideoProcessor();
 	virtual ~VideoProcessor();
-
-	struct {
-		Image* lastFrame;
-		Image* bestFrame;
-	} buffers;
+	
+	static const unsigned int BEST_FRAME_WAIT_COUNT = 5;
 
 	typedef enum {
+		UNPROCESSED,
 		DEFOCUSED,
 		INTERLACED,
 		FOCUSED_NO_IRIS,
@@ -34,20 +32,31 @@ public:
 	} VideoStatus;
 
 	VideoStatus processFrame(const Image* frame);
-	IrisTemplate getTemplate();
 
 	QualityChecker qualityChecker;
 	Segmentator segmentator;
 	IrisEncoder irisEncoder;
 
+	IplImage* lastFrame;
+	double lastFocusScore;
 	VideoStatus lastStatus;
 	SegmentationResult lastSegmentationResult;
-	double lastSegmentationScore;
-	double lastFocusScore;
-
+	double lastIrisQuality;
+	
+	IrisTemplate getTemplate();
+	const IplImage* getTemplateFrame() const { return this->templateFrame; };
+	SegmentationResult getTemplateSegmentation() const { return this->templateSegmentation; };
 
 private:
 	VideoStatus doProcess(const Image* frame);
 	void initializeBuffers(const Image* frame);
+	
+	IplImage* templateFrame;
+	SegmentationResult templateSegmentation;
+	double templateIrisQuality;
+	
+	unsigned int templateWaitCount;
+	unsigned int framesToSkip;
+	bool waitingBestTemplate;
 };
 

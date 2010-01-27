@@ -63,4 +63,5 @@ class ImageWidget(QtGui.QWidget):
 			raise Exception('Unsupported type')
 
 		del self.image
-		self.image = QtGui.QImage(self.buffer.imageData, size.width, size.height, QtGui.QImage.Format_RGB32)
+		self.__data = self.buffer.imageData
+		self.image = QtGui.QImage(self.__data, size.width, size.height, QtGui.QImage.Format_RGB32)

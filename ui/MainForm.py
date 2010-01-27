@@ -33,8 +33,7 @@ class MainForm(QtGui.QMainWindow, Ui_MainForm):
 			(ProcessingThread.processingThread, ProcessingThread.sigProcessedFrame, self.processedFrame)
 		]
 		SETUP_SIGNALS = [
-			#(VideoThread.videoThread, VideoThread.sigAvailableFrame, self.setupVideoWidget.showImage)
-			(ProcessingThread.processingThread, ProcessingThread.sigProcessedFrame, self.processedFrameSetup)
+			(ProcessingThread.processingThread, ProcessingThread.sigProcessedFrame, self.processedFrameSetup),
 		]
 
 		if tabIndex == self.VIDEO_TAB:
@@ -71,7 +70,7 @@ class MainForm(QtGui.QMainWindow, Ui_MainForm):
 			self.lastSegmentationResult = None
 		
 		if resultado >= horus.VideoProcessor.IRIS_LOW_QUALITY:
-			self.irisScore.setValue(videoProcessor.lastSegmentationScore)
+			self.irisScore.setValue(videoProcessor.lastIrisQuality)
 		else:
 			self.irisScore.setValue(0)
 			
@@ -82,9 +81,16 @@ class MainForm(QtGui.QMainWindow, Ui_MainForm):
 			self.decorator.pupilColor = CV_RGB(255,255,255)
 			self.decorator.irisColor = CV_RGB(255,255,255)
 		
+		if resultado == horus.VideoProcessor.GOT_TEMPLATE:
+			self.decorator.pupilColor = CV_RGB(255,255,0)
+			self.decorator.irisColor = CV_RGB(255,255,0)
+			
+		
 		self.focusScore.setValue(videoProcessor.lastFocusScore)
 	
-		if resultado == horus.VideoProcessor.DEFOCUSED:
+		if resultado == horus.VideoProcessor.UNPROCESSED:
+			print 'UNPROCESSED'
+		elif resultado == horus.VideoProcessor.DEFOCUSED:
 			print 'DEFOCUSED'
 		elif resultado == horus.VideoProcessor.FOCUSED_NO_IRIS:
 			print 'FOCUSED_NO_IRIS'
@@ -98,9 +104,16 @@ class MainForm(QtGui.QMainWindow, Ui_MainForm):
 			print 'FOCUSED_IRIS'
 		elif resultado == horus.VideoProcessor.GOT_TEMPLATE:
 			print 'GOT_TEMPLATE'
+			self.gotTemplate(videoProcessor)
+	
+	def gotTemplate(self, videoProcessor):
+		f = cvCreateImage(cvGetSize(videoProcessor.getTemplateFrame()), IPL_DEPTH_8U, 1)
+		cvCopy(videoProcessor.getTemplateFrame(), f)
+		self.capturedImage.showImage(f)
 
 	def processedFrameSetup(self, resultado, videoProcessor):
-		self.setupVideoWidget.showImage(videoProcessor.segmentator._pupilSegmentator.similarityImage)
+		if videoProcessor.segmentator._pupilSegmentator.similarityImage != None:
+			self.setupVideoWidget.showImage(videoProcessor.segmentator._pupilSegmentator.similarityImage)
 
 	@QtCore.pyqtSignature("int")
 	def on_muPupil_sliderMoved(self, position):

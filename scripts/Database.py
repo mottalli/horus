@@ -2,8 +2,8 @@ import sqlite3
 import os.path
 import horus
 
-#PATH_BASE = '/home/marcelo/iris/BBDD'
-PATH_BASE = '/home/marcelo/Mis_Documentos/Facu/Tesis/Bases de datos'
+PATH_BASE = '/home/marcelo/iris/BBDD'
+#PATH_BASE = '/home/marcelo/Mis_Documentos/Facu/Tesis/Bases de datos'
 PATHS_BASES = {
 		'unificada': PATH_BASE,
 		'casia1': str(os.path.join(PATH_BASE, 'CASIA1')),

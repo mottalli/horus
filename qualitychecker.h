@@ -17,7 +17,7 @@ public:
 
 	double interlacedCorrelation(const Image* image);
 	double checkFocus(const Image* image);
-	double segmentationScore(const Image* image, const SegmentationResult& segmentationResult);
-	bool checkIrisQuality(const Image* image, const SegmentationResult& segmentationResult);
+	bool validateIris(const Image* image, const SegmentationResult& segmentationResult);
+	double getIrisQuality(const Image* image, const SegmentationResult& segmentationResult);
 };
 

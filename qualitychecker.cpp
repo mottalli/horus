@@ -77,16 +77,16 @@ double QualityChecker::checkFocus(const Image* image)
 }
 
 /**
- * Checks if the segmentation is correct (heuristics - not 100% reliable)
+ * Checks if there is an iris on the image and/or if the segmentation is correct (heuristics - not 100% reliable)
  */
-double QualityChecker::segmentationScore(const Image* image, const SegmentationResult& sr)
+bool QualityChecker::validateIris(const Image* image, const SegmentationResult& sr)
 {
+	Parameters* parameters = Parameters::getParameters();
 	CvMat portionMat;
 	IplImage portion;
-	double d = 1.5;
-	double r = d*sr.irisCircle.radius;
+	double r = sr.irisCircle.radius;
 	int x0 = std::max(0.0, sr.irisCircle.xc-r);
-	int x1 = std::min(double(image->width), sr.irisCircle.xc+r);
+	int x1 = std::min(image->width, int(sr.irisCircle.xc+r));
 	int y0 = std::max(0, sr.irisCircle.yc-20);
 	int y1 = std::min(image->height, sr.irisCircle.yc+20);
 
@@ -98,8 +98,8 @@ double QualityChecker::segmentationScore(const Image* image, const SegmentationR
 	int rpupil2 = sr.pupilCircle.radius*sr.pupilCircle.radius;
 	int riris2 = sr.irisCircle.radius*sr.irisCircle.radius;
 
-	double pupilSum = 0, irisSum = 0, scleraSum = 0;
-	int pupilCount = 0, irisCount = 0, scleraCount = 0;
+	double pupilSum = 0, irisSum = 0;
+	int pupilCount = 0, irisCount = 0;
 
 	// Computes the mean for each part
 	for (int y = 0; y < portion.height; y++) {
@@ -125,24 +125,26 @@ double QualityChecker::segmentationScore(const Image* image, const SegmentationR
 				if (dx2+dy2 < riris2) {
 					irisSum += val;
 					irisCount++;
-				} else {
-					// Inside sclera
-					scleraSum += val;
-					scleraCount++;
 				}
 			}
 		}
 	}
 
+	if (pupilCount == 0 || irisCount == 0) {
+		return false;
+	}
 
 	double meanPupil = pupilSum/double(pupilCount);
 	double meanIris = irisSum/double(irisCount);
-	double meanSclera = scleraSum/double(scleraCount);
+	
+	if (meanIris-meanPupil < parameters->pupilIrisGrayDiff) {
+		// not enough contrast between pupil and iris
+		return false;
+	}
 
 	// Computes the deviation
 	pupilSum = 0;
 	irisSum = 0;
-	scleraSum = 0;
 	for (int y = 0; y < portion.height; y++) {
 		const uint8_t* row = (const uint8_t*)portion.imageData + y*portion.widthStep;
 		for (int x = 0; x < portion.width; x++) {
@@ -162,9 +164,6 @@ double QualityChecker::segmentationScore(const Image* image, const SegmentationR
 				dy2 = (y-yiris)*(y-yiris);
 				if (dx2+dy2 < riris2) {
 					irisSum += (val-meanIris)*(val-meanIris);
-				} else {
-					// Inside sclera
-					scleraSum += (val-meanSclera)*(val-meanSclera);
 				}
 			}
 		}
@@ -172,21 +171,22 @@ double QualityChecker::segmentationScore(const Image* image, const SegmentationR
 
 	double varPupil = pupilSum/double(pupilCount);
 	double varIris = irisSum/double(irisCount);
-	double varSclera = scleraSum/double(scleraCount);
 
 	double zScorePupilIris = abs(meanPupil-meanIris) / sqrt((varPupil+varIris)/2.0);
-	//double zScoreIrisSclera = abs(meanSclera-meanIris) / sqrt((varSclera+varIris)/2.0);
-
-	double c = 2.0;
-	double s = zScorePupilIris;
-
-	return 100.0*s*s/(s*s+c*c);
+	if (zScorePupilIris < parameters->pupilIrisZScore) {
+		return false;
+	}
+	
+	//std::cout << meanPupil << ' ' << varPupil << ' ' << meanIris << ' ' << varIris << std::endl;
+	//std::cout << zScorePupilIris << std::endl;
+	
+	return true;
 }
 
 /**
  * Checks the quality of the image
  */
-bool QualityChecker::checkIrisQuality(const Image* image, const SegmentationResult& segmentationResult)
+double QualityChecker::getIrisQuality(const Image* image, const SegmentationResult& segmentationResult)
 {
-	return (segmentationResult.pupilContourQuality >= Parameters::getParameters()->minimumContourQuality);
+	return segmentationResult.pupilContourQuality;
 }

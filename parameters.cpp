@@ -32,11 +32,14 @@ Parameters::Parameters() {
 	normalizationHeight = 2*templateHeight;
 
 	interlacedVideo = true;
-	focusThreshold = 50;
+	focusThreshold = 40;
 	correlationThreshold = 92;
 	expectedIrisDiameter = 250;
 	segmentationScoreThreshold = 1.7;
 	minimumContourQuality = 60;
+	
+	pupilIrisGrayDiff = 20;
+	pupilIrisZScore = 3;
 }
 
 Parameters::~Parameters() {

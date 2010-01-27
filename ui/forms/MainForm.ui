@@ -18,7 +18,7 @@
     <item row="0" column="0">
      <widget class="QTabWidget" name="mainTabs">
       <property name="currentIndex">
-       <number>1</number>
+       <number>0</number>
       </property>
       <widget class="QWidget" name="videoTab">
        <attribute name="title">
@@ -118,7 +118,7 @@
              </widget>
             </item>
             <item>
-             <widget class="ImageWidget" name="videoWidget_2" native="true">
+             <widget class="ImageWidget" name="capturedImage" native="true">
               <property name="minimumSize">
                <size>
                 <width>320</width>

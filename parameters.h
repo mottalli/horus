@@ -36,6 +36,8 @@ public:
 	int correlationThreshold;
 	int expectedIrisDiameter;
 	int minimumContourQuality;
+	int pupilIrisGrayDiff;
+	int pupilIrisZScore;
 
 	// Template generation parameters
 	int normalizationWidth;
