@@ -5,8 +5,7 @@
  * Created on January 21, 2009, 8:41 PM
  */
 
-#ifndef _TYPES_H
-#define	_TYPES_H
+#pragma once
 
 #include <vector>
 #include <opencv/cv.h>
@@ -45,5 +44,4 @@ public:
     }
 };
 
-#endif	/* _TYPES_H */
 

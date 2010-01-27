@@ -5,8 +5,7 @@
  * Created on January 21, 2009, 8:39 PM
 */
 
-#ifndef _PUPILSEGMENTATOR_H
-#define	_PUPILSEGMENTATOR_H
+#pragma once
 
 #include "common.h"
 
@@ -19,16 +18,15 @@ public:
 	ContourAndCloseCircle segmentPupil(const Image* image);
 	inline int getPupilContourQuality() const { return this->pupilContourQuality; }
 
-	struct {
-		Image* similarityImage;
-		Image* equalizedImage;
-		Image* adjustmentRing;
-		Image* adjustmentRingGradient;
-		Image* workingImage;
-		CvMat* adjustmentSnake;
-		CvMat* LUT;
-		double resizeFactor;
-	} buffers;
+	// Internal buffers
+	IplImage* similarityImage;
+	Image* equalizedImage;
+	Image* adjustmentRing;
+	Image* adjustmentRingGradient;
+	Image* workingImage;
+	CvMat* adjustmentSnake;
+	CvMat* LUT;
+	double resizeFactor;
 
 private:
 	void setupBuffers(const Image* image);
@@ -51,5 +49,4 @@ private:
 	double _lastSigma, _lastMu;
 };
 
-#endif	/* _PUPILSEGMENTATOR_H */
 

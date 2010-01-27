@@ -5,8 +5,7 @@
  *      Author: marcelo
  */
 
-#ifndef EYELIDSEGMENTATOR_H_
-#define EYELIDSEGMENTATOR_H_
+#pragma once
 
 #include "common.h"
 #include <cmath>
@@ -28,4 +27,3 @@ private:
 	int pupilRadius;
 };
 
-#endif /* EYELIDSEGMENTATOR_H_ */

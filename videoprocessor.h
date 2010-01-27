@@ -5,8 +5,7 @@
  *      Author: marcelo
  */
 
-#ifndef VIDEOPROCESSOR_H_
-#define VIDEOPROCESSOR_H_
+#pragma once
 
 #include "common.h"
 #include "qualitychecker.h"
@@ -52,4 +51,3 @@ private:
 	void initializeBuffers(const Image* frame);
 };
 
-#endif /* VIDEOPROCESSOR_H_ */

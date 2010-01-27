@@ -5,8 +5,7 @@
  * Created on January 22, 2009, 2:15 PM
  */
 
-#ifndef _PARAMETERS_H
-#define	_PARAMETERS_H
+#pragma once
 
 /**
  * Singleton class
@@ -49,5 +48,4 @@ private:
 	static Parameters* instance;
 };
 
-#endif	/* _PARAMETERS_H */
 

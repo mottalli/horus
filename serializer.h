@@ -5,8 +5,7 @@
  * Created on January 21, 2009, 8:37 PM
  */
 
-#ifndef _SERIALIZER_H
-#define	_SERIALIZER_H
+#pragma once
 
 #include "common.h"
 #include "segmentationresult.h"
@@ -26,4 +25,3 @@ namespace Serializer
 	IrisTemplate unserializeIrisTemplate(const std::string& serializedTemplate);
 };
 
-#endif	/* _SERIALIZER_H */

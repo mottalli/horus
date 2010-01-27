@@ -1,6 +1,4 @@
-#ifndef IRISDATABASE_H
-#define IRISDATABASE_H
-
+#pragma once
 #include <vector>
 
 #include "iristemplate.h"
@@ -49,4 +47,3 @@ protected:
 	int minNFAId;
 };
 
-#endif // IRISDATABASE_H

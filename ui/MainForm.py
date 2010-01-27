@@ -33,7 +33,8 @@ class MainForm(QtGui.QMainWindow, Ui_MainForm):
 			(ProcessingThread.processingThread, ProcessingThread.sigProcessedFrame, self.processedFrame)
 		]
 		SETUP_SIGNALS = [
-			(VideoThread.videoThread, VideoThread.sigAvailableFrame, self.setupVideoWidget.showImage)
+			#(VideoThread.videoThread, VideoThread.sigAvailableFrame, self.setupVideoWidget.showImage)
+			(ProcessingThread.processingThread, ProcessingThread.sigProcessedFrame, self.processedFrameSetup)
 		]
 
 		if tabIndex == self.VIDEO_TAB:
@@ -98,3 +99,22 @@ class MainForm(QtGui.QMainWindow, Ui_MainForm):
 		elif resultado == horus.VideoProcessor.GOT_TEMPLATE:
 			print 'GOT_TEMPLATE'
 
+	def processedFrameSetup(self, resultado, videoProcessor):
+		self.setupVideoWidget.showImage(videoProcessor.segmentator._pupilSegmentator.similarityImage)
+
+	@QtCore.pyqtSignature("int")
+	def on_muPupil_sliderMoved(self, position):
+		muMinimo = 0.0
+		muMaximo = 100.0
+		q = position/100.0
+		muPupil = muMinimo + (muMaximo-muMinimo)*q
+		horus.Parameters.getParameters().muPupil = muPupil
+		
+
+	@QtCore.pyqtSignature("int")
+	def on_sigmaPupil_sliderMoved(self, position):
+		sigmaMinimo = 1.0
+		sigmaMaximo = 50.0
+		q = position/100.0
+		sigmaPupil = sigmaMinimo + (sigmaMaximo-sigmaMinimo)*q
+		horus.Parameters.getParameters().sigmaPupil = sigmaPupil

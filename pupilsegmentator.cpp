@@ -11,22 +11,22 @@
 
 PupilSegmentator::PupilSegmentator()
 {
-	this->buffers.LUT = cvCreateMat(256, 1, CV_8UC1);
-	this->buffers.similarityImage = NULL;
+	this->LUT = cvCreateMat(256, 1, CV_8UC1);
+	this->similarityImage = NULL;
 	this->_lastSigma = this->_lastMu = -100.0;
 
-	this->buffers.workingImage = NULL;
+	this->workingImage = NULL;
 
-	this->buffers.adjustmentRing = NULL;
-	this->buffers.adjustmentRingGradient = NULL;
+	this->adjustmentRing = NULL;
+	this->adjustmentRingGradient = NULL;
 }
 
 PupilSegmentator::~PupilSegmentator()
 {
-	cvReleaseMat(&this->buffers.LUT);
+	cvReleaseMat(&this->LUT);
 
-	if (this->buffers.similarityImage != NULL) {
-		cvReleaseImage(&this->buffers.similarityImage);
+	if (this->similarityImage != NULL) {
+		cvReleaseImage(&this->similarityImage);
 	}
 }
 
@@ -35,11 +35,11 @@ ContourAndCloseCircle PupilSegmentator::segmentPupil(const Image* image)
 	this->setupBuffers(image);
 	ContourAndCloseCircle result;
 
-	Circle pupilCircle = this->approximatePupil(this->buffers.workingImage);
+	Circle pupilCircle = this->approximatePupil(this->workingImage);
 
-	pupilCircle.radius /= this->buffers.resizeFactor;
-	pupilCircle.xc /= this->buffers.resizeFactor;
-	pupilCircle.yc /= this->buffers.resizeFactor;
+	pupilCircle.radius /= this->resizeFactor;
+	pupilCircle.xc /= this->resizeFactor;
+	pupilCircle.yc /= this->resizeFactor;
 
 	result.first = this->adjustPupilContour(image, pupilCircle);
 	result.second = HelperFunctions::approximateCircle(result.first);
@@ -69,9 +69,9 @@ void PupilSegmentator::setupBuffers(const Image* image)
 		workingHeight = height;
 	}
 
-	this->buffers.resizeFactor = resizeFactor;
+	this->resizeFactor = resizeFactor;
 
-	Image*& workingImage = this->buffers.workingImage;
+	Image*& workingImage = this->workingImage;
 
 	if (workingImage == NULL || workingImage->width != workingWidth
 			|| workingImage->height != workingHeight) {
@@ -89,36 +89,36 @@ void PupilSegmentator::setupBuffers(const Image* image)
 		cvResize(image, workingImage, CV_INTER_LINEAR);
 	}
 
-	if (this->buffers.similarityImage == NULL
-			|| !SAME_SIZE(this->buffers.similarityImage, workingImage)) {
-		if (this->buffers.similarityImage != NULL) {
-			cvReleaseImage(&this->buffers.similarityImage);
-			cvReleaseImage(&this->buffers.equalizedImage);
+	if (this->similarityImage == NULL
+			|| !SAME_SIZE(this->similarityImage, workingImage)) {
+		if (this->similarityImage != NULL) {
+			cvReleaseImage(&this->similarityImage);
+			cvReleaseImage(&this->equalizedImage);
 		}
-		this->buffers.similarityImage = cvCreateImage(cvGetSize(workingImage),
+		this->similarityImage = cvCreateImage(cvGetSize(workingImage),
 				IPL_DEPTH_8U, 1);
-		this->buffers.equalizedImage = cvCreateImage(cvGetSize(workingImage),
+		this->equalizedImage = cvCreateImage(cvGetSize(workingImage),
 				IPL_DEPTH_8U, 1);
 	}
 
-	if (this->buffers.adjustmentRing == NULL
-			|| this->buffers.adjustmentRing->width
+	if (this->adjustmentRing == NULL
+			|| this->adjustmentRing->width
 					!= parameters->pupilAdjustmentRingWidth
-			|| this->buffers.adjustmentRing->height
+			|| this->adjustmentRing->height
 					!= parameters->pupilAdjustmentRingHeight) {
-		if (this->buffers.adjustmentRing != NULL) {
-			cvReleaseImage(&this->buffers.adjustmentRing);
-			cvReleaseImage(&this->buffers.adjustmentRingGradient);
-			cvReleaseMat(&this->buffers.adjustmentSnake);
+		if (this->adjustmentRing != NULL) {
+			cvReleaseImage(&this->adjustmentRing);
+			cvReleaseImage(&this->adjustmentRingGradient);
+			cvReleaseMat(&this->adjustmentSnake);
 		}
 
-		this->buffers.adjustmentRing = cvCreateImage(cvSize(
+		this->adjustmentRing = cvCreateImage(cvSize(
 				parameters->pupilAdjustmentRingWidth,
 				parameters->pupilAdjustmentRingHeight), IPL_DEPTH_16S, 1);
-		this->buffers.adjustmentRingGradient = cvCreateImage(cvSize(
+		this->adjustmentRingGradient = cvCreateImage(cvSize(
 				parameters->pupilAdjustmentRingWidth,
 				parameters->pupilAdjustmentRingHeight), IPL_DEPTH_16S, 1);
-		this->buffers.adjustmentSnake = cvCreateMat(1,
+		this->adjustmentSnake = cvCreateMat(1,
 				parameters->pupilAdjustmentRingWidth, CV_32F);
 	}
 
@@ -127,16 +127,16 @@ void PupilSegmentator::setupBuffers(const Image* image)
 Circle PupilSegmentator::approximatePupil(const Image* image)
 {
 	// First, equalize the image
-	cvEqualizeHist(image, this->buffers.equalizedImage);
+	cvEqualizeHist(image, this->equalizedImage);
 
 	// Then apply the similarity transformation
 	this->similarityTransform();
-	cvSmooth(this->buffers.similarityImage, this->buffers.similarityImage,
+	cvSmooth(this->similarityImage, this->similarityImage,
 			CV_GAUSSIAN, 13);
 
 	// Now perform the cascaded integro-differential operator
 	return this->cascadedIntegroDifferentialOperator(
-			this->buffers.similarityImage);
+			this->similarityImage);
 
 }
 
@@ -144,20 +144,20 @@ Contour PupilSegmentator::adjustPupilContour(const Image* image, const Circle& a
 {
 	int radiusMin = approximateCircle.radius * 0.5, radiusMax =
 			approximateCircle.radius * 1.5;
-	HelperFunctions::extractRing(image, this->buffers.adjustmentRing,
+	HelperFunctions::extractRing(image, this->adjustmentRing,
 			approximateCircle.xc, approximateCircle.yc, radiusMin, radiusMax);
 
 	int infraredThreshold = Parameters::getParameters()->infraredThreshold;
 
 	// Calculate the vertical gradient
-	cvSobel(this->buffers.adjustmentRing, this->buffers.adjustmentRingGradient,
+	cvSobel(this->adjustmentRing, this->adjustmentRingGradient,
 			0, 1, 3);
-	cvSmooth(this->buffers.adjustmentRingGradient,
-			this->buffers.adjustmentRingGradient, CV_GAUSSIAN, 3, 3);
+	cvSmooth(this->adjustmentRingGradient,
+			this->adjustmentRingGradient, CV_GAUSSIAN, 3, 3);
 
 	// Shortcut to avoid having huge lines
-	Image* gradient = this->buffers.adjustmentRingGradient;
-	CvMat* snake = this->buffers.adjustmentSnake;
+	Image* gradient = this->adjustmentRingGradient;
+	CvMat* snake = this->adjustmentSnake;
 
 	// Find the points where the vertical gradient is maximum
 	for (int x = 0; x < gradient->width; x++) {
@@ -173,9 +173,9 @@ Contour PupilSegmentator::adjustPupilContour(const Image* image, const Circle& a
 			// A maximum in the gradient may have been caused by the reflections
 			// of the infrared LEDs. In this case, default to the original circle
 			bool hasInfraredLed = false;
-			hasInfraredLed = hasInfraredLed || (cvGetReal2D(this->buffers.adjustmentRing, bestY, x) > infraredThreshold);
-			hasInfraredLed = hasInfraredLed || (bestY-1 >= 0 && cvGetReal2D(this->buffers.adjustmentRing, bestY-1, x) > infraredThreshold);
-			hasInfraredLed = hasInfraredLed || (bestY+1 < this->buffers.adjustmentRing->height && cvGetReal2D(this->buffers.adjustmentRing, bestY+1, x) > infraredThreshold);
+			hasInfraredLed = hasInfraredLed || (cvGetReal2D(this->adjustmentRing, bestY, x) > infraredThreshold);
+			hasInfraredLed = hasInfraredLed || (bestY-1 >= 0 && cvGetReal2D(this->adjustmentRing, bestY-1, x) > infraredThreshold);
+			hasInfraredLed = hasInfraredLed || (bestY+1 < this->adjustmentRing->height && cvGetReal2D(this->adjustmentRing, bestY+1, x) > infraredThreshold);
 			if (hasInfraredLed) {
 				// The middle point is where the original circular contour passes through
 				bestY = gradient->height/2;
@@ -210,7 +210,7 @@ Contour PupilSegmentator::adjustPupilContour(const Image* image, const Circle& a
 	HelperFunctions::smoothSnakeFourier(snake, 5);
 
 	// Use the snake to calculate the quality of the pupil border
-	this->pupilContourQuality = this->calculatePupilContourQuality(this->buffers.adjustmentRing, this->buffers.adjustmentRingGradient, snake);
+	this->pupilContourQuality = this->calculatePupilContourQuality(this->adjustmentRing, this->adjustmentRingGradient, snake);
 
 	// Now, transform the points from the ring coordinates to the image coordinates
 	Contour result(snake->cols);
@@ -437,7 +437,7 @@ void PupilSegmentator::similarityTransform()
 		this->_lastSigma = sigma;
 		this->_lastMu = mu;
 
-		uint8_t* pLUT = this->buffers.LUT->data.ptr;
+		uint8_t* pLUT = this->LUT->data.ptr;
 		for (int i = 0; i < 256; i++) {
 			num = (double(i) - mu) * (double(i) - mu);
 			res = std::exp(-num / denom) * 255.0;
@@ -445,8 +445,8 @@ void PupilSegmentator::similarityTransform()
 		}
 	}
 
-	cvLUT(this->buffers.equalizedImage, this->buffers.similarityImage,
-			this->buffers.LUT);
+	cvLUT(this->equalizedImage, this->similarityImage,
+			this->LUT);
 }
 
 int PupilSegmentator::calculatePupilContourQuality(const Image* region, const Image* regionGradient, const CvMat* contourSnake)

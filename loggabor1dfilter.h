@@ -5,8 +5,7 @@
  *      Author: marcelo
  */
 
-#ifndef LOGGABOR1DFILTER_H_
-#define LOGGABOR1DFILTER_H_
+#pragma once
 
 #include "common.h"
 #include <memory>
@@ -31,4 +30,3 @@ private:
 	void initializeFilter(const Image* image);		// Must release the result
 };
 
-#endif /* LOGGABOR1DFILTER_H_ */

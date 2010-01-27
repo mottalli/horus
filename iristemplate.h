@@ -5,8 +5,7 @@
  *      Author: marcelo
  */
 
-#ifndef IRISTEMPLATE_H_
-#define IRISTEMPLATE_H_
+#pragma once
 
 #include "common.h"
 #include <string>
@@ -46,4 +45,3 @@ protected:
 	CvMat* mask;
 };
 
-#endif /* IRISTEMPLATE_H_ */

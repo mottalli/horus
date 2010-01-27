@@ -5,8 +5,7 @@
  * Created on January 26, 2009, 2:35 AM
  */
 
-#ifndef _CLOCK_H
-#define	_CLOCK_H
+#pragma once
 
 #include <ctime>
 
@@ -24,5 +23,4 @@ private:
 
 };
 
-#endif	/* _CLOCK_H */
 

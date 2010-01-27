@@ -5,8 +5,7 @@
  * Created on January 21, 2009, 8:39 PM
  */
 
-#ifndef _IRISSEGMENTATOR_H
-#define	_IRISSEGMENTATOR_H
+#pragma once
 
 #include "types.h"
 
@@ -29,5 +28,4 @@ private:
 
 };
 
-#endif	/* _IRISSEGMENTATOR_H */
 

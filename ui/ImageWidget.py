@@ -1,6 +1,6 @@
 # -*- coding: UTF8 -*-
 
-from opencv import cvGetSize, cvCreateImage, cvReleaseImage, cvMerge, cvSplit, IPL_DEPTH_8U
+from opencv import *
 from opencv import highgui
 from PyQt4 import QtCore, QtGui
 
@@ -31,35 +31,36 @@ class ImageWidget(QtGui.QWidget):
 		
 	def _convertImage(self, image):
 		recreate = False
+		size = cvGetSize(image)
+		
 		if self.buffer is None:
 			recreate = True
-		elif image.width != self.buffer.width or image.height != self.buffer.height:
+		elif size.width != self.buffer.width or size.height != self.buffer.height:
 			cvReleaseImage(self.buffer)
 			cvReleaseImage(self.bufferR)
 			cvReleaseImage(self.bufferG)
 			cvReleaseImage(self.bufferB)
 			recreate = True
+			
+		elemType = cvGetElemType(image)
 		
 		if recreate:
-			self.buffer = cvCreateImage(cvGetSize(image), IPL_DEPTH_8U, 4)
-			self.bufferB = cvCreateImage(cvGetSize(image), IPL_DEPTH_8U, 1)
-			self.bufferG = cvCreateImage(cvGetSize(image), IPL_DEPTH_8U, 1)
-			self.bufferR = cvCreateImage(cvGetSize(image), IPL_DEPTH_8U, 1)
+			self.buffer = cvCreateImage(size, IPL_DEPTH_8U, 4)
+			self.bufferB = cvCreateImage(size, IPL_DEPTH_8U, 1)
+			self.bufferG = cvCreateImage(size, IPL_DEPTH_8U, 1)
+			self.bufferR = cvCreateImage(size, IPL_DEPTH_8U, 1)
 		
-		if image.nChannels == 1:
+		if elemType == CV_8UC1:
 			cvMerge(image, None, None, None, self.buffer)
 			cvMerge(None, image, None, None, self.buffer)
 			cvMerge(None, None, image, None, self.buffer)
-		elif image.nChannels == 3:
+		elif elemType == CV_8UC3:
 			cvSplit(image, self.bufferB, self.bufferG, self.bufferR, None)
 			cvMerge(self.bufferB, None, None, None, self.buffer)
 			cvMerge(None, self.bufferG, None, None, self.buffer)
 			cvMerge(None, None, self.bufferR, None, self.buffer)
 		else:
-			pass
+			raise Exception('Unsupported type')
 
-		self.__data = self.buffer.imageData
-		
-		size = cvGetSize(image)
 		del self.image
-		self.image = QtGui.QImage(self.__data, size.width, size.height, QtGui.QImage.Format_RGB32)
+		self.image = QtGui.QImage(self.buffer.imageData, size.width, size.height, QtGui.QImage.Format_RGB32)

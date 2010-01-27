@@ -5,8 +5,7 @@
  *      Author: marcelo
  */
 
-#ifndef TOOLS_H_
-#define TOOLS_H_
+#pragma once
 
 #include "common.h"
 
@@ -55,4 +54,3 @@ namespace Tools
 	CvMat* base64DecodeMat(const std::string &s);
 }
 
-#endif /* TOOLS_H_ */

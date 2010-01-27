@@ -5,8 +5,7 @@
  *      Author: marcelo
  */
 
-#ifndef DECORATOR_H_
-#define DECORATOR_H_
+#pragma once
 
 #include "common.h"
 #include "segmentationresult.h"
@@ -29,4 +28,3 @@ private:
 	void drawParabola(Image* image, const Parabola& parabola, int xMin, int xMax, CvScalar color);
 };
 
-#endif /* DECORATOR_H_ */

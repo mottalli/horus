@@ -5,8 +5,7 @@
  *      Author: marcelo
  */
 
-#ifndef TEMPLATECOMPARATOR_H_
-#define TEMPLATECOMPARATOR_H_
+#pragma once
 
 #include "common.h"
 #include "iristemplate.h"
@@ -38,5 +37,3 @@ private:
 
 	std::vector<IrisTemplate> rotatedTemplates;
 };
-
-#endif /* TEMPLATECOMPARATOR_H_ */

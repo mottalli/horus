@@ -5,8 +5,7 @@
  * Created on January 21, 2009, 8:37 PM
  */
 
-#ifndef _SEGMENTATOR_H
-#define	_SEGMENTATOR_H
+#pragma once
 
 #include "common.h"
 #include "pupilsegmentator.h"
@@ -34,5 +33,4 @@ public:
 	void setupBuffers(const Image* image);
 };
 
-#endif	/* _SEGMENTATOR_H */
 

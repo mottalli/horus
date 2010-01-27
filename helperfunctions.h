@@ -5,8 +5,7 @@
  * Created on January 22, 2009, 2:16 PM
  */
 
-#ifndef _HELPERFUNCTIONS_H
-#define	_HELPERFUNCTIONS_H
+#pragma once
 
 #include <cmath>
 #include <assert.h>
@@ -20,5 +19,4 @@ namespace HelperFunctions
 }
 
 
-#endif	/* _HELPERFUNCTIONS_H */
 

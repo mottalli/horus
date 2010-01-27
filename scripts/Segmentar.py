@@ -14,6 +14,10 @@ ACCION_GUARDAR = 'w'
 ACCION_SEGMENTACION_CORRECTA = 's'
 ACCION_SEGMENTACION_ERRONEA = 'n'
 ACCION_GUARDAR_IMAGEN = 'i'
+ACCION_MU_PUPILA_INC = '+'
+ACCION_MU_PUPILA_DEC = '-'
+ACCION_SIGMA_PUPILA_INC = '*'
+ACCION_SIGMA_PUPILA_DEC = '/'
 
 segmentator = horus.Segmentator()
 decorator = horus.Decorator()
@@ -65,6 +69,8 @@ def segmentarBase(options):
 			print 'Segmentando %i (%s)' % (idImagen, fullPathImagen)
 			(resultadoSegmentacion, decorada) = segmentarYMostrar(fullPathImagen)
 		
+		parameters = horus.Parameters.getParameters()
+		
 		while 1:
 			accion = obtenerAccion()
 			if accion == ACCION_ANTERIOR:
@@ -89,6 +95,25 @@ def segmentarBase(options):
 			elif accion == ACCION_SALIR:
 				buffer = flushBuffer(BASE, buffer)
 				sys.exit(0);
+			elif accion == ACCION_MU_PUPILA_INC:
+				parameters.muPupil = parameters.muPupil + 0.5
+				print "mu:", parameters.muPupil
+				(resultadoSegmentacion, imagenDecorada) = segmentarYMostrar(fullPathImagen)
+			elif accion == ACCION_MU_PUPILA_DEC:
+				parameters.muPupil = parameters.muPupil - 0.5
+				print "mu:", parameters.muPupil
+				(resultadoSegmentacion, imagenDecorada) = segmentarYMostrar(fullPathImagen)
+			elif accion == ACCION_SIGMA_PUPILA_INC:
+				parameters.sigmaPupil = parameters.sigmaPupil + 0.5
+				print "sigma:", parameters.sigmaPupil
+				(resultadoSegmentacion, imagenDecorada) = segmentarYMostrar(fullPathImagen)
+			elif accion == ACCION_SIGMA_PUPILA_DEC:
+				parameters.sigmaPupil = parameters.sigmaPupil - 0.5
+				print "sigma:", parameters.sigmaPupil
+				(resultadoSegmentacion, imagenDecorada) = segmentarYMostrar(fullPathImagen)
+			else:
+				print accion
+				pass
 			
 		if len(buffer) and (len(buffer) % 10) == 0:
 				buffer = flushBuffer(BASE, buffer)
@@ -99,7 +124,7 @@ def segmentarUna(options):
 	pathImagen = herramientas.obtenerImagen(options.imagen, options.base)
 	
 	(resultadoSegmentacion, imagenDecorada) = segmentarYMostrar(pathImagen)
-
+	
 	while True:
 		accion = cvWaitKey(0)
 		if accion == ACCION_GUARDAR_IMAGEN:

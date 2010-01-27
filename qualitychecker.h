@@ -5,8 +5,7 @@
  *      Author: marcelo
  */
 
-#ifndef QUALITYCHECKER_H_
-#define QUALITYCHECKER_H_
+#pragma once
 
 #include "common.h"
 #include "segmentationresult.h"
@@ -22,4 +21,3 @@ public:
 	bool checkIrisQuality(const Image* image, const SegmentationResult& segmentationResult);
 };
 
-#endif /* QUALITYCHECKER_H_ */

@@ -5,8 +5,7 @@
  *      Author: marcelo
  */
 
-#ifndef IRISENCODER_H_
-#define IRISENCODER_H_
+#pragma once
 
 #include "common.h"
 #include "segmentationresult.h"
@@ -47,4 +46,3 @@ protected:
 	void extendMask();
 };
 
-#endif /* IRISENCODER_H_ */

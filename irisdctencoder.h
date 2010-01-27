@@ -1,6 +1,4 @@
-#ifndef IRISDCTENCODER_H
-#define IRISDCTENCODER_H
-
+#pragma once
 #include "common.h"
 #include "iristemplate.h"
 #include "segmentationresult.h"
@@ -51,4 +49,3 @@ protected:
 };
 
 
-#endif // IRISDCTENCODER_H

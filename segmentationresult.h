@@ -5,8 +5,7 @@
  * Created on January 21, 2009, 9:33 PM
  */
 
-#ifndef _SEGMENTATIONRESULT_H
-#define	_SEGMENTATIONRESULT_H
+#pragma once
 
 #include "types.h"
 
@@ -29,5 +28,4 @@ private:
 
 };
 
-#endif	/* _SEGMENTATIONRESULT_H */
 
