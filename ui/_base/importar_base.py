@@ -27,7 +27,7 @@ if not otraConn:
 filas = otraConn.execute('SELECT imagen,segmentacion,codigo_gabor FROM base_iris WHERE segmentacion_correcta=1')
 for fila in filas:
 	nombre = str(fila[0])
-	imagen = os.path.join(pathBase, str(fila[0]))
+	imagen = os.path.join(sys.argv[1], str(fila[0]))
 	segmentacion = str(fila[1])
 	codigo_gabor = str(fila[2])
 	

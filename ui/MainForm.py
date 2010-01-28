@@ -2,6 +2,8 @@
 from PyQt4 import uic
 from PyQt4 import QtGui, QtCore
 from opencv import *
+from opencv.highgui import *
+import os.path
 
 import VideoThread, ProcessingThread
 import horus
@@ -18,6 +20,7 @@ class MainForm(QtGui.QMainWindow, Ui_MainForm):
 		self.decorator = horus.Decorator()
 		self.focusedIris = False
 		self.forzarIdentificacionProxima = False
+		self.capturarProxima = False
 		self.frameDecorado = None
 		self.frameCapturado = None
 		self.frameCapturadoDecorado = None
@@ -45,6 +48,10 @@ class MainForm(QtGui.QMainWindow, Ui_MainForm):
 		
 		if self.forzarIdentificacionProxima:
 			self.forzarIdentificacion(frame)
+		
+		if self.capturarProxima:
+			self.capturarProxima = False
+			self.capturar(frame)
 	
 	def processedFrame(self, resultado, videoProcessor):
 		if resultado >= horus.VideoProcessor.FOCUSED_NO_IRIS:
@@ -72,21 +79,21 @@ class MainForm(QtGui.QMainWindow, Ui_MainForm):
 		self.focusScore.setValue(videoProcessor.lastFocusScore)
 	
 		if resultado == horus.VideoProcessor.UNPROCESSED:
-			print 'UNPROCESSED'
+			self.statusBar.showMessage('Esperando...')
 		elif resultado == horus.VideoProcessor.DEFOCUSED:
-			print 'DEFOCUSED'
+			self.statusBar.showMessage('Desenfocado')
 		elif resultado == horus.VideoProcessor.FOCUSED_NO_IRIS:
-			print 'FOCUSED_NO_IRIS'
+			self.statusBar.showMessage('Imagen sin iris')
 		elif resultado == horus.VideoProcessor.IRIS_LOW_QUALITY:
-			print 'IRIS_LOW_QUALITY'
+			self.statusBar.showMessage('Baja calidad de iris')
 		elif resultado == horus.VideoProcessor.IRIS_TOO_CLOSE:
-			print 'IRIS_TOO_CLOSE'
+			self.statusBar.showMessage('Iris demasiado cerca')
 		elif resultado == horus.VideoProcessor.IRIS_TOO_FAR:
-			print 'IRIS_TOO_FAR'
+			self.statusBar.showMessage('Iris demasiado lejos')
 		elif resultado == horus.VideoProcessor.FOCUSED_IRIS:
-			print 'FOCUSED_IRIS'
+			self.statusBar.showMessage('Iris enfocado')
 		elif resultado == horus.VideoProcessor.GOT_TEMPLATE:
-			print 'GOT_TEMPLATE'
+			self.statusBar.showMessage('Imagen capturada')
 			self.gotTemplate(videoProcessor)
 	
 	def gotTemplate(self, videoProcessor):
@@ -111,16 +118,38 @@ class MainForm(QtGui.QMainWindow, Ui_MainForm):
 		if self.chkIdentificacionAutomatica.checkState() == QtCore.Qt.Checked:
 			self.identificarTemplate(self.lastTemplate)
 	
+	@QtCore.pyqtSignature("")
 	def on_btnForzarIdentificacion_clicked(self):
 		self.forzarIdentificacionProxima = True
 	
+	@QtCore.pyqtSignature("")
 	def on_btnIdentificar_clicked(self):
 		if self.lastTemplate:
 			self.identificarTemplate(self.lastTemplate)
+
+	@QtCore.pyqtSignature("")
+	def on_btnCapturar_clicked(self):
+		self.capturarProxima = True
+
 
 	def forzarIdentificacion(self, frame):
 		self.forzarIdentificacionProxima = False
 		print "Forzando"
 
 	def identificarTemplate(self, template):
-		pass
+		self.database.doMatch(template)
+		print (self.database.irisDatabase.getMinDistanceId(), self.database.irisDatabase.getMinDistance())
+		
+		self.database.irisDatabase.doAContrarioMatch(template)
+		print (self.database.irisDatabase.getMinNFAId(), self.database.irisDatabase.getMinNFA())
+	
+	def capturar(self, frame):
+		i = 0
+		while True:
+			nombreArchivo = "cap%i.jpg" % (i)
+			if not os.path.exists(nombreArchivo):
+				cvSaveImage(nombreArchivo, frame)
+				print "Captura guardada en", nombreArchivo
+				break
+			else:
+				i = i+1

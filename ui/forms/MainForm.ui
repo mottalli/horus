@@ -24,7 +24,7 @@
        <item row="1" column="0">
         <layout class="QHBoxLayout" name="horizontalLayout_2">
          <item>
-          <widget class="QPushButton" name="pushButton_4">
+          <widget class="QPushButton" name="btnCapturar">
            <property name="text">
             <string>Capturar</string>
            </property>
@@ -180,6 +180,7 @@
    </widget>
    <addaction name="menu_Archivo"/>
   </widget>
+  <widget class="QStatusBar" name="statusBar"/>
   <action name="actionE_xit">
    <property name="text">
     <string>&amp;Salir</string>
