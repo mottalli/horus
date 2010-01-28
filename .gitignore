@@ -1,6 +1,9 @@
 Debug
 *.pyc
+*.o
 .pydevproject
 python_interface/build/
 python_interface/horus.py
 python_interface/horus_wrap.cxx
+debug/
+release/

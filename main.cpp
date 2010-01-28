@@ -116,6 +116,9 @@ void processImage(Image* image)
 {
 	VideoProcessor::VideoStatus vs = videoProcessor.processFrame(image);
 	switch (vs) {
+	case VideoProcessor::UNPROCESSED:
+		sprintf(BUFFER, "UNPROCESSED");
+		break;
 	case VideoProcessor::DEFOCUSED:
 		sprintf(BUFFER, "DEFOCUSED");
 		break;
@@ -144,10 +147,10 @@ void processImage(Image* image)
 	}
 	cvPutText(image, BUFFER, cvPoint(400, 300), &FONT, CV_RGB(255,255,255));
 
-	sprintf(BUFFER, "Focus: %.2f", videoProcessor.lastFocusScore);
+	/*sprintf(BUFFER, "Focus: %.2f", videoProcessor.lastFocusScore);
 	cvPutText(image, BUFFER, cvPoint(400, 330), &FONT, CV_RGB(255,255,255));
 	sprintf(BUFFER, "S. score: %.2f", videoProcessor.lastSegmentationScore);
-	cvPutText(image, BUFFER, cvPoint(400, 360), &FONT, CV_RGB(255,255,255));
+	cvPutText(image, BUFFER, cvPoint(400, 360), &FONT, CV_RGB(255,255,255));*/
 
 	cvNamedWindow("video");
 	cvShowImage("video", image);
@@ -156,14 +159,14 @@ void processImage(Image* image)
 
 void captured()
 {
-	IrisTemplate irisTemplate = videoProcessor.getTemplate();
+	/*IrisTemplate irisTemplate = videoProcessor.getTemplate();
 
-	IplImage* image = cvCloneImage(videoProcessor.buffers.bestFrame);
+	IplImage* image = cvCloneImage(videoProcessor.bestFrame);
 	decorator.drawTemplate(image, irisTemplate);
 	decorator.drawSegmentationResult(image, videoProcessor.lastSegmentationResult);
 
 
 	cvNamedWindow("template");
 	cvShowImage("template", image);
-	cvReleaseImage(&image);
+	cvReleaseImage(&image);*/
 }

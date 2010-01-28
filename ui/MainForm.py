@@ -10,58 +10,26 @@ import horus
 (Ui_MainForm, Base) = uic.loadUiType('forms/MainForm.ui')
 
 class MainForm(QtGui.QMainWindow, Ui_MainForm):
-	VIDEO_TAB = 0
-	SETUP_TAB = 1
-	
-
 	def __init__(self):
 		QtGui.QMainWindow.__init__(self)
 		self.setupUi(self)
 		
-		QtCore.QObject.connect(self.mainTabs, QtCore.SIGNAL("currentChanged(int)"), self.changedTab)
-
-		self.changedTab(self.mainTabs.currentIndex())
 		self.lastSegmentationResult = None
 		self.decorator = horus.Decorator()
 		self.focusedIris = False
+		self.forzarIdentificacionProxima = False
+		
+		QtCore.QObject.connect(VideoThread.videoThread, VideoThread.sigAvailableFrame, self.availableFrame)
+		QtCore.QObject.connect(ProcessingThread.processingThread, ProcessingThread.sigProcessedFrame, self.processedFrame)
 
-	@QtCore.pyqtSignature("int")
-	def changedTab(self, tabIndex):
-		# NO poner esto dentro de la clase (como un self.VIDEO_SIGNALS) porque falla a la salida
-		VIDEO_SIGNALS = [
-			(VideoThread.videoThread, VideoThread.sigAvailableFrame, self.availableFrame),
-			(ProcessingThread.processingThread, ProcessingThread.sigProcessedFrame, self.processedFrame)
-		]
-		SETUP_SIGNALS = [
-			(ProcessingThread.processingThread, ProcessingThread.sigProcessedFrame, self.processedFrameSetup),
-		]
-
-		if tabIndex == self.VIDEO_TAB:
-			sIn = VIDEO_SIGNALS
-			sOut = SETUP_SIGNALS
-		elif tabIndex == self.SETUP_TAB:
-			sIn = SETUP_SIGNALS
-			sOut = VIDEO_SIGNALS
-		
-		for (obj, signal, callback) in sOut:
-			QtCore.QObject.disconnect(obj, signal, callback)
-		
-		for (obj, signal, callback) in sIn:
-			QtCore.QObject.connect(obj, signal, callback, QtCore.Qt.BlockingQueuedConnection)
-		
-		self.currentTab = tabIndex
-	
-	def inVideoTab(self):
-		return self.currentTab == VIDEO_TAB
-	
-	def inSetupTab(self):
-		return self.currentTab == SETUP_TAB
-			
 	def availableFrame(self, frame):
 		if (self.lastSegmentationResult):
 			self.decorator.drawSegmentationResult(frame, self.lastSegmentationResult)
 		
 		self.videoWidget.showImage(frame)
+		
+		if self.forzarIdentificacionProxima:
+			self.forzarIdentificacion(frame)
 	
 	def processedFrame(self, resultado, videoProcessor):
 		if resultado >= horus.VideoProcessor.FOCUSED_NO_IRIS:
@@ -107,27 +75,11 @@ class MainForm(QtGui.QMainWindow, Ui_MainForm):
 			self.gotTemplate(videoProcessor)
 	
 	def gotTemplate(self, videoProcessor):
-		f = cvCreateImage(cvGetSize(videoProcessor.getTemplateFrame()), IPL_DEPTH_8U, 1)
-		cvCopy(videoProcessor.getTemplateFrame(), f)
-		self.capturedImage.showImage(f)
+		pass
+	
+	def on_btnForzarIdentificacion_clicked(self):
+		self.forzarIdentificacionProxima = True
 
-	def processedFrameSetup(self, resultado, videoProcessor):
-		if videoProcessor.segmentator._pupilSegmentator.similarityImage != None:
-			self.setupVideoWidget.showImage(videoProcessor.segmentator._pupilSegmentator.similarityImage)
-
-	@QtCore.pyqtSignature("int")
-	def on_muPupil_sliderMoved(self, position):
-		muMinimo = 0.0
-		muMaximo = 100.0
-		q = position/100.0
-		muPupil = muMinimo + (muMaximo-muMinimo)*q
-		horus.Parameters.getParameters().muPupil = muPupil
-		
-
-	@QtCore.pyqtSignature("int")
-	def on_sigmaPupil_sliderMoved(self, position):
-		sigmaMinimo = 1.0
-		sigmaMaximo = 50.0
-		q = position/100.0
-		sigmaPupil = sigmaMinimo + (sigmaMaximo-sigmaMinimo)*q
-		horus.Parameters.getParameters().sigmaPupil = sigmaPupil
+	def forzarIdentificacion(self, frame):
+		self.forzarIdentificacionProxima = False
+		print "Forzando"
