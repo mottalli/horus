@@ -5,7 +5,7 @@ from opencv import *
 
 import VideoThread, ProcessingThread
 import horus
-
+import Database
 
 (Ui_MainForm, Base) = uic.loadUiType('forms/MainForm.ui')
 
@@ -18,15 +18,30 @@ class MainForm(QtGui.QMainWindow, Ui_MainForm):
 		self.decorator = horus.Decorator()
 		self.focusedIris = False
 		self.forzarIdentificacionProxima = False
+		self.frameDecorado = None
+		self.frameCapturado = None
+		self.frameCapturadoDecorado = None
+		self.frameCapturadoDecoradoThumbnail = None
+		self.lastTemplate = None
+		
+		self.database = Database.database
+
+		self.segmentator = horus.Segmentator()
+		self.encoder = horus.IrisEncoder()
+
 		
 		QtCore.QObject.connect(VideoThread.videoThread, VideoThread.sigAvailableFrame, self.availableFrame)
 		QtCore.QObject.connect(ProcessingThread.processingThread, ProcessingThread.sigProcessedFrame, self.processedFrame)
 
 	def availableFrame(self, frame):
 		if (self.lastSegmentationResult):
-			self.decorator.drawSegmentationResult(frame, self.lastSegmentationResult)
-		
-		self.videoWidget.showImage(frame)
+			if not self.frameDecorado:
+				self.frameDecorado = cvCreateImage(cvGetSize(frame), IPL_DEPTH_8U, 3)
+			cvCopy(frame, self.frameDecorado)
+			self.decorator.drawSegmentationResult(self.frameDecorado, self.lastSegmentationResult)
+			self.videoWidget.showImage(self.frameDecorado)
+		else:
+			self.videoWidget.showImage(frame)
 		
 		if self.forzarIdentificacionProxima:
 			self.forzarIdentificacion(frame)
@@ -75,11 +90,37 @@ class MainForm(QtGui.QMainWindow, Ui_MainForm):
 			self.gotTemplate(videoProcessor)
 	
 	def gotTemplate(self, videoProcessor):
-		pass
+		templateFrame = videoProcessor.getTemplateFrame()
+		if not self.frameCapturado:
+			size = cvGetSize(templateFrame)
+			self.frameCapturado = cvCreateImage(cvGetSize(templateFrame), IPL_DEPTH_8U, 1)
+			self.frameCapturadoDecorado = cvCreateImage(cvGetSize(templateFrame), IPL_DEPTH_8U, 3)
+			#self.frameCapturadoDecoradoThumbnail = cvCreateImage(cvSize(size.width/2, size.height/2), IPL_DEPTH_8U, 3)
+			self.frameCapturadoDecoradoThumbnail = cvCreateImage(cvSize(320,240), IPL_DEPTH_8U, 3)
+		
+		cvCopy(templateFrame, self.frameCapturado)
+		cvCvtColor(self.frameCapturado, self.frameCapturadoDecorado, CV_GRAY2BGR)
+		self.decorator.pupilColor = CV_RGB(0,255,0)
+		self.decorator.irisColor = CV_RGB(255,0,0)
+		self.decorator.drawSegmentationResult(self.frameCapturadoDecorado, videoProcessor.getTemplateSegmentation())
+		cvResize(self.frameCapturadoDecorado, self.frameCapturadoDecoradoThumbnail, CV_INTER_CUBIC)
+		
+		self.capturedImage.showImage(self.frameCapturadoDecoradoThumbnail)
+		self.lastTemplate = videoProcessor.getTemplate()
+		
+		if self.chkIdentificacionAutomatica.checkState() == QtCore.Qt.Checked:
+			self.identificarTemplate(self.lastTemplate)
 	
 	def on_btnForzarIdentificacion_clicked(self):
 		self.forzarIdentificacionProxima = True
+	
+	def on_btnIdentificar_clicked(self):
+		if self.lastTemplate:
+			self.identificarTemplate(self.lastTemplate)
 
 	def forzarIdentificacion(self, frame):
 		self.forzarIdentificacionProxima = False
 		print "Forzando"
+
+	def identificarTemplate(self, template):
+		pass

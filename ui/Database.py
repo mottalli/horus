@@ -1,9 +1,10 @@
+# -*- coding: UTF8 -*-
 import sqlite3
 import os.path
 import horus
 
 class Database:
-	def __init__(self, basePath):
+	def __init__(self, basePath='_base'):
 		self.basePath = basePath
 		self.baseFile = os.path.join(basePath, 'base.db')
 		self.irisDatabase = horus.IrisDatabase()
@@ -11,7 +12,7 @@ class Database:
 		if not os.path.exists(self.baseFile):
 			raise Exception('No existe el archivo ' + self.baseFile)
 
-		self.conn = sqlite3.connect(baseFile)
+		self.conn = sqlite3.connect(self.baseFile)
 		
 		rows = self.conn.execute('SELECT id_imagen,codigo_gabor FROM base_iris')
 		for row in rows:
@@ -32,3 +33,5 @@ class Database:
 	
 	def doAContrarioMatch(self, template, statusCallback=None):
 		pass
+
+database = Database()

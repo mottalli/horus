@@ -130,10 +130,6 @@ VideoProcessor::VideoStatus VideoProcessor::doProcess(const Image* frame)
 
 IrisTemplate VideoProcessor::getTemplate()
 {
-	if (this->lastStatus != GOT_TEMPLATE) {
-		throw std::runtime_error("Requested iris template but no iris detected in image");
-	}
-
 	return this->irisEncoder.generateTemplate(this->templateFrame, this->templateSegmentation);
 }
 
