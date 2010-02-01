@@ -78,7 +78,7 @@
           </widget>
          </item>
          <item>
-          <widget class="QPushButton" name="pushButton_2">
+          <widget class="QPushButton" name="btnRegistrar">
            <property name="text">
             <string>Registrar</string>
            </property>
@@ -177,6 +177,7 @@
      <string>&amp;Archivo</string>
     </property>
     <addaction name="action_Par_metros"/>
+    <addaction name="action_Procesar_archivo"/>
    </widget>
    <addaction name="menu_Archivo"/>
   </widget>
@@ -189,6 +190,11 @@
   <action name="action_Par_metros">
    <property name="text">
     <string>&amp;Parámetros</string>
+   </property>
+  </action>
+  <action name="action_Procesar_archivo">
+   <property name="text">
+    <string>P&amp;rocesar archivo...</string>
    </property>
   </action>
  </widget>

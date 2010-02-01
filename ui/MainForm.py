@@ -22,9 +22,8 @@ class MainForm(QtGui.QMainWindow, Ui_MainForm):
 		self.forzarIdentificacionProxima = False
 		self.capturarProxima = False
 		self.frameDecorado = None
-		self.frameCapturado = None
-		self.frameCapturadoDecorado = None
-		self.frameCapturadoDecoradoThumbnail = None
+		self.thumbnailColorTmp = None
+		self.thumbnail = None
 		self.lastTemplate = None
 		
 		self.database = Database.database
@@ -47,6 +46,7 @@ class MainForm(QtGui.QMainWindow, Ui_MainForm):
 			self.videoWidget.showImage(frame)
 		
 		if self.forzarIdentificacionProxima:
+			self.forzarIdentificacionProxima = False
 			self.forzarIdentificacion(frame)
 		
 		if self.capturarProxima:
@@ -97,26 +97,29 @@ class MainForm(QtGui.QMainWindow, Ui_MainForm):
 			self.gotTemplate(videoProcessor)
 	
 	def gotTemplate(self, videoProcessor):
-		templateFrame = videoProcessor.getTemplateFrame()
-		if not self.frameCapturado:
-			size = cvGetSize(templateFrame)
-			self.frameCapturado = cvCreateImage(cvGetSize(templateFrame), IPL_DEPTH_8U, 1)
-			self.frameCapturadoDecorado = cvCreateImage(cvGetSize(templateFrame), IPL_DEPTH_8U, 3)
-			#self.frameCapturadoDecoradoThumbnail = cvCreateImage(cvSize(size.width/2, size.height/2), IPL_DEPTH_8U, 3)
-			self.frameCapturadoDecoradoThumbnail = cvCreateImage(cvSize(320,240), IPL_DEPTH_8U, 3)
-		
-		cvCopy(templateFrame, self.frameCapturado)
-		cvCvtColor(self.frameCapturado, self.frameCapturadoDecorado, CV_GRAY2BGR)
-		self.decorator.pupilColor = CV_RGB(0,255,0)
-		self.decorator.irisColor = CV_RGB(255,0,0)
-		self.decorator.drawSegmentationResult(self.frameCapturadoDecorado, videoProcessor.getTemplateSegmentation())
-		cvResize(self.frameCapturadoDecorado, self.frameCapturadoDecoradoThumbnail, CV_INTER_CUBIC)
-		
-		self.capturedImage.showImage(self.frameCapturadoDecoradoThumbnail)
 		self.lastTemplate = videoProcessor.getTemplate()
-		
+		templateFrame = videoProcessor.getTemplateFrame()
+		self.mostrarThumbnail(templateFrame, videoProcessor.getTemplateSegmentation(), self.lastTemplate())
+
 		if self.chkIdentificacionAutomatica.checkState() == QtCore.Qt.Checked:
 			self.identificarTemplate(self.lastTemplate)
+	
+	def mostrarThumbnail(self, imagen, segmentacion=None, template=None):
+		size = cvGetSize(imagen)
+		if not self.thumbnailColorTmp or self.thumbnailColorTmp.width != size.width or self.thumbnailColorTmp.height != size.height:
+			self.thumbnailColorTmp = cvCreateImage(size, IPL_DEPTH_8U, 3)
+			self.thumbnail = cvCreateImage(cvSize(320, 240), IPL_DEPTH_8U, 3)
+		
+		cvCvtColor(imagen, self.thumbnailColorTmp, CV_GRAY2BGR)
+		if segmentacion:
+			self.decorator.pupilColor = CV_RGB(0,255,0)
+			self.decorator.irisColor = CV_RGB(255,0,0)
+			self.decorator.drawSegmentationResult(self.thumbnailColorTmp, segmentacion)
+		if template:
+			self.decorator.drawTemplate(self.thumbnailColorTmp, template)
+		cvResize(self.thumbnailColorTmp, self.thumbnail, CV_INTER_CUBIC)
+		
+		self.capturedImage.showImage(self.thumbnail)
 	
 	@QtCore.pyqtSignature("")
 	def on_btnForzarIdentificacion_clicked(self):
@@ -131,17 +134,31 @@ class MainForm(QtGui.QMainWindow, Ui_MainForm):
 	def on_btnCapturar_clicked(self):
 		self.capturarProxima = True
 
+	@QtCore.pyqtSignature("")
+	def on_btnRegistrar_clicked(self):
+		#TODO: Cambiar esto a la acción del menú "Procesar archivo"
+		nombreArchivo = QtGui.QFileDialog.getOpenFileName(self, "Abrir archivo...")
+		imagen = cvLoadImage(str(nombreArchivo), 0)
+		self.forzarIdentificacion(imagen)
 
-	def forzarIdentificacion(self, frame):
-		self.forzarIdentificacionProxima = False
-		print "Forzando"
+	def forzarIdentificacion(self, imagen):
+		segmentacion = self.segmentator.segmentImage(imagen)
+		template = self.encoder.generateTemplate(imagen, segmentacion)
+		self.mostrarThumbnail(imagen, segmentacion, template)
+		self.identificarTemplate(template)
 
 	def identificarTemplate(self, template):
 		self.database.doMatch(template)
 		print (self.database.irisDatabase.getMinDistanceId(), self.database.irisDatabase.getMinDistance())
 		
 		self.database.irisDatabase.doAContrarioMatch(template)
+		import pylab
+		a = pylab.array(self.database.irisDatabase.resultNFAs)
+		print a
+
+
 		print (self.database.irisDatabase.getMinNFAId(), self.database.irisDatabase.getMinNFA())
+		
 	
 	def capturar(self, frame):
 		i = 0
