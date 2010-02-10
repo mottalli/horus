@@ -16,6 +16,7 @@
 #include <vector>
 #include <limits.h>
 #include <stdint.h>
+#include <cassert>
 
 
 #include "types.h"

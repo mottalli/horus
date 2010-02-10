@@ -1,11 +1,11 @@
 # -*- coding: UTF8 -*-
-from horus import Segmentator, IrisEncoder, Decorator, unserializeSegmentationResult, serializeIrisTemplate, unserializeIrisTemplate, TemplateComparator, IrisDCTEncoder
+from horus import Segmentator, LogGaborEncoder, Decorator, unserializeSegmentationResult, serializeIrisTemplate, unserializeIrisTemplate, TemplateComparator, IrisDCTEncoder
 from opencv import *
 from opencv.highgui import *
 
 segmentator = Segmentator()
 decorator = Decorator()
-encoder = IrisEncoder()
+encoder = LogGaborEncoder()
 #encoder = IrisDCTEncoder()
 
 def procesar(base, options):

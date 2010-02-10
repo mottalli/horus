@@ -7,8 +7,6 @@
 
 #pragma once
 
-#include <cmath>
-#include <assert.h>
 #include "common.h"
 
 namespace HelperFunctions

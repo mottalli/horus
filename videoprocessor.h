@@ -10,7 +10,7 @@
 #include "common.h"
 #include "qualitychecker.h"
 #include "segmentator.h"
-#include "irisencoder.h"
+#include "loggaborencoder.h"
 
 class VideoProcessor {
 public:
@@ -35,7 +35,7 @@ public:
 
 	QualityChecker qualityChecker;
 	Segmentator segmentator;
-	IrisEncoder irisEncoder;
+	LogGaborEncoder irisEncoder;
 
 	IplImage* lastFrame;
 	double lastFocusScore;

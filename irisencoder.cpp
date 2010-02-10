@@ -12,74 +12,59 @@
 #include "parameters.h"
 #include "tools.h"
 
-IrisEncoder::IrisEncoder() :
-	filter(1.0/32.0, 0.5)
+IrisEncoder::IrisEncoder()
 {
-	this->buffers.normalizedTexture = NULL;
-	this->buffers.resizedTexture = NULL;
-	this->buffers.normalizedNoiseMask = NULL;
-	this->buffers.resizedNoiseMask = NULL;
-	this->buffers.thresholdedTexture = NULL;
-	this->buffers.filteredTexture = NULL;
-	this->buffers.filteredTextureReal = NULL;
-	this->buffers.filteredTextureImag = NULL;
+	this->normalizedTexture = NULL;
+	this->normalizedNoiseMask = NULL;
+	this->resizedTexture = NULL;
+	this->resizedNoiseMask = NULL;
 }
 
 IrisEncoder::~IrisEncoder()
 {
 }
 
-IrisTemplate IrisEncoder::generateTemplate(const Image* image, const SegmentationResult& segmentationResult)
+IrisTemplate IrisEncoder::generateTemplate(const IplImage* image, const SegmentationResult& segmentationResult)
 {
 	assert(image->nChannels == 1);
 	this->initializeBuffers(image);
-	IrisEncoder::normalizeIris(image, this->buffers.normalizedTexture, this->buffers.normalizedNoiseMask, segmentationResult);
+	IrisEncoder::normalizeIris(image, this->normalizedTexture, this->normalizedNoiseMask, segmentationResult);
 
 	// Improve the iris mask
 	this->extendMask();
 
-	this->applyFilter();
-
-	return IrisTemplate(this->buffers.thresholdedTexture, this->buffers.resizedNoiseMask);
+	if (SAME_SIZE(this->normalizedTexture, this->resizedTexture)) {
+		// No resizing needs to be done -- process the texture directly
+		return this->encodeTexture(this->normalizedTexture, this->normalizedNoiseMask);
+	} else {
+		// The texture needs to be resized
+		cvResize(this->normalizedTexture, this->resizedTexture, CV_INTER_CUBIC);
+		cvResize(this->normalizedNoiseMask, this->resizedNoiseMask, CV_INTER_NN);		// Needs to be NN so it keeps the right bits
+		return this->encodeTexture(this->resizedTexture, this->resizedNoiseMask);
+	}
 }
 
 void IrisEncoder::extendMask()
 {
 	// Mask away pixels too far from the mean
 	CvScalar smean, sdev;
-	cvAvgSdv(this->buffers.normalizedTexture, &smean, &sdev, this->buffers.normalizedNoiseMask);
+	cvAvgSdv(this->normalizedTexture, &smean, &sdev, this->normalizedNoiseMask);
 	double mean = smean.val[0], dev = sdev.val[0];
 	uint8_t uthresh = uint8_t(mean+dev);
 	uint8_t lthresh = uint8_t(mean-dev);
 
-	for (int y = 0; y < this->buffers.normalizedTexture->height; y++) {
-		uint8_t* row = ((uint8_t*)this->buffers.normalizedTexture->imageData) + y*this->buffers.normalizedTexture->widthStep;
-		for (int x = 0; x < this->buffers.normalizedTexture->width; x++) {
+	for (int y = 0; y < this->normalizedTexture->height; y++) {
+		uint8_t* row = ((uint8_t*)this->normalizedTexture->imageData) + y*this->normalizedTexture->widthStep;
+		for (int x = 0; x < this->normalizedTexture->width; x++) {
 			uint8_t val = row[x];
 			if (val < lthresh || val > uthresh) {
-				cvSetReal2D(this->buffers.normalizedNoiseMask, y, x, 0);
+				cvSetReal2D(this->normalizedNoiseMask, y, x, 0);
 			}
 		}
 	}
 }
 
-void IrisEncoder::applyFilter()
-{
-	// Must resize the normalized texture to the size of the template
-	if (SAME_SIZE(this->buffers.normalizedTexture, this->buffers.resizedTexture)) {
-		cvCopy(this->buffers.normalizedTexture, this->buffers.resizedTexture);
-		cvCopy(this->buffers.normalizedNoiseMask, this->buffers.resizedNoiseMask);
-	} else {
-		cvResize(this->buffers.normalizedTexture, this->buffers.resizedTexture);
-		cvResize(this->buffers.normalizedNoiseMask, this->buffers.resizedNoiseMask);
-	}
-
-	this->filter.applyFilter(this->buffers.resizedTexture, this->buffers.filteredTexture, this->buffers.resizedNoiseMask);
-	cvSplit(this->buffers.filteredTexture, this->buffers.filteredTextureReal, this->buffers.filteredTextureImag, NULL, NULL);
-	cvThreshold(this->buffers.filteredTextureReal, this->buffers.thresholdedTexture, 0, 1, CV_THRESH_BINARY);
-}
-
-void IrisEncoder::normalizeIris(const Image* image, Image* dest, CvMat* destMask, const SegmentationResult& segmentationResult)
+void IrisEncoder::normalizeIris(const IplImage* image, IplImage* dest, CvMat* destMask, const SegmentationResult& segmentationResult)
 {
 	int normalizedWidth = dest->width, normalizedHeight = dest->height;
 	const Contour& pupilContour = segmentationResult.pupilContour;
@@ -148,22 +133,18 @@ void IrisEncoder::normalizeIris(const Image* image, Image* dest, CvMat* destMask
 	cvDilate(destMask, destMask);
 }
 
-void IrisEncoder::initializeBuffers(const Image* image)
+void IrisEncoder::initializeBuffers(const IplImage* image)
 {
 	Parameters* parameters = Parameters::getParameters();
 
-	if (this->buffers.normalizedTexture == NULL || this->buffers.normalizedTexture->width != parameters->normalizationWidth || this->buffers.normalizedTexture->height != parameters->normalizationHeight) {
+	if (this->normalizedTexture == NULL || this->normalizedTexture->width != parameters->normalizationWidth || this->normalizedTexture->height != parameters->normalizationHeight) {
 		//TODO: release if they were already created
-		this->buffers.normalizedTexture = cvCreateImage(cvSize(parameters->normalizationWidth,parameters->normalizationHeight), IPL_DEPTH_8U, 1);
-		this->buffers.normalizedNoiseMask = cvCreateMat(parameters->normalizationHeight,parameters->normalizationWidth, CV_8U);
+		this->normalizedTexture = cvCreateImage(cvSize(parameters->normalizationWidth,parameters->normalizationHeight), IPL_DEPTH_8U, 1);
+		this->normalizedNoiseMask = cvCreateMat(parameters->normalizationHeight,parameters->normalizationWidth, CV_8U);
 	}
 
-	if (this->buffers.resizedTexture == NULL || this->buffers.resizedTexture->width != parameters->templateWidth || this->buffers.resizedTexture->height != parameters->templateHeight) {
-		this->buffers.resizedTexture = cvCreateImage(cvSize(parameters->templateWidth,parameters->templateHeight), IPL_DEPTH_8U, 1);
-		this->buffers.resizedNoiseMask = cvCreateMat(parameters->templateHeight, parameters->templateWidth, CV_8U);
-		this->buffers.filteredTexture = cvCreateImage(cvSize(parameters->templateWidth,parameters->templateHeight), IPL_DEPTH_32F, 2);
-		this->buffers.filteredTextureReal = cvCreateImage(cvSize(parameters->templateWidth,parameters->templateHeight), IPL_DEPTH_32F, 1);
-		this->buffers.filteredTextureImag = cvCreateImage(cvSize(parameters->templateWidth,parameters->templateHeight), IPL_DEPTH_32F, 1);
-		this->buffers.thresholdedTexture = cvCreateMat(parameters->templateHeight, parameters->templateWidth, CV_8U);
+	if (this->resizedTexture == NULL || this->resizedTexture->width != parameters->templateWidth || this->resizedTexture->height != parameters->templateHeight) {
+		this->resizedTexture = cvCreateImage(cvSize(parameters->templateWidth,parameters->templateHeight), IPL_DEPTH_8U, 1);
+		this->resizedNoiseMask = cvCreateMat(parameters->templateHeight, parameters->templateWidth, CV_8U);
 	}
 }

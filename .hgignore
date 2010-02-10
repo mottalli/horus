@@ -1,0 +1,6 @@
+syntax: glob
+
+*.pyc
+build/
+horus.py
+horus_wrap.cxx

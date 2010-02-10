@@ -27,7 +27,8 @@ HEADERS += videoprocessor.h \
     eyelidsegmentator.h \
     decorator.h \
     common.h \
-    clock.h
+    clock.h \
+    loggaborencoder.h
 SOURCES += videoprocessor.cpp \
     tools.cpp \
     templatecomparator.cpp \
@@ -47,4 +48,5 @@ SOURCES += videoprocessor.cpp \
     helperfunctions.cpp \
     eyelidsegmentator.cpp \
     decorator.cpp \
-    clock.cpp
+    clock.cpp \
+    loggaborencoder.cpp

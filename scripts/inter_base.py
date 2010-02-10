@@ -23,7 +23,7 @@ for row in rows:
 
 decorator = horus.Decorator()
 segmentator = horus.Segmentator()
-encoder = horus.IrisEncoder()
+encoder = horus.LogGaborEncoder()
 
 imagen = cvLoadImage('/home/marcelo/Mis_Documentos/Facu/Tesis/Bases de datos/UBA/marcelo_der_2.bmp', 0)
 imagenColor = cvCreateImage(cvGetSize(imagen), IPL_DEPTH_8U, 3)
