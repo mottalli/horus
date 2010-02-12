@@ -39,7 +39,6 @@ SOURCES += videoprocessor.cpp \
     pupilsegmentator.cpp \
     parameters.cpp \
     main.cpp \
-    loggabor1dfilter.cpp \
     iristemplate.cpp \
     irissegmentator.cpp \
     irisencoder.cpp \

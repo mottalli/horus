@@ -9,7 +9,6 @@
 
 #include "common.h"
 #include "segmentationresult.h"
-#include "loggabor1dfilter.h"
 #include "iristemplate.h"
 
 class IrisEncoder {

@@ -29,7 +29,7 @@ class MainForm(QtGui.QMainWindow, Ui_MainForm):
 		self.database = Database.database
 
 		self.segmentator = horus.Segmentator()
-		self.encoder = horus.IrisEncoder()
+		self.encoder = horus.LogGaborEncoder()
 
 		
 		QtCore.QObject.connect(VideoThread.videoThread, VideoThread.sigAvailableFrame, self.availableFrame)
@@ -99,7 +99,7 @@ class MainForm(QtGui.QMainWindow, Ui_MainForm):
 	def gotTemplate(self, videoProcessor):
 		self.lastTemplate = videoProcessor.getTemplate()
 		templateFrame = videoProcessor.getTemplateFrame()
-		self.mostrarThumbnail(templateFrame, videoProcessor.getTemplateSegmentation(), self.lastTemplate())
+		self.mostrarThumbnail(templateFrame, videoProcessor.getTemplateSegmentation(), self.lastTemplate)
 
 		if self.chkIdentificacionAutomatica.checkState() == QtCore.Qt.Checked:
 			self.identificarTemplate(self.lastTemplate)
@@ -115,10 +115,11 @@ class MainForm(QtGui.QMainWindow, Ui_MainForm):
 			self.decorator.pupilColor = CV_RGB(0,255,0)
 			self.decorator.irisColor = CV_RGB(255,0,0)
 			self.decorator.drawSegmentationResult(self.thumbnailColorTmp, segmentacion)
-		if template:
-			self.decorator.drawTemplate(self.thumbnailColorTmp, template)
 		cvResize(self.thumbnailColorTmp, self.thumbnail, CV_INTER_CUBIC)
 		
+		if template:
+			self.decorator.drawTemplate(self.thumbnail, template)
+
 		self.capturedImage.showImage(self.thumbnail)
 	
 	@QtCore.pyqtSignature("")
@@ -161,12 +162,5 @@ class MainForm(QtGui.QMainWindow, Ui_MainForm):
 		
 	
 	def capturar(self, frame):
-		i = 0
-		while True:
-			nombreArchivo = "cap%i.jpg" % (i)
-			if not os.path.exists(nombreArchivo):
-				cvSaveImage(nombreArchivo, frame)
-				print "Captura guardada en", nombreArchivo
-				break
-			else:
-				i = i+1
+		nombreArchivo = QtGui.QFileDialog.getSaveFileName(self, "Guardar archivo...")
+		cvSaveImage(nombreArchivo, frame)
