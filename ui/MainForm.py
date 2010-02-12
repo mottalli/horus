@@ -1,4 +1,4 @@
-# -*- coding: UTF8 -*-
+	# -*- coding: UTF8 -*-
 from PyQt4 import uic
 from PyQt4 import QtGui, QtCore
 from opencv import *
@@ -25,6 +25,7 @@ class MainForm(QtGui.QMainWindow, Ui_MainForm):
 		self.thumbnailColorTmp = None
 		self.thumbnail = None
 		self.lastTemplate = None
+		self.lastCapture = None
 		
 		self.database = Database.database
 
@@ -102,7 +103,9 @@ class MainForm(QtGui.QMainWindow, Ui_MainForm):
 		self.mostrarThumbnail(templateFrame, videoProcessor.getTemplateSegmentation(), self.lastTemplate)
 
 		if self.chkIdentificacionAutomatica.checkState() == QtCore.Qt.Checked:
-			self.identificarTemplate(self.lastTemplate)
+			self.identificarTemplate(self.lastTemplate, templateFrame, videoProcessor.getTemplateSegmentation())
+		
+		self.lastCapture = cvClone(templateFrame)
 	
 	def mostrarThumbnail(self, imagen, segmentacion=None, template=None):
 		size = cvGetSize(imagen)
@@ -142,23 +145,30 @@ class MainForm(QtGui.QMainWindow, Ui_MainForm):
 		imagen = cvLoadImage(str(nombreArchivo), 0)
 		self.forzarIdentificacion(imagen)
 
+	@QtCore.pyqtSignature("")
+	def on_btnGuardarImagen_clicked(self):
+		self.capturar(self.lastCapture)
+
+
 	def forzarIdentificacion(self, imagen):
 		segmentacion = self.segmentator.segmentImage(imagen)
 		template = self.encoder.generateTemplate(imagen, segmentacion)
 		self.mostrarThumbnail(imagen, segmentacion, template)
-		self.identificarTemplate(template)
+		self.identificarTemplate(template, imagen, segmentacion)
 
-	def identificarTemplate(self, template):
-		self.database.doMatch(template)
-		print (self.database.irisDatabase.getMinDistanceId(), self.database.irisDatabase.getMinDistance())
+	def identificarTemplate(self, template, imagen=None, segmentacion=None):
+		import Matching
+		Matching.doMatch(self, self.database, template, imagen, segmentacion)
+	
+	
+		#self.database.doMatch(template)
+		#print (self.database.irisDatabase.getMinDistanceId(), self.database.irisDatabase.getMinDistance())
 		
-		self.database.irisDatabase.doAContrarioMatch(template)
-		import pylab
-		a = pylab.array(self.database.irisDatabase.resultNFAs)
-		print a
-
-
-		print (self.database.irisDatabase.getMinNFAId(), self.database.irisDatabase.getMinNFA())
+		#self.database.irisDatabase.doAContrarioMatch(template)
+		#import pylab
+		#a = pylab.array(self.database.irisDatabase.resultNFAs)
+		#print a
+		#print (self.database.irisDatabase.getMinNFAId(), self.database.irisDatabase.getMinNFA())
 		
 	
 	def capturar(self, frame):

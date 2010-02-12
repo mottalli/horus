@@ -25,16 +25,16 @@ class Database:
 			template = horus.unserializeIrisTemplate(templateSerializado)
 			self.irisDatabase.addTemplate(idImagen, template)
 	
-	def callback(self):
-		print '.'
+	#def callback(self):
+	#	print '.'
 	
-	def addTemplate(self, nombre, imagen, template, segmentacion):
-		pass
+	#def addTemplate(self, nombre, imagen, template, segmentacion):
+	#	pass
 	
 	def doMatch(self, template, statusCallback=None):
 		self.irisDatabase.doMatch(template)
 	
-	def doAContrarioMatch(self, template, statusCallback=None):
-		pass
+	#def doAContrarioMatch(self, template, statusCallback=None):
+	#	pass
 
 database = Database()
