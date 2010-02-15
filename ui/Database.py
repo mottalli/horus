@@ -34,7 +34,25 @@ class Database:
 	def doMatch(self, template, statusCallback=None):
 		self.irisDatabase.doMatch(template)
 	
-	#def doAContrarioMatch(self, template, statusCallback=None):
-	#	pass
+	def doAContrarioMatch(self, template, statusCallback=None):
+		self.irisDatabase.doAContrarioMatch(template)
+	
+	def getMinDistanceId(self):
+		return self.irisDatabase.getMinDistanceId()
+
+	def getMinDistance(self):
+		return self.irisDatabase.getMinDistance()
+	
+	def informacionUsuario(self, id_usuario):
+		row = self.conn.execute('SELECT nombre, imagen, segmentacion, codigo_gabor FROM base_iris WHERE id_imagen=?', [id_usuario]).fetchone()
+		if not row:
+			return None
+		
+		usuario = str(row[0])
+		pathImagen = os.path.join(self.basePath, str(row[1]))
+		segmentacion = horus.unserializeSegmentationResult(str(row[2]))
+		template = horus.unserializeIrisTemplate(str(row[3]))
+		
+		return { 'usuario': usuario, 'pathImagen': pathImagen, 'segmentacion': segmentacion, 'template': template }
 
 database = Database()
