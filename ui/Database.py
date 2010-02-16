@@ -34,14 +34,23 @@ class Database:
 	def doMatch(self, template, statusCallback=None):
 		self.irisDatabase.doMatch(template)
 	
-	def doAContrarioMatch(self, template, statusCallback=None):
-		self.irisDatabase.doAContrarioMatch(template)
-	
 	def getMinDistanceId(self):
 		return self.irisDatabase.getMinDistanceId()
 
 	def getMinDistance(self):
 		return self.irisDatabase.getMinDistance()
+	
+
+	def doAContrarioMatch(self, template, statusCallback=None):
+		self.irisDatabase.doAContrarioMatch(template)
+
+	def getMinNFAId(self):
+		return self.irisDatabase.getMinNFAId()
+
+	def getMinNFA(self):
+		return self.irisDatabase.getMinNFA()
+	
+
 	
 	def informacionUsuario(self, id_usuario):
 		row = self.conn.execute('SELECT nombre, imagen, segmentacion, codigo_gabor FROM base_iris WHERE id_imagen=?', [id_usuario]).fetchone()
