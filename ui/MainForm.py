@@ -26,6 +26,8 @@ class MainForm(QtGui.QMainWindow, Ui_MainForm):
 		self.thumbnail = None
 		self.lastTemplate = None
 		self.lastCapture = None
+		self.templateFrame = None
+		self.templateFrameSegmentation = None
 		
 		self.database = Database.database
 
@@ -99,13 +101,14 @@ class MainForm(QtGui.QMainWindow, Ui_MainForm):
 	
 	def gotTemplate(self, videoProcessor):
 		self.lastTemplate = videoProcessor.getTemplate()
-		templateFrame = videoProcessor.getTemplateFrame()
-		self.mostrarThumbnail(templateFrame, videoProcessor.getTemplateSegmentation(), self.lastTemplate)
+		self.templateFrame = videoProcessor.getTemplateFrame()
+		self.templateFrameSegmentation = videoProcessor.getTemplateSegmentation()
+		self.mostrarThumbnail(self.templateFrame, self.templateFrameSegmentation, self.lastTemplate)
 
 		if self.chkIdentificacionAutomatica.checkState() == QtCore.Qt.Checked:
-			self.identificarTemplate(self.lastTemplate, templateFrame, videoProcessor.getTemplateSegmentation())
+			self.identificarTemplate(self.lastTemplate, self.templateFrame, self.templateFrameSegmentation)
 		
-		self.lastCapture = cvClone(templateFrame)
+		self.lastCapture = cvClone(self.templateFrame)
 	
 	def mostrarThumbnail(self, imagen, segmentacion=None, template=None):
 		size = cvGetSize(imagen)
@@ -132,7 +135,7 @@ class MainForm(QtGui.QMainWindow, Ui_MainForm):
 	@QtCore.pyqtSignature("")
 	def on_btnIdentificar_clicked(self):
 		if self.lastTemplate:
-			self.identificarTemplate(self.lastTemplate)
+			self.identificarTemplate(self.lastTemplate, self.templateFrame, self.templateFrameSegmentation)
 
 	@QtCore.pyqtSignature("")
 	def on_btnCapturar_clicked(self):
@@ -141,9 +144,10 @@ class MainForm(QtGui.QMainWindow, Ui_MainForm):
 	@QtCore.pyqtSignature("")
 	def on_btnRegistrar_clicked(self):
 		#TODO: Cambiar esto a la acción del menú "Procesar archivo"
-		nombreArchivo = QtGui.QFileDialog.getOpenFileName(self, "Abrir archivo...")
-		imagen = cvLoadImage(str(nombreArchivo), 0)
-		self.forzarIdentificacion(imagen)
+		#nombreArchivo = QtGui.QFileDialog.getOpenFileName(self, "Abrir archivo...")
+		#imagen = cvLoadImage(str(nombreArchivo), 0)
+		#self.forzarIdentificacion(imagen)
+		self.registrarTemplate(self.lastTemplate, self.templateFrame, self.templateFrameSegmentation)
 
 	@QtCore.pyqtSignature("")
 	def on_btnGuardarImagen_clicked(self):
@@ -158,18 +162,11 @@ class MainForm(QtGui.QMainWindow, Ui_MainForm):
 
 	def identificarTemplate(self, template, imagen=None, segmentacion=None):
 		import Matching
-		Matching.doMatch(self, self.database, template, imagen, segmentacion)
-	
-	
-		#self.database.doMatch(template)
-		#print (self.database.irisDatabase.getMinDistanceId(), self.database.irisDatabase.getMinDistance())
-		
-		#self.database.irisDatabase.doAContrarioMatch(template)
-		#import pylab
-		#a = pylab.array(self.database.irisDatabase.resultNFAs)
-		#print a
-		#print (self.database.irisDatabase.getMinNFAId(), self.database.irisDatabase.getMinNFA())
-		
+		Matching.doMatch(self.database, template, imagen, segmentacion)
+
+	def registrarTemplate(self, template, imagen, segmentacion):
+		import Registracion
+		Registracion.registrar(self.database, template, imagen, segmentacion)
 	
 	def capturar(self, frame):
 		nombreArchivo = QtGui.QFileDialog.getSaveFileName(self, "Guardar archivo...")
