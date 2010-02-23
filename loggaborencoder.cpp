@@ -120,32 +120,76 @@ void LogGabor1DFilter::initializeFilter(const IplImage* image)
 	}
 }
 
-LogGaborEncoder::LogGaborEncoder() :
-	filter(1.0/32.0, 0.5)
+LogGaborEncoder::LogGaborEncoder()
 {
+	this->filterBank.push_back(LogGabor1DFilter(1.0/32.0, 0.5));
+	this->filteredTexture = NULL;
 }
 
+LogGaborEncoder::~LogGaborEncoder()
+{
+	if (this->filteredTexture != NULL) {
+		cvReleaseImage(&this->filteredTexture);
+		cvReleaseImage(&this->filteredTextureReal);
+		cvReleaseImage(&this->filteredTextureImag);
+		cvReleaseMat(&this->filteredMask);
+		cvReleaseMat(&this->thresholdedTextureReal);
+		cvReleaseMat(&this->thresholdedTextureImag);
+		cvReleaseMat(&this->resultFilter);
+		cvReleaseMat(&this->resultMask);
+	}
+}
 
 IrisTemplate LogGaborEncoder::encodeTexture(const Image* texture, const CvMat* mask)
 {
 	assert(SAME_SIZE(texture, mask));
-	IplImage* filteredTexture = cvCreateImage(cvGetSize(texture), IPL_DEPTH_32F, 2);
-	CvMat* filteredMask = cvCreateMat(mask->height, mask->width, CV_8U);
-	IplImage* filteredTextureReal = cvCreateImage(cvGetSize(texture), IPL_DEPTH_32F, 1);
-	IplImage* filteredTextureImag = cvCreateImage(cvGetSize(texture), IPL_DEPTH_32F, 1);
-	CvMat* thresholdedTexture = cvCreateMat(texture->height, texture->width, CV_8U);
+	this->initializeBuffers(texture);
 
-	this->filter.applyFilter(texture, filteredTexture, mask, filteredMask);
-	cvSplit(filteredTexture, filteredTextureReal, filteredTextureImag, NULL, NULL);
-	cvThreshold(filteredTextureReal, thresholdedTexture, 0, 1, CV_THRESH_BINARY);
+	size_t n = this->filterBank.size();
+	CvMat dest;
 
-	IrisTemplate result(thresholdedTexture, filteredMask);
+	for (size_t i = 0; i < n; i++) {
+		LogGabor1DFilter& filter = this->filterBank[i];
+		filter.applyFilter(texture, this->filteredTexture, mask, this->filteredMask);
 
-	cvReleaseImage(&filteredTexture);
-	cvReleaseMat(&filteredMask);
-	cvReleaseImage(&filteredTextureReal);
-	cvReleaseImage(&filteredTextureImag);
-	cvReleaseMat(&thresholdedTexture);
+		cvSplit(this->filteredTexture, this->filteredTextureReal, this->filteredTextureImag, NULL, NULL);
+		cvThreshold(this->filteredTextureReal, this->thresholdedTextureReal, 0, 1, CV_THRESH_BINARY);
+		cvThreshold(this->filteredTextureImag, this->thresholdedTextureImag, 0, 1, CV_THRESH_BINARY);
 
+		// Merge the result of this filter with the final result
+		cvGetSubRect(this->resultFilter, &dest, cvRect(0, i*texture->height, texture->width, texture->height));
+		cvCopy(this->thresholdedTextureReal, &dest);
+		cvGetSubRect(this->resultMask, &dest, cvRect(0, i*texture->height, texture->width, texture->height));
+		cvCopy(this->filteredMask, &dest);
+	}
+
+	IrisTemplate result(this->resultFilter, this->resultMask);
 	return result;
+}
+
+void LogGaborEncoder::initializeBuffers(const IplImage* texture)
+{
+	if (!this->filteredTexture || (this->filteredTexture->width != texture->width || this->filteredTexture->height != texture->height)) {
+		if (this->filteredTexture != NULL) {
+			cvReleaseImage(&this->filteredTexture);
+			cvReleaseImage(&this->filteredTextureReal);
+			cvReleaseImage(&this->filteredTextureImag);
+			cvReleaseMat(&this->filteredMask);
+			cvReleaseMat(&this->thresholdedTextureReal);
+			cvReleaseMat(&this->thresholdedTextureImag);
+			cvReleaseMat(&this->resultFilter);
+			cvReleaseMat(&this->resultMask);
+		}
+
+		this->filteredTexture = cvCreateImage(cvGetSize(texture), IPL_DEPTH_32F, 2);
+		this->filteredMask = cvCreateMat(texture->height, texture->width, CV_8U);
+		this->filteredTextureReal = cvCreateImage(cvGetSize(texture), IPL_DEPTH_32F, 1);
+		this->filteredTextureImag = cvCreateImage(cvGetSize(texture), IPL_DEPTH_32F, 1);
+		this->thresholdedTextureReal = cvCreateMat(texture->height, texture->width, CV_8U);
+		this->thresholdedTextureImag = cvCreateMat(texture->height, texture->width, CV_8U);
+
+		size_t n = this->filterBank.size();
+		this->resultFilter = cvCreateMat(n*texture->height, texture->width, CV_8U);
+		this->resultMask = cvCreateMat(n*texture->height, texture->width, CV_8U);
+	}
 }

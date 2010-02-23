@@ -30,7 +30,7 @@ Segmentator segmentator;
 QualityChecker qualityChecker;
 Decorator decorator;
 VideoProcessor videoProcessor;
-IrisEncoder irisEncoder;
+LogGaborEncoder irisEncoder;
 IrisDCTEncoder irisDCTEncoder;
 Parameters* parameters = Parameters::getParameters();
 

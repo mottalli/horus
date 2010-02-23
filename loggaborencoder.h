@@ -14,15 +14,15 @@ public:
 	virtual ~LogGabor1DFilter();
 
 	struct {
-		Image* filter;		// Filter in the frequency domain
+		IplImage* filter;		// Filter in the frequency domain
 	} buffers;
 
-	void applyFilter(const Image* image, Image* dest, const CvMat* mask, CvMat* destMask);
+	void applyFilter(const IplImage* image, IplImage* dest, const CvMat* mask, CvMat* destMask);
 
 private:
 	double f0, sigmaOnF;
 
-	void initializeFilter(const Image* image);		// Must release the result
+	void initializeFilter(const IplImage* image);		// Must release the result
 };
 
 
@@ -30,7 +30,15 @@ class LogGaborEncoder : public IrisEncoder
 {
 public:
 	LogGaborEncoder();
+	~LogGaborEncoder();
+
+	IplImage *filteredTexture, *filteredTextureReal, *filteredTextureImag;
+	CvMat *filteredMask;
+	CvMat *thresholdedTextureReal, *thresholdedTextureImag;
+	CvMat *resultFilter, *resultMask;
+
 protected:
-	LogGabor1DFilter filter;
-	virtual IrisTemplate encodeTexture(const Image* texture, const CvMat* mask);
+	vector<LogGabor1DFilter> filterBank;
+	virtual IrisTemplate encodeTexture(const IplImage* texture, const CvMat* mask);
+	void initializeBuffers(const IplImage* texture);
 };

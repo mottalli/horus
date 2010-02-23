@@ -4,3 +4,5 @@ syntax: glob
 build/
 horus.py
 horus_wrap.cxx
+*.o
+*.orig
