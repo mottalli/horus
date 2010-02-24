@@ -54,5 +54,5 @@ def loadParameters(name):
 		#parameters.normalizationWidth = parameters.templateWidth
 		#parameters.normalizationHeight = parameters.templateHeight
 		parameters.muPupil = 0
-		parameters.sigmaPupil = 5
+		parameters.sigmaPupil = 10
 		pass

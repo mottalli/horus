@@ -16,6 +16,7 @@ def doMatch(irisDatabase, template, imagen=None, segmentacion=None):
 		decorator.drawSegmentationResult(imagenUsuario, informacionUsuario['segmentacion'])
 		imagenUsuarioRes = cvCreateImage(cvSize(320,240), IPL_DEPTH_8U, 3)
 		cvResize(imagenUsuario, imagenUsuarioRes)
+		decorator.drawTemplate(imagenUsuarioRes, informacionUsuario['template'])
 	else:
 		imagenUsuarioRes = None
 	
@@ -24,6 +25,8 @@ def doMatch(irisDatabase, template, imagen=None, segmentacion=None):
 		decorator.drawSegmentationResult(imagenDecorada, segmentacion)
 		imagenRes = cvCreateImage(cvSize(320, 240), IPL_DEPTH_8U, 3)
 		cvResize(imagenDecorada, imagenRes)
+		decorator.drawTemplate(imagenRes, template)
+		
 	form = uic.loadUi('forms/Matching.ui')
 	form.lblDistanciaHamming.setText(str(irisDatabase.getMinDistance()))	
 	form.lblNFA.setText(str(irisDatabase.getMinNFA()))

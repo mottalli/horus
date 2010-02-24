@@ -150,7 +150,7 @@ def mostrarSegmentada(imagen, rs):
 	imagenDecorada = cvCreateImage(cvGetSize(imagen), IPL_DEPTH_8U, 3)
 	cvCvtColor(imagen, imagenDecorada, CV_GRAY2BGR)
 	decorator.drawSegmentationResult(imagenDecorada, rs)
-	decorator.drawEncodingZone(imagenDecorada, rs)
+	#decorator.drawEncodingZone(imagenDecorada, rs)
 	
 	cvNamedWindow("segmentada")
 	cvShowImage("segmentada", imagenDecorada)

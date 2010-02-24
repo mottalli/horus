@@ -87,7 +87,7 @@ class Database:
 		nombreImagen = '%i.jpg' % (id)
 		fullPathImagen = os.path.join(self.basePath, nombreImagen)
 		highgui.cvSaveImage(fullPathImagen, imagen)
-		self.conn.execute('UPDATE base_iris SET imagen=? WHERE id_imagen=?', [str(fullPathImagen), id])
+		self.conn.execute('UPDATE base_iris SET imagen=? WHERE id_imagen=?', [nombreImagen, id])
 		
 		self.conn.commit()
 

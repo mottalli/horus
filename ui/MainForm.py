@@ -170,4 +170,4 @@ class MainForm(QtGui.QMainWindow, Ui_MainForm):
 	
 	def capturar(self, frame):
 		nombreArchivo = QtGui.QFileDialog.getSaveFileName(self, "Guardar archivo...")
-		cvSaveImage(nombreArchivo, frame)
+		cvSaveImage(str(nombreArchivo), frame)
