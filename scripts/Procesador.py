@@ -21,11 +21,11 @@ def procesar(base, options):
 			
 		
 		if options.soloVer:
-			imagen = cvLoadImage(base.fullPath(path))
+			imagen = cvLoadImage(base.fullPath(path), 1)
 			resultadoSegmentacion = unserializeSegmentationResult(str(segmentacionSerializada))
 			template = unserializeIrisTemplate(str(templateSerializado))
 		else:
-			imagen = cvLoadImage(base.fullPath(path), 0)
+			imagen = cvLoadImage(base.fullPath(path), 1)
 			resultadoSegmentacion = segmentator.segmentImage(imagen)
 			template = encoder.generateTemplate(imagen, resultadoSegmentacion)
 			

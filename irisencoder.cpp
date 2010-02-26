@@ -26,9 +26,20 @@ IrisEncoder::~IrisEncoder()
 
 IrisTemplate IrisEncoder::generateTemplate(const IplImage* image, const SegmentationResult& segmentationResult)
 {
-	assert(image->nChannels == 1);
-	this->initializeBuffers(image);
-	IrisEncoder::normalizeIris(image, this->normalizedTexture, this->normalizedNoiseMask, segmentationResult);
+	// We can only process grayscale images. If it's a color image, we need to convert it. Try to optimise whenever
+	// possible.
+	IplImage* tmpImage;
+	if (image->nChannels == 1) {
+		tmpImage = const_cast<IplImage*>(image);			// const_cast is needed because tmpImage cannot be defined as const, but we're sure
+															// we're not going to modify the image
+	} else {
+		tmpImage = cvCreateImage(cvGetSize(image), IPL_DEPTH_8U, 1);
+		cvCvtColor(image, tmpImage, CV_BGR2GRAY);
+	}
+	
+	
+	this->initializeBuffers(tmpImage);
+	IrisEncoder::normalizeIris(tmpImage, this->normalizedTexture, this->normalizedNoiseMask, segmentationResult);
 
 	// Improve the iris mask
 	this->extendMask();
@@ -41,6 +52,10 @@ IrisTemplate IrisEncoder::generateTemplate(const IplImage* image, const Segmenta
 		cvResize(this->normalizedTexture, this->resizedTexture, CV_INTER_CUBIC);
 		cvResize(this->normalizedNoiseMask, this->resizedNoiseMask, CV_INTER_NN);		// Needs to be NN so it keeps the right bits
 		return this->encodeTexture(this->resizedTexture, this->resizedNoiseMask);
+	}
+	
+	if (tmpImage != image) {
+		cvReleaseImage(&tmpImage);
 	}
 }
 
