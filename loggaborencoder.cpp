@@ -140,7 +140,7 @@ LogGaborEncoder::~LogGaborEncoder()
 	}
 }
 
-IrisTemplate LogGaborEncoder::encodeTexture(const Image* texture, const CvMat* mask)
+IrisTemplate LogGaborEncoder::encodeTexture(const IplImage* texture, const CvMat* mask)
 {
 	assert(SAME_SIZE(texture, mask));
 	this->initializeBuffers(texture);

@@ -15,9 +15,9 @@ public:
 	QualityChecker();
 	virtual ~QualityChecker();
 
-	double interlacedCorrelation(const Image* image);
-	double checkFocus(const Image* image);
-	bool validateIris(const Image* image, const SegmentationResult& segmentationResult);
-	double getIrisQuality(const Image* image, const SegmentationResult& segmentationResult);
+	double interlacedCorrelation(const IplImage* image);
+	double checkFocus(const IplImage* image);
+	bool validateIris(const IplImage* image, const SegmentationResult& segmentationResult);
+	double getIrisQuality(const IplImage* image, const SegmentationResult& segmentationResult);
 };
 

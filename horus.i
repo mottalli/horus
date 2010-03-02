@@ -3,16 +3,16 @@
 %include "std_vector.i"
 %include "std_string.i"
 
-%typemap(in) Image* {
+%typemap(in) IplImage* {
 	void* argp = 0;
 	CvMat* arg = 0;
 	SWIG_ConvertPtr($input, &argp, SWIGTYPE_p_CvMat, 0);
 	arg = reinterpret_cast<CvMat*>(argp);
-	Image *tmp = new Image;
+	IplImage *tmp = new IplImage;
 	$1 = cvGetImage(arg, tmp);
 }
 
-%typemap(freearg) Image* {
+%typemap(freearg) IplImage* {
 	delete $1;
 }
 

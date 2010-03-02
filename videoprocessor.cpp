@@ -30,7 +30,7 @@ VideoProcessor::~VideoProcessor()
 	}
 }
 
-VideoProcessor::VideoStatus VideoProcessor::processFrame(const Image* frame)
+VideoProcessor::VideoStatus VideoProcessor::processFrame(const IplImage* frame)
 {
 	this->initializeBuffers(frame);
 	
@@ -71,7 +71,7 @@ VideoProcessor::VideoStatus VideoProcessor::processFrame(const Image* frame)
 	return this->lastStatus;
 }
 
-VideoProcessor::VideoStatus VideoProcessor::doProcess(const Image* frame)
+VideoProcessor::VideoStatus VideoProcessor::doProcess(const IplImage* frame)
 {
 	if (frame->nChannels == 1) {
 		cvCopy(frame, this->lastFrame);
@@ -133,7 +133,7 @@ IrisTemplate VideoProcessor::getTemplate()
 	return this->irisEncoder.generateTemplate(this->templateFrame, this->templateSegmentation);
 }
 
-void VideoProcessor::initializeBuffers(const Image* frame)
+void VideoProcessor::initializeBuffers(const IplImage* frame)
 {
 	if (this->lastFrame == NULL || !SAME_SIZE(this->lastFrame, frame)) {
 		if (this->lastFrame != NULL) {

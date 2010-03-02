@@ -24,7 +24,7 @@ IrisDCTEncoder::~IrisDCTEncoder()
 	}
 }
 
-IrisTemplate IrisDCTEncoder::generateTemplate(const Image* image, const SegmentationResult& segmentationResult)
+IrisTemplate IrisDCTEncoder::generateTemplate(const IplImage* image, const SegmentationResult& segmentationResult)
 {
 	assert(image->nChannels == 1);
 	this->initializeBuffers(image);
@@ -145,7 +145,7 @@ void IrisDCTEncoder::applyFilter()
 
 }
 
-void IrisDCTEncoder::normalizeIris(const Image* image, CvMat* dest, CvMat* destMask, const SegmentationResult& segmentationResult)
+void IrisDCTEncoder::normalizeIris(const IplImage* image, CvMat* dest, CvMat* destMask, const SegmentationResult& segmentationResult)
 {
 	int normalizedWidth = dest->width, normalizedHeight = dest->height;
 	const Contour& pupilContour = segmentationResult.pupilContour;
@@ -215,7 +215,7 @@ void IrisDCTEncoder::rotate45(const CvMat* src, CvMat* dest)
 	}
 }
 
-void IrisDCTEncoder::initializeBuffers(const Image* image)
+void IrisDCTEncoder::initializeBuffers(const IplImage* image)
 {
 	Parameters* parameters = Parameters::getParameters();
 

@@ -15,14 +15,14 @@ public:
 	EyelidSegmentator();
 	virtual ~EyelidSegmentator();
 
-	std::pair<Parabola, Parabola> segmentEyelids(const Image* image, const Circle& pupilCircle, const Circle& irisCircle);
+	std::pair<Parabola, Parabola> segmentEyelids(const IplImage* image, const Circle& pupilCircle, const Circle& irisCircle);
 
 private:
-	Parabola segmentUpper(const Image* image, const Image* gradient, int x0, int y0, int x1, int y1, const Circle& pupilCircle, const Circle& irisCircle);
-	Parabola segmentLower(const Image* image, const Image* gradient, int x0, int y0, int x1, int y1, const Circle& pupilCircle, const Circle& irisCircle);
+	Parabola segmentUpper(const IplImage* image, const IplImage* gradient, int x0, int y0, int x1, int y1, const Circle& pupilCircle, const Circle& irisCircle);
+	Parabola segmentLower(const IplImage* image, const IplImage* gradient, int x0, int y0, int x1, int y1, const Circle& pupilCircle, const Circle& irisCircle);
 
-	std::pair<Parabola, double> findParabola(const Image* image, const Image* gradient, int p, int x0, int y0, int x1, int y1);
-	double parabolaAverage(const Image* gradient, const Image* originalImage, const Parabola& parabola);
+	std::pair<Parabola, double> findParabola(const IplImage* image, const IplImage* gradient, int p, int x0, int y0, int x1, int y1);
+	double parabolaAverage(const IplImage* gradient, const IplImage* originalImage, const Parabola& parabola);
 
 	int pupilRadius;
 };

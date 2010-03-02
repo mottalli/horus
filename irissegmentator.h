@@ -15,16 +15,16 @@ public:
     virtual ~IrisSegmentator();
 
     struct {
-        Image* adjustmentRing;
-        Image* adjustmentRingGradient;
+		IplImage* adjustmentRing;
+		IplImage* adjustmentRingGradient;
         CvMat* adjustmentSnake;
     } buffers;
 
-	ContourAndCloseCircle segmentIris(const Image* image, const ContourAndCloseCircle& pupilSegmentation);
+	ContourAndCloseCircle segmentIris(const IplImage* image, const ContourAndCloseCircle& pupilSegmentation);
 
 private:
-	void setupBuffers(const Image* image);
-	ContourAndCloseCircle segmentIrisRecursive(const Image* image, const ContourAndCloseCircle& pupilSegmentation, int radiusMax=-1, int radiusMin=-1);
+	void setupBuffers(const IplImage* image);
+	ContourAndCloseCircle segmentIrisRecursive(const IplImage* image, const ContourAndCloseCircle& pupilSegmentation, int radiusMax=-1, int radiusMin=-1);
 
 };
 

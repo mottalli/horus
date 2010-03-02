@@ -15,11 +15,11 @@ QualityChecker::QualityChecker()
 QualityChecker::~QualityChecker(){
 }
 
-double QualityChecker::interlacedCorrelation(const Image* frame)
+double QualityChecker::interlacedCorrelation(const IplImage* frame)
 {
 	CvSize size = cvGetSize(frame);
-	Image* even = cvCreateImage(cvSize(size.width, size.height/2), IPL_DEPTH_8U, 1);
-	Image* odd = cvCreateImage(cvSize(size.width, size.height/2), IPL_DEPTH_8U, 1);
+	IplImage* even = cvCreateImage(cvSize(size.width, size.height/2), IPL_DEPTH_8U, 1);
+	IplImage* odd = cvCreateImage(cvSize(size.width, size.height/2), IPL_DEPTH_8U, 1);
 	CvMat tmpodd, tmpeven, tmpdest;
 
 	for (int i = 0; i < size.height/2; i++) {
@@ -33,9 +33,9 @@ double QualityChecker::interlacedCorrelation(const Image* frame)
 	}
 
 	// TODO: Use buffers
-	Image* bufX = cvCreateImage(cvGetSize(even), IPL_DEPTH_32F, 1);
-	Image* bufY = cvCreateImage(cvGetSize(odd), IPL_DEPTH_32F, 1);
-	Image* bufMul = cvCreateImage(cvGetSize(even), IPL_DEPTH_32F, 1);
+	IplImage* bufX = cvCreateImage(cvGetSize(even), IPL_DEPTH_32F, 1);
+	IplImage* bufY = cvCreateImage(cvGetSize(odd), IPL_DEPTH_32F, 1);
+	IplImage* bufMul = cvCreateImage(cvGetSize(even), IPL_DEPTH_32F, 1);
 
 	double meanX = 0, stdX = 0, meanY = 0, stdY = 0;
 	double mean;
@@ -62,9 +62,9 @@ double QualityChecker::interlacedCorrelation(const Image* frame)
 
 }
 
-double QualityChecker::checkFocus(const Image* image)
+double QualityChecker::checkFocus(const IplImage* image)
 {
-	Image* src = cvCreateImage(cvGetSize(image), IPL_DEPTH_32F, 1);
+	IplImage* src = cvCreateImage(cvGetSize(image), IPL_DEPTH_32F, 1);
 	cvConvert(image, src);
 	cvSobel(src, src, 0, 1, 3);
 	cvAbs(src, src);
@@ -79,7 +79,7 @@ double QualityChecker::checkFocus(const Image* image)
 /**
  * Checks if there is an iris on the image and/or if the segmentation is correct (heuristics - not 100% reliable)
  */
-bool QualityChecker::validateIris(const Image* image, const SegmentationResult& sr)
+bool QualityChecker::validateIris(const IplImage* image, const SegmentationResult& sr)
 {
 	Parameters* parameters = Parameters::getParameters();
 	CvMat portionMat;
@@ -186,7 +186,7 @@ bool QualityChecker::validateIris(const Image* image, const SegmentationResult& 
 /**
  * Checks the quality of the image
  */
-double QualityChecker::getIrisQuality(const Image* image, const SegmentationResult& segmentationResult)
+double QualityChecker::getIrisQuality(const IplImage* image, const SegmentationResult& segmentationResult)
 {
 	return segmentationResult.pupilContourQuality;
 }

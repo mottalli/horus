@@ -22,7 +22,7 @@
 
 using namespace std;
 
-double correlation(Image* X, Image* Y);
+double correlation(IplImage* X, IplImage* Y);
 void processImage(Image* image);
 void captured();
 

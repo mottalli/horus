@@ -1,6 +1,6 @@
 #include "helperfunctions.h"
 
-void HelperFunctions::extractRing(const Image* src, Image* dest, int x0, int y0, int radiusMin, int radiusMax)
+void HelperFunctions::extractRing(const IplImage* src, IplImage* dest, int x0, int y0, int radiusMin, int radiusMax)
 {
 	assert(src->nChannels == 1 && dest->nChannels == 1);
 	assert(radiusMin < radiusMax);

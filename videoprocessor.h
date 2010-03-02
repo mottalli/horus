@@ -31,7 +31,7 @@ public:
 		GOT_TEMPLATE
 	} VideoStatus;
 
-	VideoStatus processFrame(const Image* frame);
+	VideoStatus processFrame(const IplImage* frame);
 
 	QualityChecker qualityChecker;
 	Segmentator segmentator;
@@ -48,8 +48,8 @@ public:
 	SegmentationResult getTemplateSegmentation() const { return this->templateSegmentation; };
 
 private:
-	VideoStatus doProcess(const Image* frame);
-	void initializeBuffers(const Image* frame);
+	VideoStatus doProcess(const IplImage* frame);
+	void initializeBuffers(const IplImage* frame);
 	
 	IplImage* templateFrame;
 	SegmentationResult templateSegmentation;

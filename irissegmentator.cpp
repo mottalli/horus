@@ -19,12 +19,12 @@ IrisSegmentator::IrisSegmentator() {
 IrisSegmentator::~IrisSegmentator() {
 }
 
-ContourAndCloseCircle IrisSegmentator::segmentIris(const Image* image, const ContourAndCloseCircle& pupilSegmentation)
+ContourAndCloseCircle IrisSegmentator::segmentIris(const IplImage* image, const ContourAndCloseCircle& pupilSegmentation)
 {
 	return this->segmentIrisRecursive(image, pupilSegmentation, -1, -1);
 }
 
-ContourAndCloseCircle IrisSegmentator::segmentIrisRecursive(const Image* image, const ContourAndCloseCircle& pupilSegmentation, int radiusMax, int radiusMin)
+ContourAndCloseCircle IrisSegmentator::segmentIrisRecursive(const IplImage* image, const ContourAndCloseCircle& pupilSegmentation, int radiusMax, int radiusMin)
 {
 	this->setupBuffers(image);
 
@@ -47,7 +47,7 @@ ContourAndCloseCircle IrisSegmentator::segmentIrisRecursive(const Image* image, 
 	double theta2 = 3.0*M_PI/4.0;
 	double theta3 = 5.0*M_PI/4.0;
 
-	Image* gradient = this->buffers.adjustmentRingGradient;
+	IplImage* gradient = this->buffers.adjustmentRingGradient;
 	CvMat* snake = this->buffers.adjustmentSnake;
 
 	assert(snake->width == this->buffers.adjustmentRing->width);
@@ -153,7 +153,7 @@ ContourAndCloseCircle IrisSegmentator::segmentIrisRecursive(const Image* image, 
     return result;
 }
 
-void IrisSegmentator::setupBuffers(const Image* image)
+void IrisSegmentator::setupBuffers(const IplImage* image)
 {
 	Parameters* parameters = Parameters::getParameters();
 

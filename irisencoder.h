@@ -20,18 +20,18 @@ public:
 	IrisEncoder();
 	virtual ~IrisEncoder();
 
-	IrisTemplate generateTemplate(const Image* image, const SegmentationResult& segmentationResult);
+	IrisTemplate generateTemplate(const IplImage* image, const SegmentationResult& segmentationResult);
 
-	Image* normalizedTexture;
+	IplImage* normalizedTexture;
 	CvMat* normalizedNoiseMask;
-	Image* resizedTexture;
+	IplImage* resizedTexture;
 	CvMat* resizedNoiseMask;
 
 protected:
-	static void normalizeIris(const Image* image, Image* dest, CvMat* destMask, const SegmentationResult& segmentationResult);
-	void initializeBuffers(const Image* image);
+	static void normalizeIris(const IplImage* image, IplImage* dest, CvMat* destMask, const SegmentationResult& segmentationResult);
+	void initializeBuffers(const IplImage* image);
 	void extendMask();
 
-	virtual IrisTemplate encodeTexture(const Image* texture, const CvMat* mask) = 0;
+	virtual IrisTemplate encodeTexture(const IplImage* texture, const CvMat* mask) = 0;
 };
 

@@ -21,9 +21,9 @@ Segmentator::Segmentator()
 Segmentator::~Segmentator() {
 }
 
-SegmentationResult Segmentator::segmentImage(const Image* image) {
+SegmentationResult Segmentator::segmentImage(const IplImage* image) {
 	SegmentationResult result;
-	const Image* imageToSegment;		// Can either user image or workingImage depending on image format
+	const IplImage* imageToSegment;		// Can either user image or workingImage depending on image format
 
 	this->setupBuffers(image);
 
@@ -48,9 +48,9 @@ SegmentationResult Segmentator::segmentImage(const Image* image) {
 	return result;
 };
 
-void Segmentator::segmentEyelids(const Image* image, SegmentationResult& result)
+void Segmentator::segmentEyelids(const IplImage* image, SegmentationResult& result)
 {
-	const Image* imageToSegment;		// Can either user image or workingImage depending on image format
+	const IplImage* imageToSegment;		// Can either user image or workingImage depending on image format
 
 	this->setupBuffers(image);
 
@@ -67,7 +67,7 @@ void Segmentator::segmentEyelids(const Image* image, SegmentationResult& result)
 	result.eyelidsSegmented = true;
 }
 
-void Segmentator::setupBuffers(const Image* image)
+void Segmentator::setupBuffers(const IplImage* image)
 {
 	if (this->buffers.workingImage == NULL || this->buffers.workingImage->width != image->width || this->buffers.workingImage->height != image->height) {
 		if (this->buffers.workingImage != NULL) {

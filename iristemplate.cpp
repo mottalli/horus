@@ -55,22 +55,22 @@ IrisTemplate::~IrisTemplate()
 	}
 }
 
-Image* IrisTemplate::getTemplateImage() const
+IplImage* IrisTemplate::getTemplateImage() const
 {
 	CvMat* foo = cvCreateMat(this->irisTemplate->height, this->irisTemplate->width*8, CV_8U);
 	Tools::unpackBits(this->irisTemplate, foo, 255);
-	Image* img = cvCreateImage(cvGetSize(foo), IPL_DEPTH_8U, 1);
+	IplImage* img = cvCreateImage(cvGetSize(foo), IPL_DEPTH_8U, 1);
 	cvCopy(foo, img);
 
 	cvReleaseMat(&foo);
 	return img;
 }
 
-Image* IrisTemplate::getNoiseMaskImage() const
+IplImage* IrisTemplate::getNoiseMaskImage() const
 {
 	CvMat* foo = cvCreateMat(this->mask->height, this->mask->width*8, CV_8U);
 	Tools::unpackBits(this->mask, foo, 255);
-	Image* img = cvCreateImage(cvGetSize(foo), IPL_DEPTH_8U, 1);
+	IplImage* img = cvCreateImage(cvGetSize(foo), IPL_DEPTH_8U, 1);
 	cvCopy(foo, img);
 
 	cvReleaseMat(&foo);

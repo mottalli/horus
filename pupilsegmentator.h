@@ -15,25 +15,25 @@ public:
 	PupilSegmentator();
 	virtual ~PupilSegmentator();
 
-	ContourAndCloseCircle segmentPupil(const Image* image);
+	ContourAndCloseCircle segmentPupil(const IplImage* image);
 	inline int getPupilContourQuality() const { return this->pupilContourQuality; }
 
 	// Internal buffers
 	IplImage* similarityImage;
-	Image* equalizedImage;
-	Image* adjustmentRing;
-	Image* adjustmentRingGradient;
-	Image* workingImage;
+	IplImage* equalizedImage;
+	IplImage* adjustmentRing;
+	IplImage* adjustmentRingGradient;
+	IplImage* workingImage;
 	CvMat* adjustmentSnake;
 	CvMat* LUT;
 	double resizeFactor;
 
 private:
-	void setupBuffers(const Image* image);
+	void setupBuffers(const IplImage* image);
 	void similarityTransform();
-	Circle approximatePupil(const Image* image);
-	Circle cascadedIntegroDifferentialOperator(const Image* image);
-	int calculatePupilContourQuality(const Image* region, const Image* regionGradient, const CvMat* contourSnake);
+	Circle approximatePupil(const IplImage* image);
+	Circle cascadedIntegroDifferentialOperator(const IplImage* image);
+	int calculatePupilContourQuality(const IplImage* region, const IplImage* regionGradient, const CvMat* contourSnake);
 
 	int pupilContourQuality;
 
@@ -41,10 +41,10 @@ private:
 		int maxRad;
 		int maxStep;
 	} MaxAvgRadiusResult;
-	MaxAvgRadiusResult maxAvgRadius(const Image* image, int x, int y, int radmin, int radmax, int radstep);
+	MaxAvgRadiusResult maxAvgRadius(const IplImage* image, int x, int y, int radmin, int radmax, int radstep);
 
-	uint8_t circleAverage(const Image* image, int x, int y, int radius);
-	Contour adjustPupilContour(const Image* image, const Circle& approximateCircle);
+	uint8_t circleAverage(const IplImage* image, int x, int y, int radius);
+	Contour adjustPupilContour(const IplImage* image, const Circle& approximateCircle);
 
 	double _lastSigma, _lastMu;
 };

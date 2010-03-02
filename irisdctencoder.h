@@ -23,7 +23,7 @@ public:
 	IrisDCTEncoder();
 	virtual ~IrisDCTEncoder();
 
-	IrisTemplate generateTemplate(const Image* image, const SegmentationResult& segmentationResult);
+	IrisTemplate generateTemplate(const IplImage* image, const SegmentationResult& segmentationResult);
 
 	struct {
 		CvMat* normalizedTexture;
@@ -41,8 +41,8 @@ public:
 	} buffers;
 
 protected:
-	static void normalizeIris(const Image* image, CvMat* dest, CvMat* destMask, const SegmentationResult& segmentationResult);
-	void initializeBuffers(const Image* image);
+	static void normalizeIris(const IplImage* image, CvMat* dest, CvMat* destMask, const SegmentationResult& segmentationResult);
+	void initializeBuffers(const IplImage* image);
 	void applyFilter();
 
 	void rotate45(const CvMat* src, CvMat* dest);

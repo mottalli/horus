@@ -30,7 +30,7 @@ PupilSegmentator::~PupilSegmentator()
 	}
 }
 
-ContourAndCloseCircle PupilSegmentator::segmentPupil(const Image* image)
+ContourAndCloseCircle PupilSegmentator::segmentPupil(const IplImage* image)
 {
 	this->setupBuffers(image);
 	ContourAndCloseCircle result;
@@ -48,7 +48,7 @@ ContourAndCloseCircle PupilSegmentator::segmentPupil(const Image* image)
 
 }
 
-void PupilSegmentator::setupBuffers(const Image* image)
+void PupilSegmentator::setupBuffers(const IplImage* image)
 {
 	Parameters* parameters = Parameters::getParameters();
 
@@ -71,7 +71,7 @@ void PupilSegmentator::setupBuffers(const Image* image)
 
 	this->resizeFactor = resizeFactor;
 
-	Image*& workingImage = this->workingImage;
+	IplImage*& workingImage = this->workingImage;
 
 	if (workingImage == NULL || workingImage->width != workingWidth
 			|| workingImage->height != workingHeight) {
@@ -124,7 +124,7 @@ void PupilSegmentator::setupBuffers(const Image* image)
 
 }
 
-Circle PupilSegmentator::approximatePupil(const Image* image)
+Circle PupilSegmentator::approximatePupil(const IplImage* image)
 {
 	// First, equalize the image
 	cvEqualizeHist(image, this->equalizedImage);
@@ -140,7 +140,7 @@ Circle PupilSegmentator::approximatePupil(const Image* image)
 
 }
 
-Contour PupilSegmentator::adjustPupilContour(const Image* image, const Circle& approximateCircle)
+Contour PupilSegmentator::adjustPupilContour(const IplImage* image, const Circle& approximateCircle)
 {
 	int radiusMin = approximateCircle.radius * 0.5, radiusMax =
 			approximateCircle.radius * 1.5;
@@ -156,7 +156,7 @@ Contour PupilSegmentator::adjustPupilContour(const Image* image, const Circle& a
 			this->adjustmentRingGradient, CV_GAUSSIAN, 3, 3);
 
 	// Shortcut to avoid having huge lines
-	Image* gradient = this->adjustmentRingGradient;
+	IplImage* gradient = this->adjustmentRingGradient;
 	CvMat* snake = this->adjustmentSnake;
 
 	// Find the points where the vertical gradient is maximum
@@ -229,7 +229,7 @@ Contour PupilSegmentator::adjustPupilContour(const Image* image, const Circle& a
 	return result;
 }
 
-Circle PupilSegmentator::cascadedIntegroDifferentialOperator(const Image* image)
+Circle PupilSegmentator::cascadedIntegroDifferentialOperator(const IplImage* image)
 {
 	int minrad = 10, minradabs = 10;
 	int maxrad = 80;
@@ -279,7 +279,7 @@ Circle PupilSegmentator::cascadedIntegroDifferentialOperator(const Image* image)
 	return bestCircle;
 }
 
-PupilSegmentator::MaxAvgRadiusResult PupilSegmentator::maxAvgRadius(const Image* image, int x, int y, int radmin, int radmax, int radstep)
+PupilSegmentator::MaxAvgRadiusResult PupilSegmentator::maxAvgRadius(const IplImage* image, int x, int y, int radmin, int radmax, int radstep)
 {
 	int maxDifference, difference;
 	uint8_t actualAvg, nextAvg;
@@ -304,7 +304,7 @@ PupilSegmentator::MaxAvgRadiusResult PupilSegmentator::maxAvgRadius(const Image*
 	return result;
 }
 
-uint8_t PupilSegmentator::circleAverage(const Image* image, int xc, int yc, int rc)
+uint8_t PupilSegmentator::circleAverage(const IplImage* image, int xc, int yc, int rc)
 {
 	// Optimized Bresenham algorithm for circles
 	int x = 0;
@@ -449,7 +449,7 @@ void PupilSegmentator::similarityTransform()
 			this->LUT);
 }
 
-int PupilSegmentator::calculatePupilContourQuality(const Image* region, const Image* regionGradient, const CvMat* contourSnake)
+int PupilSegmentator::calculatePupilContourQuality(const IplImage* region, const IplImage* regionGradient, const CvMat* contourSnake)
 {
 	assert(regionGradient->width == contourSnake->width);
 	assert(regionGradient->depth == int(IPL_DEPTH_16S));

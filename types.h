@@ -12,7 +12,6 @@
 #include <stdint.h>
 
 typedef std::vector<CvPoint> Contour;
-typedef IplImage Image;
 
 typedef struct {
     int xc, yc, radius;

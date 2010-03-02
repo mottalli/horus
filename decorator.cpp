@@ -17,7 +17,7 @@ Decorator::Decorator()
 	this->lowerEyelidColor = CV_RGB(0,0,255);
 }
 
-void Decorator::drawSegmentationResult(Image* image, const SegmentationResult& segmentationResult)
+void Decorator::drawSegmentationResult(IplImage* image, const SegmentationResult& segmentationResult)
 {
 	this->drawContour(image, segmentationResult.irisContour, this->irisColor);
 	this->drawContour(image, segmentationResult.pupilContour, this->pupilColor);
@@ -35,7 +35,7 @@ void Decorator::drawSegmentationResult(Image* image, const SegmentationResult& s
 	cvCircle(image, cvPoint(segmentationResult.pupilCircle.xc,segmentationResult.pupilCircle.yc), segmentationResult.pupilCircle.radius, CV_RGB(255,255,255), 1);*/
 }
 
-void Decorator::drawEncodingZone(Image* image, const SegmentationResult& segmentationResult)
+void Decorator::drawEncodingZone(IplImage* image, const SegmentationResult& segmentationResult)
 {
 	// Most of the code taken from irisencoder.cpp
 	Parameters* parameters = Parameters::getParameters();
@@ -86,7 +86,7 @@ void Decorator::drawEncodingZone(Image* image, const SegmentationResult& segment
 }
 
 
-void Decorator::drawContour(Image* image, const Contour& contour, CvScalar color)
+void Decorator::drawContour(IplImage* image, const Contour& contour, CvScalar color)
 {
 	if (contour.size() < 2) return;
 
@@ -109,7 +109,7 @@ void Decorator::drawContour(Image* image, const Contour& contour, CvScalar color
 	cvLine(image, lastPoint, p0, color, 1);
 }
 
-void Decorator::drawParabola(Image* image, const Parabola& parabola, int xMin, int xMax, CvScalar color)
+void Decorator::drawParabola(IplImage* image, const Parabola& parabola, int xMin, int xMax, CvScalar color)
 {
 	if (xMin < 0) xMin = 1;
 	if (xMax < 0 || xMax >= image->width) xMax = image->width-1;
@@ -123,7 +123,7 @@ void Decorator::drawParabola(Image* image, const Parabola& parabola, int xMin, i
 	}
 }
 
-void Decorator::drawTemplate(Image* image, const IrisTemplate& irisTemplate)
+void Decorator::drawTemplate(IplImage* image, const IrisTemplate& irisTemplate)
 {
 	IplImage* imgTemplate = irisTemplate.getTemplateImage();
 	IplImage* imgMask = irisTemplate.getNoiseMaskImage();
