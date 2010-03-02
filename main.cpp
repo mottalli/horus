@@ -23,7 +23,7 @@
 using namespace std;
 
 double correlation(IplImage* X, IplImage* Y);
-void processImage(Image* image);
+void processImage(IplImage* image);
 void captured();
 
 Segmentator segmentator;
@@ -38,7 +38,7 @@ CvFont FONT;
 char BUFFER[1000];
 
 int main(int argc, char** argv) {
-	const char* imagePath = "/home/marcelo/Mis_Documentos/Facu/Tesis/Bases de datos/Bath/0019/R/0009.jpg";
+	const char* imagePath = "/home/marcelo/Mis_Documentos/Facu/Tesis/Bases de datos/UBA/marcelo_der_1.bmp";
 	IplImage* image = cvLoadImage(imagePath, 0);
 
     SegmentationResult res = segmentator.segmentImage(image);
@@ -47,18 +47,10 @@ int main(int argc, char** argv) {
 	//IrisTemplate irisTemplate = irisEncoder.generateTemplate(image, res);
 	IrisTemplate irisTemplate = irisDCTEncoder.generateTemplate(image, res);
 	irisTemplate = irisDCTEncoder.generateTemplate(image, res);
-	irisTemplate = irisDCTEncoder.generateTemplate(image, res);
-	irisTemplate = irisDCTEncoder.generateTemplate(image, res);
 
-	cvNamedWindow("Test1");
-	IplImage* img = irisTemplate.getTemplateImage();
-	cvShowImage("Test1", img);
-
-	cvNamedWindow("Test2");
-	CvMat* t = irisDCTEncoder.buffers.codelets;
-	CvMat* n = cvCreateMat(t->rows, t->cols, CV_8U);
-	cvNormalize(t, n, 0, 255, CV_MINMAX);
-	cvShowImage("Test2", n);
+	cvNamedWindow("Test");
+	decorator.drawTemplate(image, irisTemplate);
+	cvShowImage("Test", image);
 
 	cvWaitKey(0);
 
@@ -90,7 +82,7 @@ int main1(int argc, char** argv) {
 
 	CvSize size = cvGetSize(framecolor);
 
-	Image* frame = cvCreateImage(size, IPL_DEPTH_8U, 1);
+	IplImage* frame = cvCreateImage(size, IPL_DEPTH_8U, 1);
 
 	while (true) {
 		framecolor = cvQueryFrame(capture);
@@ -99,7 +91,7 @@ int main1(int argc, char** argv) {
 		CvMat tmp;
 		int delta = 10;
 		cvGetSubRect(frame, &tmp, cvRect(delta, 0, frame->width-2*delta, frame->height));
-		Image porcion;
+		IplImage porcion;
 		cvGetImage(&tmp, &porcion);
 
 		processImage(&porcion);
@@ -112,7 +104,7 @@ int main1(int argc, char** argv) {
 	return 0;
 }
 
-void processImage(Image* image)
+void processImage(IplImage* image)
 {
 	VideoProcessor::VideoStatus vs = videoProcessor.processFrame(image);
 	switch (vs) {
