@@ -13,9 +13,12 @@
 
 class IrisEncoder {
 public:
-	static const double THETA0 = -M_PI/4.0;
-	static const double THETA1 = (5.0/4.0) * M_PI;
-	static const double RADIUS_TO_USE = 0.75;
+	static const double THETA0;
+	static const double THETA1;
+	static const double RADIUS_TO_USE;
+	/*#define THETA0 -M_PI/4.0
+	#define THETA1 (5.0/4.0) * M_PI
+	#define RADIUS_TO_USE 0.75*/
 	
 	IrisEncoder();
 	virtual ~IrisEncoder();

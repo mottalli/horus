@@ -12,6 +12,10 @@
 #include "parameters.h"
 #include "tools.h"
 
+const double IrisEncoder::THETA0 = -M_PI/4.0;
+const double IrisEncoder::THETA1 = (5.0/4.0) * M_PI;
+const double IrisEncoder::RADIUS_TO_USE = 0.75;
+
 IrisEncoder::IrisEncoder()
 {
 	this->normalizedTexture = NULL;
