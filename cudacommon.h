@@ -13,8 +13,8 @@ typedef struct {
 } GPUDatabase;
 
 extern "C"
-void loadDatabase(vector<uint8_t*> templates, vector<uint8_t*> masks, size_t templateWidth,
+void loadDatabase(const vector<const uint8_t*>& templates, const vector<const uint8_t*>& masks, size_t templateWidth,
 				  size_t templateHeight, GPUDatabase* database);
 
 extern "C"
-void doGPUMatch(uint8_t* template_, uint8_t* mask, GPUDatabase* database, int nRots, int rotStep);
+void doGPUMatch(const vector<const uint8_t*>& rotatedTemplates, const vector<const uint8_t*>& rotatedMasks, GPUDatabase* database);

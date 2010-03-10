@@ -30,10 +30,11 @@ public:
 		CvMat* xorBuffer;
 	} buffers;
 
+	std::vector<IrisTemplate> rotatedTemplates;
+
 private:
 	double packedHammingDistance(const CvMat* template1, const CvMat* mask1, const CvMat* template2, const CvMat* mask2);
 
 	int nRots, rotStep;
 
-	std::vector<IrisTemplate> rotatedTemplates;
 };

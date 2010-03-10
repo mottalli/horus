@@ -17,10 +17,8 @@
 
 using namespace std;
 
-int callback(void *NotUsed, int argc, char **argv, char **azColName);
-
-IrisTemplate templateToMatch;
-bool gotMatch = false;
+int loadCallback(void *NotUsed, int argc, char **argv, char **azColName);
+int matchCallback(void *NotUsed, int argc, char **argv, char **azColName);
 
 int main(int argc, char** argv)
 {
@@ -30,15 +28,14 @@ int main(int argc, char** argv)
 	IrisDatabaseCUDA irisDatabase;
 
 	sqlite3_open(pathBase, &db);
-	sqlite3_exec(db, "SELECT id_imagen,imagen,segmentacion,codigo_gabor FROM base_iris WHERE segmentacion_correcta=1", callback, &irisDatabase, &errMsg);
+	sqlite3_exec(db, "SELECT id_imagen,imagen,segmentacion,codigo_gabor FROM base_iris WHERE segmentacion_correcta=1", loadCallback, &irisDatabase, &errMsg);
+	sqlite3_exec(db, "SELECT id_imagen,imagen,segmentacion,codigo_gabor FROM base_iris WHERE segmentacion_correcta=1", matchCallback, &irisDatabase, &errMsg);
 	sqlite3_close(db);
-
-	irisDatabase.doMatch(templateToMatch);
 
 	return 0;
 }
 
-int callback(void *pDatabase, int argc, char **argv, char **azColName)
+int loadCallback(void *pDatabase, int argc, char **argv, char **azColName)
 {
 	IrisDatabaseCUDA* irisDatabase = (IrisDatabaseCUDA*)pDatabase;
 	string serializedTemplate = argv[3];
@@ -49,10 +46,19 @@ int callback(void *pDatabase, int argc, char **argv, char **azColName)
 	IrisTemplate template_ = Serializer::unserializeIrisTemplate(serializedTemplate);
 	irisDatabase->addTemplate(id_imagen, template_);
 
-	if (!gotMatch) {
-		templateToMatch = template_;
-		gotMatch = true;
-	}
+	return 0;
+}
 
+int matchCallback(void *pDatabase, int argc, char **argv, char **azColName)
+{
+	IrisDatabaseCUDA* irisDatabase = (IrisDatabaseCUDA*)pDatabase;
+	string serializedTemplate = argv[3];
+	int id_imagen = atoi(argv[0]);
+	
+	cout << "Matching " << id_imagen << "... ";
+	
+	IrisTemplate template_ = Serializer::unserializeIrisTemplate(serializedTemplate);
+	irisDatabase->doMatch(template_);
+	
 	return 0;
 }
