@@ -10,6 +10,7 @@ archivos = os.listdir(dir)
 for archivo in archivos:
 	if fnmatch.fnmatch(archivo, '*.cpp') and archivo <> 'main.cpp' and archivo <> 'prueba_cuda.cpp':
 		SOURCES.append(os.path.join(dir, archivo))
+SOURCES.append(os.path.join(dir, 'irisdatabase.cu'))
 
 LIBRARIES = ['cv', 'cxcore', 'highgui']
 INCLUDE_DIRS = ['c:\\Archivos de programa\\opencv\\__include']
