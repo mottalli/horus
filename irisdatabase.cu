@@ -25,20 +25,20 @@ __global__ void doGPUMatchKernel(const uint8_t* rotatedTemplates, const uint8_t*
 	unsigned templateIdx = blockIdx.x;
 	
 	size_t templateSize = database.templateWidth * database.templateHeight;
-	size_t templateWords = templateSize / sizeof(uint32_t);
+	size_t templateWords = templateSize / 4;			// 4 == sizeof(uint32_t);
 	
 	// Cast from chars to words
-	uint32_t* template_ = (uint32_t*)(rotatedTemplates + threadIdx.x*templateSize);
-	uint32_t* mask = (uint32_t*)(rotatedMasks + threadIdx.x*templateSize);
+	uint32_t* rotatedTemplate_ = (uint32_t*)(rotatedTemplates + threadIdx.x*templateSize);
+	uint32_t* rotatedMask = (uint32_t*)(rotatedMasks + threadIdx.x*templateSize);
 	uint32_t* otherTemplate = (uint32_t*)(database.d_templates + templateIdx*templateSize);
 	uint32_t* otherMask = (uint32_t*)(database.d_masks + templateIdx*templateSize);
 	
 	size_t nonZeroBits = 0, totalBits = 0;
 	uint32_t word1, word2, mask1, mask2;
 	for (size_t i = 0; i < templateWords; i++) {
-		word1 = template_[i];
+		word1 = rotatedTemplate_[i];
 		word2 = otherTemplate[i];
-		mask1 = mask[i];
+		mask1 = rotatedMask[i];
 		mask2 = otherMask[i];
 		
 		nonZeroBits += countNonZeroBits(XOR(word1, word2, mask1, mask2));
@@ -133,9 +133,9 @@ void doGPUMatch(const vector<const uint8_t*>& rotatedTemplates, const vector<con
 	
 	cutStopTimer(timer);
 
-	/*for (size_t i = 0; i < database->numberOfTemplates; i++) {
+	/*for (size_t i = 0; i < 5; i++) {
 		cout << distances[i] << endl;
 	}*/
 
-	cout << "Tiempo: " << cutGetTimerValue(timer) / 1000.0 << " s." << endl;
+	cout << "Tiempo: " << cutGetTimerValue(timer) << " ms." << endl;
 };

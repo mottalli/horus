@@ -21,6 +21,7 @@ void IrisDatabaseCUDA::deleteTemplate(int templateId)
 
 void IrisDatabaseCUDA::doMatch(const IrisTemplate& irisTemplate, void (*statusCallback)(int), int nRots, int rotStep)
 {
+	this->clock.start();
 	if (this->dirty) {
 		vector<const uint8_t*> rawTemplates(this->templates.size()), rawMasks(this->templates.size());
 
@@ -50,4 +51,6 @@ void IrisDatabaseCUDA::doMatch(const IrisTemplate& irisTemplate, void (*statusCa
 	}
 	
 	doGPUMatch(rawRotatedTemplates, rawRotatedMasks, &this->gpuDatabase);
+	
+	this->clock.stop();
 }
