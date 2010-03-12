@@ -7,7 +7,7 @@
 
 using namespace std;
 
-#define XOR(a, b, mask1, mask2) (((~a & b) | (a & ~b)) & mask1 & mask2)
+#define XOR(a, b, mask1, mask2) ((a ^ b) & mask1 & mask2)
 #define MAX_ROTS 100
 
 __global__ void doGPUMatchKernel(const uint8_t* rotatedTemplates, const uint8_t* rotatedMasks, size_t nRotatedTemplates, const GPUDatabase database, float* distances)
