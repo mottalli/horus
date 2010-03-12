@@ -1,13 +1,16 @@
 #!/usr/bin/python
+import sys
+sys.path.append('../python_interface')
 
-import horus
+import horus_cuda as horus
 import Database
 
 base = Database.getDatabase('bath')
-irisDatabase = horus.IrisDatabase()
+#irisDatabase = horus.IrisDatabase()
+irisDatabase = horus.IrisDatabaseCUDA()
 
 step = 1000
-cant_total = 50000
+cant_total = 30000
 
 codigo_base = base.conn.execute('SELECT codigo_gabor FROM base_iris WHERE segmentacion_correcta=1').fetchone()
 codigo_base = horus.unserializeIrisTemplate(str(codigo_base[0]))

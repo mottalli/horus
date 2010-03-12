@@ -60,6 +60,8 @@ void loadDatabase(const vector<const uint8_t*>& templates, const vector<const ui
 	assert(templateWidth % 4 == 0);			// For casting to int32 in the GPU (4x speedup)
 	size_t templateSize = templateWidth*templateHeight;
 
+	cleanupDatabase(database);
+
 	database->templateWidth = templateWidth;
 	database->templateHeight = templateHeight;
 	database->numberOfTemplates = templates.size();
@@ -69,12 +71,10 @@ void loadDatabase(const vector<const uint8_t*>& templates, const vector<const ui
 	cutilSafeCall(cudaMalloc(&database->d_masks, bytes));
 
 	// Load each individual template in a contiguous chunk of GPU memory
-   cout << "Loading templates to GPU..." << endl;
 	for (size_t i = 0; i < templates.size(); i++) {
 		cutilSafeCall(cudaMemcpy(database->d_templates + i*templateSize, templates[i], templateSize, cudaMemcpyHostToDevice));
 		cutilSafeCall(cudaMemcpy(database->d_masks + i*templateSize, masks[i], templateSize, cudaMemcpyHostToDevice));
 	}
-	cout << "Finished loading." << endl;
 };
 
 void doGPUMatch(const vector<const uint8_t*>& rotatedTemplates, const vector<const uint8_t*>& rotatedMasks, GPUDatabase* database, vector<double>& resultDistances, double& matchingTime)

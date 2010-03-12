@@ -1,4 +1,4 @@
-%module "horus"
+%module "horus_cuda"
 
 %include "std_vector.i"
 %include "std_string.i"
@@ -38,6 +38,7 @@
 #include "../types.h"
 #include "../videoprocessor.h"
 #include "../irisdctencoder.h"
+#include "../irisdatabasecuda.h"
 %}
 
 %include "../clock.h"
@@ -60,6 +61,7 @@
 %include "../types.h"
 %include "../videoprocessor.h"
 %include "../irisdctencoder.h"
+%include "../irisdatabasecuda.h"
 
 
 namespace std

@@ -15,11 +15,8 @@ public:
 
 	void doMatch(const IrisTemplate& irisTemplate, void (*statusCallback)(int) = NULL, int nRots=20, int rotStep=2);
 
-	double getMatchingTime() const { return this->matchingTime; };
-
 protected:
 	bool dirty;
-	double matchingTime;
 	GPUDatabase gpuDatabase;
 };
 
