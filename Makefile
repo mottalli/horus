@@ -1,5 +1,5 @@
 EXECUTABLE	:= horus
-CUFILES		:= irisdatabase.cu
+CUFILES		:= irisdatabase_kernel.cu
 CCFILES		:= clock.cpp \
 			irisdatabase.cpp \
 			irisdatabasecuda.cpp \

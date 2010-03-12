@@ -5,6 +5,12 @@
 IrisDatabaseCUDA::IrisDatabaseCUDA()
 {
 	this->dirty = true;
+	this->matchingTime = 0;
+}
+
+IrisDatabaseCUDA::~IrisDatabaseCUDA()
+{
+	cleanupDatabase(&this->gpuDatabase);
 }
 
 void IrisDatabaseCUDA::addTemplate(int templateId, const IrisTemplate& irisTemplate)
@@ -21,7 +27,6 @@ void IrisDatabaseCUDA::deleteTemplate(int templateId)
 
 void IrisDatabaseCUDA::doMatch(const IrisTemplate& irisTemplate, void (*statusCallback)(int), int nRots, int rotStep)
 {
-	this->clock.start();
 	if (this->dirty) {
 		vector<const uint8_t*> rawTemplates(this->templates.size()), rawMasks(this->templates.size());
 
@@ -37,6 +42,8 @@ void IrisDatabaseCUDA::doMatch(const IrisTemplate& irisTemplate, void (*statusCa
 
 		loadDatabase(rawTemplates, rawMasks, packedWidth, packedHeight, &this->gpuDatabase);
 		this->dirty = false;
+
+		this->resultDistances = vector<double>(this->templates.size());
 	}
 	
 	TemplateComparator comparator(irisTemplate, nRots, rotStep);
@@ -50,7 +57,5 @@ void IrisDatabaseCUDA::doMatch(const IrisTemplate& irisTemplate, void (*statusCa
 		rawRotatedMasks[i] = comparator.rotatedTemplates[i].getPackedMask()->data.ptr;
 	}
 	
-	doGPUMatch(rawRotatedTemplates, rawRotatedMasks, &this->gpuDatabase);
-	
-	this->clock.stop();
+	doGPUMatch(rawRotatedTemplates, rawRotatedMasks, &this->gpuDatabase, this->resultDistances, this->matchingTime);
 }

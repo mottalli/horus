@@ -2,6 +2,7 @@ syntax: glob
 
 *.pyc
 build/
+release/
 horus.py
 horus_wrap.cxx
 *.o

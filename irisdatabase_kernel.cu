@@ -10,14 +10,6 @@ using namespace std;
 #define XOR(a, b, mask1, mask2) (((~a & b) | (a & ~b)) & mask1 & mask2)
 #define MAX_ROTS 100
 
-inline __device__ unsigned countNonZeroBits(uint32_t v)
-{
-	v = v - ((v >> 1) & 0x55555555);                    // reuse input as temporary
-	v = (v & 0x33333333) + ((v >> 2) & 0x33333333);     // temp
-	unsigned c = ((v + (v >> 4) & 0xF0F0F0F) * 0x1010101) >> 24; // count
-	return c;
-}
-
 __global__ void doGPUMatchKernel(const uint8_t* rotatedTemplates, const uint8_t* rotatedMasks, size_t nRotatedTemplates, const GPUDatabase database, float* distances)
 {
 	__shared__ float hammingDistances[MAX_ROTS];
@@ -41,8 +33,10 @@ __global__ void doGPUMatchKernel(const uint8_t* rotatedTemplates, const uint8_t*
 		mask1 = rotatedMask[i];
 		mask2 = otherMask[i];
 		
-		nonZeroBits += countNonZeroBits(XOR(word1, word2, mask1, mask2));
-		totalBits += countNonZeroBits(mask1 & mask2);
+		// __popc(x) returns the number of bits that are set to 1 in the binary representation of 32-bit integer parameter x.
+		uint32_t x = XOR(word1, word2, mask1, mask2);
+		nonZeroBits += __popc(x);
+		totalBits += __popc(mask1 & mask2);
 	}
 	
 	hammingDistances[threadIdx.x] = float(nonZeroBits) / float(totalBits);
@@ -83,10 +77,11 @@ void loadDatabase(const vector<const uint8_t*>& templates, const vector<const ui
 	cout << "Finished loading." << endl;
 };
 
-void doGPUMatch(const vector<const uint8_t*>& rotatedTemplates, const vector<const uint8_t*>& rotatedMasks, GPUDatabase* database)
+void doGPUMatch(const vector<const uint8_t*>& rotatedTemplates, const vector<const uint8_t*>& rotatedMasks, GPUDatabase* database, vector<double>& resultDistances, double& matchingTime)
 {
 	assert(rotatedTemplates.size() == rotatedMasks.size());
 	assert(rotatedTemplates.size() < MAX_ROTS);
+	assert(resultDistances.size() == database->numberOfTemplates);
 
 	unsigned timer;
 	cutCreateTimer(&timer);
@@ -125,17 +120,28 @@ void doGPUMatch(const vector<const uint8_t*>& rotatedTemplates, const vector<con
 	float* distances = new float[database->numberOfTemplates];
 	cudaMemcpy(distances, d_distances, database->numberOfTemplates*sizeof(float), cudaMemcpyDeviceToHost);
 	
+
+	// Copy the results
+	for (size_t i = 0; i < database->numberOfTemplates; i++) {
+		resultDistances[i] = double(distances[i]);
+	}
+
 	// Free the memory
 	cutilSafeCall(cudaFree(d_rotatedTemplates));
 	cutilSafeCall(cudaFree(d_rotatedMasks));
 	cutilSafeCall(cudaFree(d_distances));
-	
-	
+	free(distances);
+
+	// Copy the matching time
 	cutStopTimer(timer);
+	matchingTime = cutGetTimerValue(timer);
 
-	/*for (size_t i = 0; i < 5; i++) {
-		cout << distances[i] << endl;
-	}*/
-
-	cout << "Tiempo: " << cutGetTimerValue(timer) << " ms." << endl;
 };
+
+void cleanupDatabase(GPUDatabase* database)
+{
+	if (database->d_templates != NULL) {
+		cudaFree(database->d_templates);
+		cudaFree(database->d_masks);
+	}
+}

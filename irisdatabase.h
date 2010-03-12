@@ -10,7 +10,7 @@ class IrisDatabase
 {
 public:
 	IrisDatabase();
-	~IrisDatabase();
+	virtual ~IrisDatabase();
 
 	void addTemplate(int templateId, const IrisTemplate& irisTemplate);
 	void deleteTemplate(int templateId);
@@ -24,7 +24,7 @@ public:
 	inline int getMinNFAId() const { return this->minNFAId; };
 	inline double getMinNFA() const { return this->minNFA; };
 
-	inline double getMatchingTime() const { return this->clock.time(); };
+	double getMatchingTime() const { return this->clock.time(); };
 
 	vector<int> ids;
 
