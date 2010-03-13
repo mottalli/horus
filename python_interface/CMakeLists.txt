@@ -16,6 +16,7 @@ SET(SOURCES ../src/clock.cpp ../src/decorator.cpp ../src/eyelidsegmentator.cpp .
 SET(LIBRARIES ${PYTHON_LIBRARIES} ${OPENCV_LIBRARIES})
 	
 IF (USE_CUDA)
+	MESSAGE("Configuring python interface with CUDA...")
 	FIND_PACKAGE(CUDA)
 
 	SET(CUDASDK /home/marcelo/Mis_Documentos/Programacion/NVIDIA_GPU_Computing_SDK/C)
