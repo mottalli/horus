@@ -7,3 +7,5 @@ horus.py
 horus_wrap.cxx
 *.o
 *.orig
+CMakeFiles/
+CMakeCache.txt
