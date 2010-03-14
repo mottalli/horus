@@ -4,7 +4,7 @@ PKG_CHECK_MODULES(OPENCV opencv)
 FIND_PACKAGE(SWIG REQUIRED)
 INCLUDE(${SWIG_USE_FILE})
 
-FIND_PACKAGE(PythonLibs)
+FIND_PACKAGE(PythonLibs REQUIRED)
 INCLUDE_DIRECTORIES(${PYTHON_INCLUDE_PATH})
 
 SET(CMAKE_SWIG_FLAGS "")
@@ -19,15 +19,18 @@ IF (USE_CUDA)
 	MESSAGE("Configuring python interface with CUDA...")
 	FIND_PACKAGE(CUDA)
 
+	SET(CUDA_FILES ../src/irisdatabase_kernel.cu)
+
 	SET(CUDASDK /home/marcelo/Mis_Documentos/Programacion/NVIDIA_GPU_Computing_SDK/C)
 	SET(SOURCES ${SOURCES} ../src/irisdatabasecuda.cpp)
 	
 	CUDA_INCLUDE_DIRECTORIES(${CUDASDK}/common/inc)
-	LINK_DIRECTORIES(${CUDASDK}/lib)
-	CUDA_ADD_LIBRARY(horus_cuda SHARED ../src/irisdatabase_kernel.cu)
-	SET(LIBRARIES ${LIBRARIES} horus_cuda cutil_x86_64)
+	#LINK_DIRECTORIES(${CUDASDK}/lib)
+	#SET(LIBRARIES ${LIBRARIES} horus_cuda cutil_x86_64)
+	SET(CUDA_NVCC_FLAGS --ptxas-options=-v --compiler-options '-fPIC')
+	CUDA_ADD_LIBRARY(horus_cuda ${CUDA_FILES})
 ENDIF (USE_CUDA)
 
-SET_SOURCE_FILES_PROPERTIES(horus.i PROPERTIES CPLUSPLUS ON)
-SWIG_ADD_MODULE(horus python ${SOURCES} horus.i)
-SWIG_LINK_LIBRARIES(horus ${LIBRARIES})
+#SET_SOURCE_FILES_PROPERTIES(horus.i PROPERTIES CPLUSPLUS ON)
+#SWIG_ADD_MODULE(horus python ${SOURCES} horus.i)
+#SWIG_LINK_LIBRARIES(horus ${LIBRARIES})
