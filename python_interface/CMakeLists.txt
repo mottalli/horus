@@ -23,12 +23,16 @@ IF (USE_CUDA)
 
 	SET(CUDASDK /home/marcelo/Mis_Documentos/Programacion/NVIDIA_GPU_Computing_SDK/C)
 	SET(SOURCES ${SOURCES} ../src/irisdatabasecuda.cpp)
+	SET(CUDASDK_INC ${CUDASDK}/common/inc)
+	SET(CUDASDK_LIBS ${CUDASDK}/lib	)
 	
-	CUDA_INCLUDE_DIRECTORIES(${CUDASDK}/common/inc)
-	#LINK_DIRECTORIES(${CUDASDK}/lib)
+	CUDA_INCLUDE_DIRECTORIES(${CUDASDK_INC})
+	#LINK_DIRECTORIES(${CUDASDK_LIBS})
 	#SET(LIBRARIES ${LIBRARIES} horus_cuda cutil_x86_64)
 	SET(CUDA_NVCC_FLAGS --ptxas-options=-v --compiler-options '-fPIC')
 	CUDA_ADD_LIBRARY(horus_cuda ${CUDA_FILES})
+	
+	CONFIGURE_FILE(setup.py.in setup.py)
 ENDIF (USE_CUDA)
 
 #SET_SOURCE_FILES_PROPERTIES(horus.i PROPERTIES CPLUSPLUS ON)
