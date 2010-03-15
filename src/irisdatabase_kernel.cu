@@ -29,8 +29,8 @@ __global__ void doGPUMatchKernel(const uint8_t* rotatedTemplates, const uint8_t*
 	uint32_t word1, word2, mask1, mask2;
 	for (size_t i = 0; i < templateWords; i++) {
 		word1 = rotatedTemplate_[i];
-		word2 = otherTemplate[i];
 		mask1 = rotatedMask[i];
+		word2 = otherTemplate[i];
 		mask2 = otherMask[i];
 		
 		// __popc(x) returns the number of bits that are set to 1 in the binary representation of 32-bit integer parameter x.
