@@ -38,22 +38,22 @@ CvFont FONT;
 char BUFFER[1000];
 
 int main(int argc, char** argv) {
-	const char* imagePath = "/home/marcelo/Mis_Documentos/Facu/Tesis/Bases de datos/UBA/marcelo_der_1.bmp";
-	IplImage* image = cvLoadImage(imagePath, 0);
+	const char* imagePath = "/home/marcelo/iris/BBDD/UBA/marcelo_der_1.bmp";
+	IplImage* image = cvLoadImage(imagePath, 1);
 
     SegmentationResult res = segmentator.segmentImage(image);
     decorator.drawSegmentationResult(image, res);
 
-	//IrisTemplate irisTemplate = irisEncoder.generateTemplate(image, res);
-	IrisTemplate irisTemplate = irisDCTEncoder.generateTemplate(image, res);
-	irisTemplate = irisDCTEncoder.generateTemplate(image, res);
+	IrisTemplate irisTemplate = irisEncoder.generateTemplate(image, res);
+	//IrisTemplate irisTemplate = irisDCTEncoder.generateTemplate(image, res);
+	//irisTemplate = irisDCTEncoder.generateTemplate(image, res);
 
 	cvNamedWindow("Test");
 	decorator.drawTemplate(image, irisTemplate);
+	decorator.drawEncodingZone(image, res);
 	cvShowImage("Test", image);
 
 	cvWaitKey(0);
-
 
 	return 0;
 }

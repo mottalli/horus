@@ -8,6 +8,7 @@
 #pragma once
 
 #include "common.h"
+#include "segmentationresult.h"
 
 //------------ Base64 code license BEGIN
 /*
@@ -52,5 +53,7 @@ namespace Tools
 
 	std::string base64EncodeMat(const CvMat* mat);
 	CvMat* base64DecodeMat(const std::string &s);
+
+	std::vector< std::pair<CvPoint, CvPoint> > iterateIris(const SegmentationResult& segmentation, int width, int height, double theta0=0.0, double theta1=2.0*M_PI, double radius=1.0);
 }
 
