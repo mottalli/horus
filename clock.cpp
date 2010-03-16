@@ -21,7 +21,7 @@ void Clock::start() {
 
 double Clock::stop() {
     _toc = std::clock();
-    _time = double(_toc-_tic)/double(CLOCKS_PER_SEC);
+    _time = (double(_toc-_tic)/double(CLOCKS_PER_SEC)) * 1000.0;
 
     return  _time;
 }

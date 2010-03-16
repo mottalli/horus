@@ -76,7 +76,7 @@ void IrisDatabase::doAContrarioMatch(const IrisTemplate& irisTemplate, int nPart
 	const float BIN_MIN = 0.0f;
 	const float BIN_MAX = 0.7f;
 
-	IplImage* distances[nParts];			// Should be CvMat but OpenCV doesn't let you use CvMat for calculating histograms
+	IplImage** distances = new IplImage*[nParts];			// Should be CvMat but OpenCV doesn't let you use CvMat for calculating histograms
 	size_t n = this->templates.size();
 	this->resultPartsDistances = vector< vector<double> >(nParts, vector<double>(n));		// This is a copy in a better format to interface with Python
 
@@ -104,7 +104,7 @@ void IrisDatabase::doAContrarioMatch(const IrisTemplate& irisTemplate, int nPart
 	float* range[] = { l_range };
 	int size[] = { BINS };
 
-	CvHistogram* histograms[nParts];
+	CvHistogram** histograms = new CvHistogram*[nParts];
 
 	for (int p = 0; p < nParts; p++) {
 		histograms[p] = cvCreateHist(1, size, CV_HIST_ARRAY, range, 1);
@@ -113,7 +113,7 @@ void IrisDatabase::doAContrarioMatch(const IrisTemplate& irisTemplate, int nPart
 	}
 
 	// Calculate the cumulative of the histograms
-	float* cumhists[nParts];
+	float** cumhists = new float*[nParts];
 	for (int p = 0; p < nParts; p++) {
 		float* cumhist = (float*)malloc(BINS*sizeof(float));
 
@@ -149,10 +149,16 @@ void IrisDatabase::doAContrarioMatch(const IrisTemplate& irisTemplate, int nPart
 		}
 	}
 
+	// Clean up
 	for (int p = 0; p < nParts; p++) {
 		cvReleaseHist(&histograms[p]);
+		cvReleaseImage(&distances[p]);
 		free(cumhists[p]);
 	}
+	
+	delete[] distances;
+	delete[] histograms;
+	delete[] cumhists;
 
 	this->clock.stop();
 }
