@@ -164,7 +164,7 @@ void IrisSegmentator::setupBuffers(const IplImage* image)
 			cvReleaseMat(&this->buffers.adjustmentSnake);
     	}
 
-    	this->buffers.adjustmentRing = cvCreateImage(cvSize(parameters->irisAdjustmentRingWidth, parameters->irisAdjustmentRingHeight), IPL_DEPTH_16S, 1);
+		this->buffers.adjustmentRing = cvCreateImage(cvSize(parameters->irisAdjustmentRingWidth, parameters->irisAdjustmentRingHeight), IPL_DEPTH_8U, 1);
     	this->buffers.adjustmentRingGradient = cvCreateImage(cvSize(parameters->irisAdjustmentRingWidth, parameters->irisAdjustmentRingHeight), IPL_DEPTH_16S, 1);
     	this->buffers.adjustmentSnake = cvCreateMat(1, parameters->irisAdjustmentRingWidth, CV_32F);
     }

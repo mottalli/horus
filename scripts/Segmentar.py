@@ -147,6 +147,8 @@ def segmentarYMostrar(imagen):
 
 
 def mostrarSegmentada(imagen, rs):	
+	# Weird: in OpenCV 2.0, without this line, it says the functions are not defined (!!)
+	from opencv import cvCreateImage, cvGetSize, IPL_DEPTH_8U, CV_GRAY2BGR, cvCvtColor
 	imagenDecorada = cvCreateImage(cvGetSize(imagen), IPL_DEPTH_8U, 3)
 	cvCvtColor(imagen, imagenDecorada, CV_GRAY2BGR)
 	decorator.drawSegmentationResult(imagenDecorada, rs)
