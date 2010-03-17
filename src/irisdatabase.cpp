@@ -66,7 +66,7 @@ void IrisDatabase::doMatch(const IrisTemplate& irisTemplate, void (*statusCallba
 		if (statusCallback) statusCallback(percentage);
 	}
 
-	this->clock.stop();
+	this->matchingTime = this->clock.stop();
 }
 
 void IrisDatabase::doAContrarioMatch(const IrisTemplate& irisTemplate, int nParts, void (*statusCallback)(int), int nRots, int rotStep)
@@ -160,5 +160,5 @@ void IrisDatabase::doAContrarioMatch(const IrisTemplate& irisTemplate, int nPart
 	delete[] histograms;
 	delete[] cumhists;
 
-	this->clock.stop();
+	this->matchingTime = this->clock.stop();
 }
