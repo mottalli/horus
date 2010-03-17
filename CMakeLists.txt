@@ -5,3 +5,4 @@ OPTION(USE_CUDA "Use CUDA acceleration" ON)
 
 #ADD_SUBDIRECTORY(src)
 ADD_SUBDIRECTORY(python_interface)
+

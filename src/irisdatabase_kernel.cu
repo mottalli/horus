@@ -1,4 +1,3 @@
-#include <cutil_inline.h>
 #include <vector>
 #include <stdint.h>
 #include <cassert>
@@ -7,6 +6,18 @@
 
 using namespace std;
 
+// Taken from the CUDA SDK
+#define CUDA_SAFE_CALL(err)           __cudaSafeCall      (err, __FILE__, __LINE__)
+inline void __cudaSafeCall( cudaError err, const char *file, const int line )
+{
+    if( cudaSuccess != err) {
+        fprintf(stderr, "CUDA_SAFE_CALL() Runtime API error in file <%s>, line %i : %s.\n",
+                file, line, cudaGetErrorString( err) );
+        exit(-1);
+    }
+}
+
+
 #define XOR(a, b, mask1, mask2) ((a ^ b) & mask1 & mask2)
 #define MAX_ROTS 100
 
@@ -14,13 +25,17 @@ __global__ void doGPUMatchKernel(const uint8_t* rotatedTemplates, const uint8_t*
 {
 	__shared__ float hammingDistances[MAX_ROTS];
 
-	unsigned templateIdx = blockIdx.x;
+	unsigned templateIdx = blockIdx.y*gridDim.x + blockIdx.x;
+	
+	if (templateIdx > database.numberOfTemplates) {
+		return;
+	}
 	
 	size_t templateSize = database.templateWidth * database.templateHeight;
 	size_t templateWords = templateSize / 4;			// 4 == sizeof(uint32_t);
 	
 	// Cast from chars to words
-	uint32_t* rotatedTemplate_ = (uint32_t*)(rotatedTemplates + threadIdx.x*templateSize);
+	uint32_t* rotatedTemplate = (uint32_t*)(rotatedTemplates + threadIdx.x*templateSize);
 	uint32_t* rotatedMask = (uint32_t*)(rotatedMasks + threadIdx.x*templateSize);
 	uint32_t* otherTemplate = (uint32_t*)(database.d_templates + templateIdx*templateSize);
 	uint32_t* otherMask = (uint32_t*)(database.d_masks + templateIdx*templateSize);
@@ -28,7 +43,7 @@ __global__ void doGPUMatchKernel(const uint8_t* rotatedTemplates, const uint8_t*
 	size_t nonZeroBits = 0, totalBits = 0;
 	uint32_t word1, word2, mask1, mask2;
 	for (size_t i = 0; i < templateWords; i++) {
-		word1 = rotatedTemplate_[i];
+		word1 = rotatedTemplate[i];
 		mask1 = rotatedMask[i];
 		word2 = otherTemplate[i];
 		mask2 = otherMask[i];
@@ -67,13 +82,13 @@ void loadDatabase(const vector<const uint8_t*>& templates, const vector<const ui
 	database->numberOfTemplates = templates.size();
 
 	size_t bytes = templates.size()*templateSize;
-	cutilSafeCall(cudaMalloc(&database->d_templates, bytes));
-	cutilSafeCall(cudaMalloc(&database->d_masks, bytes));
+	CUDA_SAFE_CALL(cudaMalloc(&database->d_templates, bytes));
+	CUDA_SAFE_CALL(cudaMalloc(&database->d_masks, bytes));
 
 	// Load each individual template in a contiguous chunk of GPU memory
 	for (size_t i = 0; i < templates.size(); i++) {
-		cutilSafeCall(cudaMemcpy(database->d_templates + i*templateSize, templates[i], templateSize, cudaMemcpyHostToDevice));
-		cutilSafeCall(cudaMemcpy(database->d_masks + i*templateSize, masks[i], templateSize, cudaMemcpyHostToDevice));
+		CUDA_SAFE_CALL(cudaMemcpy(database->d_templates + i*templateSize, templates[i], templateSize, cudaMemcpyHostToDevice));
+		CUDA_SAFE_CALL(cudaMemcpy(database->d_masks + i*templateSize, masks[i], templateSize, cudaMemcpyHostToDevice));
 	}
 };
 
@@ -83,25 +98,21 @@ void doGPUMatch(const vector<const uint8_t*>& rotatedTemplates, const vector<con
 	assert(rotatedTemplates.size() < MAX_ROTS);
 	assert(resultDistances.size() == database->numberOfTemplates);
 
-	unsigned timer;
-	cutCreateTimer(&timer);
-	cutStartTimer(timer);
-	
 	// Load the rotated templates and masks to the GPU
 	uint8_t *d_rotatedTemplates, *d_rotatedMasks;
 	size_t templateSize = database->templateWidth * database->templateHeight;
 	size_t bytes = rotatedTemplates.size() * templateSize;
 	
-	cutilSafeCall(cudaMalloc(&d_rotatedTemplates, bytes));
-	cutilSafeCall(cudaMalloc(&d_rotatedMasks, bytes));
+	CUDA_SAFE_CALL(cudaMalloc(&d_rotatedTemplates, bytes));
+	CUDA_SAFE_CALL(cudaMalloc(&d_rotatedMasks, bytes));
 	for (size_t i = 0; i < rotatedTemplates.size(); i++) {
-		cutilSafeCall(cudaMemcpy(d_rotatedTemplates + i*templateSize, rotatedTemplates[i], templateSize, cudaMemcpyHostToDevice));
-		cutilSafeCall(cudaMemcpy(d_rotatedMasks + i*templateSize, rotatedMasks[i], templateSize, cudaMemcpyHostToDevice));
+		CUDA_SAFE_CALL(cudaMemcpy(d_rotatedTemplates + i*templateSize, rotatedTemplates[i], templateSize, cudaMemcpyHostToDevice));
+		CUDA_SAFE_CALL(cudaMemcpy(d_rotatedMasks + i*templateSize, rotatedMasks[i], templateSize, cudaMemcpyHostToDevice));
 	}
 	
 	// Output buffer in device
 	float* d_distances;
-	cutilSafeCall(cudaMalloc(&d_distances, database->numberOfTemplates*sizeof(float)));
+	CUDA_SAFE_CALL(cudaMalloc(&d_distances, database->numberOfTemplates*sizeof(float)));
 
 
 	// Invoke the kernel
@@ -127,15 +138,13 @@ void doGPUMatch(const vector<const uint8_t*>& rotatedTemplates, const vector<con
 	}
 
 	// Free the memory
-	cutilSafeCall(cudaFree(d_rotatedTemplates));
-	cutilSafeCall(cudaFree(d_rotatedMasks));
-	cutilSafeCall(cudaFree(d_distances));
+	CUDA_SAFE_CALL(cudaFree(d_rotatedTemplates));
+	CUDA_SAFE_CALL(cudaFree(d_rotatedMasks));
+	CUDA_SAFE_CALL(cudaFree(d_distances));
 	free(distances);
 
-	// Copy the matching time
-	cutStopTimer(timer);
-	matchingTime = cutGetTimerValue(timer);
-
+	//TODO: implement this without the CUDA SDK
+	matchingTime = 1.0;
 };
 
 void cleanupDatabase(GPUDatabase* database)
