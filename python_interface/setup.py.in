@@ -4,7 +4,7 @@ import sys
 import os
 import fnmatch
 
-USE_CUDA = ("${USE_CUDA}".upper() == 'ON')
+USE_CUDA = ("${USE_CUDA}".upper() == 'ON' or "${USE_CUDA}" == "1")
 
 SOURCES = ['horus.i']
 LIBRARIES = ['cv', 'cxcore', 'highgui', 'horus']
@@ -16,6 +16,9 @@ options = {
 	'library_dirs': ['.'],
 	'include_dirs': []
 }
+
+if USE_CUDA:
+	options['swig_opts'].append('-DUSE_CUDA')
 	
 if os.name == 'posix':
 	pass

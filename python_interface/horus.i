@@ -16,6 +16,7 @@
 	delete $1;
 }
 
+%include "../src/common.h"
 
 %{
 #include "../src/clock.h"
@@ -66,6 +67,7 @@
 #ifdef USE_CUDA
 %include "../src/irisdatabasecuda.h"
 #endif
+
 
 
 namespace std
