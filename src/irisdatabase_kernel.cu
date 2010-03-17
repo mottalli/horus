@@ -3,6 +3,7 @@
 #include <cassert>
 #include <iostream>
 #include "cudacommon.h"
+#include "clock.h"
 
 using namespace std;
 
@@ -19,7 +20,7 @@ inline void __cudaSafeCall( cudaError err, const char *file, const int line )
 
 
 #define XOR(a, b, mask1, mask2) ((a ^ b) & mask1 & mask2)
-#define MAX_ROTS 100
+#define MAX_ROTS 40
 
 __global__ void doGPUMatchKernel(const uint8_t* rotatedTemplates, const uint8_t* rotatedMasks, size_t nRotatedTemplates, const GPUDatabase database, float* distances)
 {
@@ -41,12 +42,17 @@ __global__ void doGPUMatchKernel(const uint8_t* rotatedTemplates, const uint8_t*
 	uint32_t* otherMask = (uint32_t*)(database.d_masks + templateIdx*templateSize);
 	
 	size_t nonZeroBits = 0, totalBits = 0;
-	uint32_t word1, word2, mask1, mask2;
+	uint32_t word1, mask1;
+	__shared__ uint32_t word2, mask2;
+	
 	for (size_t i = 0; i < templateWords; i++) {
 		word1 = rotatedTemplate[i];
 		mask1 = rotatedMask[i];
-		word2 = otherTemplate[i];
-		mask2 = otherMask[i];
+		if (threadIdx.x == 0) {
+			word2 = otherTemplate[i];
+			mask2 = otherMask[i];
+		}
+		__syncthreads();
 		
 		// __popc(x) returns the number of bits that are set to 1 in the binary representation of 32-bit integer parameter x.
 		uint32_t x = XOR(word1, word2, mask1, mask2);
@@ -98,6 +104,9 @@ void doGPUMatch(const vector<const uint8_t*>& rotatedTemplates, const vector<con
 	assert(rotatedTemplates.size() < MAX_ROTS);
 	assert(resultDistances.size() == database->numberOfTemplates);
 
+	Clock clock;
+	clock.start();
+
 	// Load the rotated templates and masks to the GPU
 	uint8_t *d_rotatedTemplates, *d_rotatedMasks;
 	size_t templateSize = database->templateWidth * database->templateHeight;
@@ -143,8 +152,7 @@ void doGPUMatch(const vector<const uint8_t*>& rotatedTemplates, const vector<con
 	CUDA_SAFE_CALL(cudaFree(d_distances));
 	free(distances);
 
-	//TODO: implement this without the CUDA SDK
-	matchingTime = 1.0;
+	matchingTime = clock.stop();
 };
 
 void cleanupDatabase(GPUDatabase* database)
