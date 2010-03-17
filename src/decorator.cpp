@@ -7,6 +7,7 @@
 
 #include "decorator.h"
 #include "irisencoder.h"
+#include "tools.h"
 #include <cmath>
 
 Decorator::Decorator()
@@ -37,52 +38,29 @@ void Decorator::drawSegmentationResult(IplImage* image, const SegmentationResult
 
 void Decorator::drawEncodingZone(IplImage* image, const SegmentationResult& segmentationResult)
 {
-	// Most of the code taken from irisencoder.cpp
+	bool fill = false;
 	Parameters* parameters = Parameters::getParameters();
-	int normalizedWidth = parameters->normalizationWidth, normalizedHeight = parameters->normalizationHeight;
-	CvPoint p0, p1;
 
-	double theta0 = IrisEncoder::THETA0;
-	double theta1 = IrisEncoder::THETA1;
-	double radiusToUse = IrisEncoder::RADIUS_TO_USE;		// Only use three-quarters of the radius
-	
-	const Contour& pupilContour = segmentationResult.pupilContour;
-	const Contour& irisContour = segmentationResult.irisContour;
+	int width = parameters->normalizationWidth, height = parameters->normalizationHeight;
 
-	
-	for (int x = 0; x < normalizedWidth; x++) {
-		double theta = (double(x)/double(normalizedWidth)) * (theta1-theta0) + theta0;
-		if (theta < 0) theta = 2.0 * M_PI + theta;
-		assert(theta >= 0 && theta <= 2.0*M_PI);
-		double w = (theta/(2.0*M_PI))*double(pupilContour.size());
-		p0 = pupilContour[int(std::floor(w))];
-		p1 = pupilContour[int(std::ceil(w)) % pupilContour.size()];
-		double prop = w-std::floor(w);
-		double xfrom = double(p0.x) + double(p1.x-p0.x)*prop;
-		double yfrom = double(p0.y) + double(p1.y-p0.y)*prop;
-		w = (theta/(2.0*M_PI))*double(irisContour.size());
-		p0 = irisContour[int(std::floor(w))];
-		p1 = irisContour[int(std::ceil(w)) % irisContour.size()];
-		prop = w-std::floor(w);
-		double xto = double(p0.x) + double(p1.x-p0.x)*prop;
-		double yto = double(p0.y) + double(p1.y-p0.y)*prop;
-		for (int y = 0; y < normalizedHeight; y++) {
-			w = (double(y)/double(normalizedHeight-1)) * radiusToUse;
-			double ximage = xfrom + w*(xto-xfrom);
-			double yimage = yfrom + w*(yto-yfrom);
+	std::vector< std::pair<CvPoint, CvPoint> > irisPoints = Tools::iterateIris(segmentationResult,
+		width, height, IrisEncoder::THETA0,
+		IrisEncoder::THETA1, IrisEncoder::RADIUS_TO_USE);
 
-			int ximage0 = int(std::floor(ximage));
-			int ximage1 = int(std::ceil(ximage));
-			int yimage0 = int(std::floor(yimage));
-			int yimage1 = int(std::ceil(yimage));			
+	for (size_t i = 0; i < irisPoints.size(); i++) {
+		CvPoint imagePoint = irisPoints[i].second;
+		CvPoint coord = irisPoints[i].first;
+		int x = int(imagePoint.x), y = int(imagePoint.y);
 
-			if (ximage0 < 0 || ximage1 >= image->width || yimage0 < 0 || yimage1 >= image->height) {
-			} else if (segmentationResult.eyelidsSegmented && (yimage <= segmentationResult.upperEyelid.value(ximage) || yimage >= segmentationResult.lowerEyelid.value(ximage))) {
-			} else {
-				cvSet2D(image, yimage, ximage, CV_RGB(255,255,0));
-			}
+		if (x < 0 || x >= image->width || y < 0 || y > image->height) {
+			continue;
+		}
+
+		if (fill || (coord.x == 0 || coord.x == width-1 || coord.y == 0 || coord.y == height-1)) {
+			cvSet2D(image, y, x, CV_RGB(255,255,0));
 		}
 	}
+
 }
 
 
@@ -128,13 +106,17 @@ void Decorator::drawTemplate(IplImage* image, const IrisTemplate& irisTemplate)
 	IplImage* imgTemplate = irisTemplate.getTemplateImage();
 	IplImage* imgMask = irisTemplate.getNoiseMaskImage();
 
+	// Joins the template and the mask in the same image as follows:
+	// mask = 0 => res = 0
+	// template = 1 => res = 255
+	// template = 0 => res = 128
+	cvThreshold(imgTemplate, imgTemplate, 128, 0 /* notused */, CV_THRESH_TRUNC);
+	cvAddS(imgTemplate, cvScalar(128), imgTemplate, imgMask);
+
 	CvSize size = cvGetSize(imgTemplate);
 
 	CvMat region;
-	CvPoint topleftTemplate, topleftMask;
-
-	topleftTemplate = cvPoint(10, 10);
-	topleftMask = cvPoint(topleftTemplate.x, image->height-10-size.height);
+	CvPoint topleftTemplate = cvPoint(10, 10);
 
 	cvGetSubRect(image, &region, cvRect(topleftTemplate.x, topleftTemplate.y, size.width, size.height));
 	if (image->nChannels == 3) {
@@ -145,16 +127,6 @@ void Decorator::drawTemplate(IplImage* image, const IrisTemplate& irisTemplate)
 		cvCopy(imgTemplate, &region);
 	}
 	cvRectangle(image, topleftTemplate, cvPoint(topleftTemplate.x+size.width-1, topleftTemplate.y+size.height-1), CV_RGB(0,0,0), 1);
-
-	cvGetSubRect(image, &region, cvRect(topleftMask.x, topleftMask.y, size.width, size.height));
-	if (image->nChannels == 3) {
-		cvMerge(imgMask, NULL, NULL, NULL, &region);
-		cvMerge(NULL, imgMask, NULL, NULL, &region);
-		cvMerge(NULL, NULL, imgMask, NULL, &region);
-	} else {
-		cvCopy(imgMask, &region);
-	}
-	cvRectangle(image, topleftMask, cvPoint(topleftMask.x+size.width-1, topleftMask.y+size.height-1), CV_RGB(0,0,0), 1);
 
 	cvReleaseImage(&imgTemplate);
 	cvReleaseImage(&imgMask);

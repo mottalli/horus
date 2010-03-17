@@ -86,65 +86,38 @@ void IrisEncoder::extendMask()
 void IrisEncoder::normalizeIris(const IplImage* image, IplImage* dest, CvMat* destMask, const SegmentationResult& segmentationResult)
 {
 	int normalizedWidth = dest->width, normalizedHeight = dest->height;
-	const Contour& pupilContour = segmentationResult.pupilContour;
-	const Contour& irisContour = segmentationResult.irisContour;
-	CvPoint p0, p1;
+
+	std::vector< std::pair<CvPoint, CvPoint> > irisPoints = Tools::iterateIris(segmentationResult,
+		normalizedWidth, normalizedHeight, IrisEncoder::THETA0, IrisEncoder::THETA1,
+		IrisEncoder::RADIUS_TO_USE);
 
 	// Initialize the mask to 1 (all bits enabled)
 	cvSet(destMask, cvScalar(1,1,1));
 
-	// We want to exclude the upper quarter.
-	double theta0 = IrisEncoder::THETA0;
-	double theta1 = IrisEncoder::THETA1;
-	double radiusToUse = IrisEncoder::RADIUS_TO_USE;		// Only use three-quarters of the radius
+	for (size_t i = 0; i < irisPoints.size(); i++) {
+		CvPoint imagePoint = irisPoints[i].second;
+		CvPoint coord = irisPoints[i].first;
 
-	for (int x = 0; x < normalizedWidth; x++) {
-		double theta = (double(x)/double(normalizedWidth)) * (theta1-theta0) + theta0;
-		if (theta < 0) theta = 2.0 * M_PI + theta;
+		int ximage0 = int(std::floor(imagePoint.x));
+		int ximage1 = int(std::ceil(imagePoint.x));
+		int yimage0 = int(std::floor(imagePoint.y));
+		int yimage1 = int(std::ceil(imagePoint.y));
 
-		// Remember we're mapping pupilContour[0] to 0 degrees and pupilContour[size-1] to "almost" 360 degrees
-		assert(theta >= 0 && theta <= 2.0*M_PI);
-		double w = (theta/(2.0*M_PI))*double(pupilContour.size());
+		if (ximage0 < 0 || ximage1 >= image->width || yimage0 < 0 || yimage1 >= image->height) {
+			cvSetReal2D(dest, coord.y, coord.x, 0);
+			cvSetReal2D(destMask, coord.y, coord.x, 0);
+		} else {
+			double v1 = cvGetReal2D(image, yimage0, ximage0);
+			double v2 = cvGetReal2D(image, yimage0, ximage1);
+			double v3 = cvGetReal2D(image, yimage1, ximage0);
+			double v4 = cvGetReal2D(image, yimage1, ximage1);
+			cvSetReal2D(dest, coord.y, coord.x, (v1+v2+v3+v4)/4.0);
+		}
 
-		p0 = pupilContour[int(std::floor(w))];
-		p1 = pupilContour[int(std::ceil(w)) % pupilContour.size()];
-		double prop = w-std::floor(w);
-		double xfrom = double(p0.x) + double(p1.x-p0.x)*prop;
-		double yfrom = double(p0.y) + double(p1.y-p0.y)*prop;
-
-		w = (theta/(2.0*M_PI))*double(irisContour.size());
-		p0 = irisContour[int(std::floor(w))];
-		p1 = irisContour[int(std::ceil(w)) % irisContour.size()];
-		prop = w-std::floor(w);
-		double xto = double(p0.x) + double(p1.x-p0.x)*prop;
-		double yto = double(p0.y) + double(p1.y-p0.y)*prop;
-
-		for (int y = 0; y < normalizedHeight; y++) {
-			w = (double(y)/double(normalizedHeight-1)) * radiusToUse;
-			double ximage = xfrom + w*(xto-xfrom);
-			double yimage = yfrom + w*(yto-yfrom);
-
-			int ximage0 = int(std::floor(ximage));
-			int ximage1 = int(std::ceil(ximage));
-			int yimage0 = int(std::floor(yimage));
-			int yimage1 = int(std::ceil(yimage));
-
-			if (ximage0 < 0 || ximage1 >= image->width || yimage0 < 0 || yimage1 >= image->height) {
-				cvSetReal2D(dest, y, x, 0);
-				cvSetReal2D(destMask, y, x, 0);
-			} else {
-				double v1 = cvGetReal2D(image, yimage0, ximage0);
-				double v2 = cvGetReal2D(image, yimage0, ximage1);
-				double v3 = cvGetReal2D(image, yimage1, ximage0);
-				double v4 = cvGetReal2D(image, yimage1, ximage1);
-				cvSetReal2D(dest, y, x, (v1+v2+v3+v4)/4.0);
-			}
-
-			// See if (x,y) is occluded by an eyelid
-			if (segmentationResult.eyelidsSegmented) {
-				if (yimage <= segmentationResult.upperEyelid.value(ximage) || yimage >= segmentationResult.lowerEyelid.value(ximage)) {
-					cvSetReal2D(destMask, y, x, 0);
-				}
+		// See if (x,y) is occluded by an eyelid
+		if (segmentationResult.eyelidsSegmented) {
+			if (imagePoint.y <= segmentationResult.upperEyelid.value(imagePoint.x) || imagePoint.y >= segmentationResult.lowerEyelid.value(imagePoint.x)) {
+				cvSetReal2D(destMask, coord.y, coord.x, 0);
 			}
 		}
 	}

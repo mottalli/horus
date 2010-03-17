@@ -29,6 +29,7 @@ while True:
 		decorada = cvCloneImage(imagenes[i])
 		decorator.drawSegmentationResult(decorada, rs)
 		decorator.drawTemplate(decorada, templates[i])
+		decorator.drawEncodingZone(decorada, rs)
 		cvNamedWindow(paths[i])
 		cvShowImage(paths[i], decorada)
 	

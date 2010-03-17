@@ -250,3 +250,41 @@ std::string Tools::base64Decode(std::string const& encoded_string) {
 
   return ret;
 }
+
+std::vector< std::pair<CvPoint, CvPoint> > Tools::iterateIris(const SegmentationResult& segmentation, int width, int height, double theta0, double theta1, double radius)
+{
+	std::vector< std::pair<CvPoint, CvPoint> > res;
+	const Contour& pupilContour = segmentation.pupilContour;
+	const Contour& irisContour = segmentation.irisContour;
+
+	CvPoint p0, p1;
+	for (int x = 0; x < width; x++) {
+		double theta = (double(x)/double(width)) * (theta1-theta0) + theta0;
+		if (theta < 0) theta = 2.0 * M_PI + theta;
+		assert(theta >= 0 && theta <= 2.0*M_PI);
+		double w = (theta/(2.0*M_PI))*double(pupilContour.size());
+		p0 = pupilContour[int(std::floor(w))];
+		p1 = pupilContour[int(std::ceil(w)) % pupilContour.size()];
+
+		double prop = w-std::floor(w);
+		double xfrom = double(p0.x) + double(p1.x-p0.x)*prop;
+		double yfrom = double(p0.y) + double(p1.y-p0.y)*prop;
+
+		w = (theta/(2.0*M_PI))*double(irisContour.size());
+		p0 = irisContour[int(std::floor(w))];
+		p1 = irisContour[int(std::ceil(w)) % irisContour.size()];
+		prop = w-std::floor(w);
+		double xto = double(p0.x) + double(p1.x-p0.x)*prop;
+		double yto = double(p0.y) + double(p1.y-p0.y)*prop;
+
+		for (int y = 0; y < height; y++) {
+			w = (double(y)/double(height-1)) * radius;
+			double ximage = xfrom + w*(xto-xfrom);
+			double yimage = yfrom + w*(yto-yfrom);
+
+			res.push_back(std::pair<CvPoint, CvPoint>(cvPoint(x, y), cvPoint(ximage, yimage)));
+		}
+	}
+
+	return res;
+}

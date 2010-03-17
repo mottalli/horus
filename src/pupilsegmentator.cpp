@@ -114,7 +114,7 @@ void PupilSegmentator::setupBuffers(const IplImage* image)
 
 		this->adjustmentRing = cvCreateImage(cvSize(
 				parameters->pupilAdjustmentRingWidth,
-				parameters->pupilAdjustmentRingHeight), IPL_DEPTH_16S, 1);
+				parameters->pupilAdjustmentRingHeight), IPL_DEPTH_8U, 1);
 		this->adjustmentRingGradient = cvCreateImage(cvSize(
 				parameters->pupilAdjustmentRingWidth,
 				parameters->pupilAdjustmentRingHeight), IPL_DEPTH_16S, 1);
