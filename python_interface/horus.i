@@ -38,7 +38,9 @@
 #include "../src/types.h"
 #include "../src/videoprocessor.h"
 #include "../src/irisdctencoder.h"
+#ifdef USE_CUDA
 #include "../src/irisdatabasecuda.h"
+#endif
 %}
 
 %include "../src/clock.h"
@@ -61,7 +63,9 @@
 %include "../src/types.h"
 %include "../src/videoprocessor.h"
 %include "../src/irisdctencoder.h"
+#ifdef USE_CUDA
 %include "../src/irisdatabasecuda.h"
+#endif
 
 
 namespace std

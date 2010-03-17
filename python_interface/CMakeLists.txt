@@ -32,9 +32,9 @@ IF (USE_CUDA)
 	SET(CUDA_NVCC_FLAGS --ptxas-options=-v --compiler-options '-fPIC')
 	SET(CUDA_LIBRARIES ${CUDA_LIBRARIES} ${LIBRARIES})
 	CUDA_ADD_LIBRARY(horus_cuda ${CUDA_FILES})
-	
-	CONFIGURE_FILE(setup.py.in setup.py)
 ENDIF (USE_CUDA)
+
+CONFIGURE_FILE(setup.py.in setup.py)
 
 ADD_LIBRARY(horus SHARED ${SOURCES})
 INSTALL(TARGETS horus LIBRARY DESTINATION lib)
