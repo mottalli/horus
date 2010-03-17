@@ -55,5 +55,6 @@ namespace Tools
 	CvMat* base64DecodeMat(const std::string &s);
 
 	std::vector< std::pair<CvPoint, CvPoint> > iterateIris(const SegmentationResult& segmentation, int width, int height, double theta0=0.0, double theta1=2.0*M_PI, double radius=1.0);
+	void superimposeTexture(IplImage* image, const IplImage* texture, const SegmentationResult& segmentation, double theta0=0.0, double theta1=2.0*M_PI, double radius=1.0);
 }
 

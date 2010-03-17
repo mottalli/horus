@@ -110,7 +110,7 @@ void Decorator::drawTemplate(IplImage* image, const IrisTemplate& irisTemplate)
 	// mask = 0 => res = 0
 	// template = 1 => res = 255
 	// template = 0 => res = 128
-	cvThreshold(imgTemplate, imgTemplate, 128, 0 /* notused */, CV_THRESH_TRUNC);
+	cvThreshold(imgTemplate, imgTemplate, 127, 0 /* notused */, CV_THRESH_TRUNC);
 	cvAddS(imgTemplate, cvScalar(128), imgTemplate, imgMask);
 
 	CvSize size = cvGetSize(imgTemplate);

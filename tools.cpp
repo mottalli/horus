@@ -288,3 +288,13 @@ std::vector< std::pair<CvPoint, CvPoint> > Tools::iterateIris(const Segmentation
 
 	return res;
 }
+
+void Tools::superimposeTexture(IplImage* image, const IplImage* texture, const SegmentationResult& segmentation, double theta0, double theta1, double radius)
+{
+	std::vector< std::pair<CvPoint, CvPoint> > irisIt = Tools::iterateIris(segmentation, texture->width, texture->height, theta0, theta1, radius);
+	for (size_t i = 0; i < irisIt.size(); i++) {
+		int xsrc = irisIt[i].first.x, ysrc = irisIt[i].first.y;
+		int xdest = std::floor(irisIt[i].second.x + 0.5), ydest = std::floor(irisIt[i].second.y + 0.5);
+		cvSet2D(image, ydest, xdest, cvGet2D(texture, ysrc, xsrc));
+	}
+}
