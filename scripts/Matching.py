@@ -44,7 +44,9 @@ def testMatching(base):
 		print "Tiempo: %.2f ms." % irisDatabase.getMatchingTime()
 		
 		distances = irisDatabase.resultDistances
-		for (j, distance) in enumerate(distances):
+		#for (j, distance) in enumerate(distances):			# Note: this triggers a bug with sequences in swig
+		for j in range(len(distances)):
+			distance = distances[j]
 			idImagen2 = irisDatabase.ids[j]
 			if idImagen1 >= idImagen2: continue
 			intraClase = (clases[idImagen1] == clases[idImagen2])
