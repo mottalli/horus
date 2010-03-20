@@ -37,32 +37,8 @@ Parameters* parameters = Parameters::getParameters();
 CvFont FONT;
 char BUFFER[1000];
 
-int main()
-{
-	IplImage* texture = cvLoadImage("/home/marcelo/Desktop/prueba.bmp");
-	const char* imagePath = "/home/marcelo/iris/BBDD/UBA/marcelo_der_1.bmp";
-
-	IplImage* image = cvLoadImage(imagePath, 1);
-
-	SegmentationResult res = segmentator.segmentImage(image);
-	/*decorator.drawEncodingZone(image, res);
-	decorator.drawSegmentationResult(image, res);*/
-	Tools::superimposeTexture(image, texture, res, IrisEncoder::THETA0, IrisEncoder::THETA1, IrisEncoder::RADIUS_TO_USE);
-
-	cvNamedWindow("Test");
-	cvShowImage("Test", image);
-	while (true){
-		char c = cvWaitKey(0);
-		if (c == 'q') break;
-
-	}
-
-	return 0;
-
-}
-
-int main1(int argc, char** argv) {
-	const char* imagePath = "/home/marcelo/iris/BBDD/UBA/marcelo_der_1.bmp";
+int main(int argc, char** argv) {
+	const char* imagePath = "/home/marcelo/iris/BBDD/UBA/marcelo_der_2.bmp";
 	IplImage* image = cvLoadImage(imagePath, 1);
 
     SegmentationResult res = segmentator.segmentImage(image);
