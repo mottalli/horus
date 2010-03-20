@@ -1,10 +1,3 @@
-/* 
- * File:   clock.h
- * Author: marcelo
- *
- * Created on January 26, 2009, 2:35 AM
- */
-
 #pragma once
 
 #include <ctime>
