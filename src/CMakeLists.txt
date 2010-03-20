@@ -7,10 +7,6 @@ SET(SOURCES clock.cpp decorator.cpp eyelidsegmentator.cpp helperfunctions.cpp ir
 	segmentator.cpp serializer.cpp templatecomparator.cpp tools.cpp videoprocessor.cpp
 )
 
-CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/common.h.in ${CMAKE_CURRENT_BINARY_DIR}/common.h)
-INCLUDE_DIRECTORIES(${CMAKE_CURRENT_BINARY_DIR})		# This will set the proper include path for common.h
-INCLUDE_DIRECTORIES(${CMAKE_CURRENT_SOURCE_DIR})		# This is needed for common.h
-
 SET(HEADERS clock.h common.h decorator.h eyelidsegmentator.h helperfunctions.h irisdatabase.h irisdctencoder.h irisencoder.h
 	irissegmentator.h iristemplate.h loggaborencoder.h parameters.h pupilsegmentator.h qualitychecker.h segmentationresult.h
 	segmentator.h serializer.h templatecomparator.h tools.h videoprocessor.h
