@@ -16,6 +16,7 @@
 	delete $1;
 }
 
+%include "../src/common.h"
 
 %{
 #include "../src/clock.h"
@@ -68,6 +69,7 @@
 #endif
 
 
+
 namespace std
 {
 	%template(vectord) vector<double>;
@@ -83,4 +85,14 @@ namespace std
   } catch (const std::exception& e) {
     SWIG_exception(SWIG_RuntimeError, e.what());
   }
+}
+
+%extend IrisEncoder {
+	void IrisEncoder::normalizeIris(const CvMat* imageMat, CvMat* destMat, CvMat* destMask, const SegmentationResult& segmentationResult, double theta0=IrisEncoder::THETA0, double theta1=IrisEncoder::THETA1, double radius=IrisEncoder::RADIUS_TO_USE)
+	{
+		IplImage image, dest;
+		cvGetImage(imageMat, &image);
+		cvGetImage(destMat, &dest);
+		IrisEncoder::normalizeIris(&image, &dest, destMask, segmentationResult, theta0, theta1, radius);
+	}
 }

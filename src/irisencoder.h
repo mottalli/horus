@@ -30,8 +30,8 @@ public:
 	IplImage* resizedTexture;
 	CvMat* resizedNoiseMask;
 
+	static void normalizeIris(const IplImage* image, IplImage* dest, CvMat* destMask, const SegmentationResult& segmentationResult, double theta0=THETA0, double theta1=THETA1, double radius=RADIUS_TO_USE);
 protected:
-	static void normalizeIris(const IplImage* image, IplImage* dest, CvMat* destMask, const SegmentationResult& segmentationResult);
 	void initializeBuffers(const IplImage* image);
 	void extendMask();
 

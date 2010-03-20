@@ -83,16 +83,17 @@ void IrisEncoder::extendMask()
 	}
 }
 
-void IrisEncoder::normalizeIris(const IplImage* image, IplImage* dest, CvMat* destMask, const SegmentationResult& segmentationResult)
+void IrisEncoder::normalizeIris(const IplImage* image, IplImage* dest, CvMat* destMask, const SegmentationResult& segmentationResult, double theta0, double theta1, double radius)
 {
 	int normalizedWidth = dest->width, normalizedHeight = dest->height;
 
 	std::vector< std::pair<CvPoint, CvPoint> > irisPoints = Tools::iterateIris(segmentationResult,
-		normalizedWidth, normalizedHeight, IrisEncoder::THETA0, IrisEncoder::THETA1,
-		IrisEncoder::RADIUS_TO_USE);
+		normalizedWidth, normalizedHeight, theta0, theta1, radius);
 
 	// Initialize the mask to 1 (all bits enabled)
-	cvSet(destMask, cvScalar(1,1,1));
+	if (destMask) {
+		cvSet(destMask, cvScalar(1,1,1));
+	}
 
 	for (size_t i = 0; i < irisPoints.size(); i++) {
 		CvPoint imagePoint = irisPoints[i].second;
@@ -105,7 +106,9 @@ void IrisEncoder::normalizeIris(const IplImage* image, IplImage* dest, CvMat* de
 
 		if (ximage0 < 0 || ximage1 >= image->width || yimage0 < 0 || yimage1 >= image->height) {
 			cvSetReal2D(dest, coord.y, coord.x, 0);
-			cvSetReal2D(destMask, coord.y, coord.x, 0);
+			if (destMask) {
+				cvSetReal2D(destMask, coord.y, coord.x, 0);
+			}
 		} else {
 			double v1 = cvGetReal2D(image, yimage0, ximage0);
 			double v2 = cvGetReal2D(image, yimage0, ximage1);
@@ -115,14 +118,16 @@ void IrisEncoder::normalizeIris(const IplImage* image, IplImage* dest, CvMat* de
 		}
 
 		// See if (x,y) is occluded by an eyelid
-		if (segmentationResult.eyelidsSegmented) {
+		if (destMask && segmentationResult.eyelidsSegmented) {
 			if (imagePoint.y <= segmentationResult.upperEyelid.value(imagePoint.x) || imagePoint.y >= segmentationResult.lowerEyelid.value(imagePoint.x)) {
 				cvSetReal2D(destMask, coord.y, coord.x, 0);
 			}
 		}
 	}
 
-	cvDilate(destMask, destMask);
+	if (destMask) {
+		cvDilate(destMask, destMask);
+	}
 }
 
 void IrisEncoder::initializeBuffers(const IplImage* image)
