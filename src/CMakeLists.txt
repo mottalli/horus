@@ -4,12 +4,12 @@ PKG_CHECK_MODULES(OPENCV opencv)
 
 SET(SOURCES clock.cpp decorator.cpp eyelidsegmentator.cpp helperfunctions.cpp irisdatabase.cpp irisdctencoder.cpp irisencoder.cpp
 	irissegmentator.cpp iristemplate.cpp loggaborencoder.cpp parameters.cpp pupilsegmentator.cpp qualitychecker.cpp segmentationresult.cpp
-	segmentator.cpp serializer.cpp templatecomparator.cpp tools.cpp videoprocessor.cpp
+	segmentator.cpp serializer.cpp templatecomparator.cpp tools.cpp videoprocessor.cpp gaborencoder.cpp
 )
 
 SET(HEADERS clock.h common.h decorator.h eyelidsegmentator.h helperfunctions.h irisdatabase.h irisdctencoder.h irisencoder.h
 	irissegmentator.h iristemplate.h loggaborencoder.h parameters.h pupilsegmentator.h qualitychecker.h segmentationresult.h
-	segmentator.h serializer.h templatecomparator.h tools.h videoprocessor.h
+	segmentator.h serializer.h templatecomparator.h tools.h videoprocessor.h gaborencoder.h
 )
 
 IF (CUDA_FOUND)

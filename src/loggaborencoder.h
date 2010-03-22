@@ -38,11 +38,10 @@ public:
 	IplImage *filteredTexture;
 	CvMat *filteredMask;
 
-	static CvSize getTemplateSize();
+	static CvSize getTemplateSize() { return IrisEncoder::getOptimumTemplateSize(256, 20); };
 
 protected:
 	static CvSize getResizedTextureSize();
 	vector<LogGabor1DFilter> filterBank;
 	virtual IrisTemplate encodeTexture(const IplImage* texture, const CvMat* mask);
-	void initializeBuffers(const IplImage* texture);
 };

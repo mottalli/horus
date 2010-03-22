@@ -40,7 +40,13 @@ IrisTemplate IrisEncoder::generateTemplate(const IplImage* image, const Segmenta
 	}
 	
 	
-	this->initializeBuffers(tmpImage);
+	//this->initializeBuffers(tmpImage);
+
+	Parameters* parameters = Parameters::getParameters();
+	CvSize normalizedSize = cvSize(parameters->normalizationWidth, parameters->normalizationHeight);
+	Tools::updateSize(&this->normalizedTexture, normalizedSize);
+	Tools::updateSize(&this->normalizedNoiseMask, normalizedSize);
+
 	IrisEncoder::normalizeIris(tmpImage, this->normalizedTexture, this->normalizedNoiseMask, segmentationResult, IrisEncoder::THETA0, IrisEncoder::THETA1, IrisEncoder::RADIUS_TO_USE);
 
 	// Improve the iris mask
@@ -117,17 +123,6 @@ void IrisEncoder::normalizeIris(const IplImage* image, IplImage* dest, CvMat* de
 
 	if (destMask) {
 		cvDilate(destMask, destMask);
-	}
-}
-
-void IrisEncoder::initializeBuffers(const IplImage* image)
-{
-	Parameters* parameters = Parameters::getParameters();
-
-	if (this->normalizedTexture == NULL || this->normalizedTexture->width != parameters->normalizationWidth || this->normalizedTexture->height != parameters->normalizationHeight) {
-		//TODO: release if they were already created
-		this->normalizedTexture = cvCreateImage(cvSize(parameters->normalizationWidth,parameters->normalizationHeight), IPL_DEPTH_8U, 1);
-		this->normalizedNoiseMask = cvCreateMat(parameters->normalizationHeight,parameters->normalizationWidth, CV_8U);
 	}
 }
 

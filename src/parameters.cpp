@@ -28,8 +28,10 @@ Parameters::Parameters() {
 
 	templateWidth = 32*8;		// Must be a multiple of 32
 	templateHeight = 20;
-	normalizationWidth = 2*templateWidth;
-	normalizationHeight = 2*templateHeight;
+	//normalizationWidth = 2*templateWidth;
+	//normalizationHeight = 2*templateHeight;
+	normalizationWidth = 512;
+	normalizationHeight = 96;
 
 	interlacedVideo = true;
 	focusThreshold = 40;

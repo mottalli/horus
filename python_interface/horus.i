@@ -39,6 +39,7 @@
 #include "../src/types.h"
 #include "../src/videoprocessor.h"
 #include "../src/irisdctencoder.h"
+#include "../src/gaborencoder.h"
 #ifdef USE_CUDA
 #include "../src/irisdatabasecuda.h"
 #endif
@@ -64,6 +65,7 @@
 %include "../src/types.h"
 %include "../src/videoprocessor.h"
 %include "../src/irisdctencoder.h"
+%include "../src/gaborencoder.h"
 #ifdef USE_CUDA
 %include "../src/irisdatabasecuda.h"
 #endif

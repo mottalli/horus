@@ -56,5 +56,8 @@ namespace Tools
 
 	std::vector< std::pair<CvPoint, CvPoint> > iterateIris(const SegmentationResult& segmentation, int width, int height, double theta0=0.0, double theta1=2.0*M_PI, double radius=1.0);
 	void superimposeTexture(IplImage* image, const IplImage* texture, const SegmentationResult& segmentation, double theta0, double theta1, double radius);
+
+	void updateSize(IplImage** image, CvSize size, int depth=IPL_DEPTH_8U, int channels=1);
+	void updateSize(CvMat** mat, CvSize size, int depth=CV_8U);
 }
 

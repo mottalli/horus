@@ -1,4 +1,5 @@
 #include "loggaborencoder.h"
+#include "tools.h"
 
 #include <cmath>
 
@@ -18,9 +19,9 @@ LogGabor1DFilter::LogGabor1DFilter(double f0, double sigmanOnF, FilterType type)
 
 LogGabor1DFilter::~LogGabor1DFilter()
 {
-	if (this->buffers.filter) {
+	/*if (this->buffers.filter) {
 		cvReleaseImage(&this->buffers.filter);
-	}
+	}*/
 }
 
 void LogGabor1DFilter::applyFilter(const IplImage* image, IplImage* dest, const CvMat* mask, CvMat* destMask)
@@ -128,6 +129,7 @@ LogGaborEncoder::LogGaborEncoder()
 	this->filterBank.push_back(LogGabor1DFilter(1.0/32.0, 0.5, LogGabor1DFilter::FILTER_IMAG));
 	this->filterBank.push_back(LogGabor1DFilter(1/16.0, 0.7, LogGabor1DFilter::FILTER_IMAG));
 	this->filteredTexture = NULL;
+	this->filteredMask = NULL;
 }
 
 LogGaborEncoder::~LogGaborEncoder()
@@ -144,11 +146,13 @@ IrisTemplate LogGaborEncoder::encodeTexture(const IplImage* texture, const CvMat
 	assert(texture->nChannels == 1);
 	assert(texture->depth == IPL_DEPTH_8U);
 
-	this->initializeBuffers(texture);
-
-	size_t nTemplates = this->filterBank.size();
 	CvSize templateSize = LogGaborEncoder::getTemplateSize();
 	CvSize resizedTextureSize = this->getResizedTextureSize();
+	size_t nFilters = this->filterBank.size();
+	// A slots holds the results of all the filters for a single image pixel, distributed in
+	// the horizontal direction.
+	size_t nSlots = templateSize.width / nFilters;
+	int slotSize = nFilters;
 
 	IplImage* resizedTexture = cvCreateImage(resizedTextureSize, IPL_DEPTH_8U, 1);
 	CvMat* resizedMask = cvCreateMat(resizedTextureSize.height, resizedTextureSize.width, CV_8U);
@@ -158,19 +162,17 @@ IrisTemplate LogGaborEncoder::encodeTexture(const IplImage* texture, const CvMat
 	CvMat* resultTemplate = cvCreateMat(templateSize.height, templateSize.width, CV_8U);
 	CvMat* resultMask = cvCreateMat(templateSize.height, templateSize.width, CV_8U);
 
+	Tools::updateSize(&this->filteredTexture, resizedTextureSize, IPL_DEPTH_32F);
+	Tools::updateSize(&this->filteredMask, resizedTextureSize);
 
-	// A slots holds the results of all the filters for a single image pixel, distributed in
-	// the horizontal direction.
-	size_t nSlots = templateSize.width / nTemplates;
-	int slotSize = nTemplates;
 
-	for (size_t t = 0; t < nTemplates; t++) {
-		LogGabor1DFilter& filter = this->filterBank[t];
+	for (size_t f = 0; f < nFilters; f++) {
+		LogGabor1DFilter& filter = this->filterBank[f];
 		//filter.applyFilter(texture, this->filteredTexture, mask, this->filteredMask);
 		filter.applyFilter(resizedTexture, this->filteredTexture, resizedMask, this->filteredMask);
 
 		for (size_t s = 0; s < nSlots; s++) {
-			int xtemplate = s*slotSize+t;
+			int xtemplate = s*slotSize + f;
 			int xtexture = (resizedTextureSize.width/nSlots) * s;
 			for (int ytemplate = 0; ytemplate < templateSize.height; ytemplate++) {
 				int ytexture = (resizedTextureSize.height/templateSize.height) * ytemplate;
@@ -180,6 +182,7 @@ IrisTemplate LogGaborEncoder::encodeTexture(const IplImage* texture, const CvMat
 				unsigned char maskBit = ((cvGetReal2D(this->filteredMask, ytemplate, xtemplate) == 0.0) ? 0 : 1);
 
 				cvSetReal2D(resultTemplate, ytemplate, xtemplate, templateBit);
+				//TODO: Fix this, it shouldn't overwrite the mask, it should AND against it
 				cvSetReal2D(resultMask, ytemplate, xtemplate, maskBit);
 			}
 		}
@@ -194,35 +197,6 @@ IrisTemplate LogGaborEncoder::encodeTexture(const IplImage* texture, const CvMat
 	cvReleaseMat(&resizedMask);
 
 	return result;
-}
-
-void LogGaborEncoder::initializeBuffers(const IplImage* texture)
-{
-	/*if (!this->filteredTexture || (this->filteredTexture->width != texture->width || this->filteredTexture->height != texture->height)) {
-		if (this->filteredTexture != NULL) {
-			cvReleaseImage(&this->filteredTexture);
-			cvReleaseMat(&this->filteredMask);
-		}
-
-		this->filteredTexture = cvCreateImage(cvGetSize(texture), IPL_DEPTH_32F, 1);
-		this->filteredMask = cvCreateMat(texture->height, texture->width, CV_8U);
-	}*/
-
-	CvSize resizedSize = this->getResizedTextureSize();
-	if (!this->filteredTexture || this->filteredTexture->width != resizedSize.width || this->filteredTexture->height != resizedSize.height) {
-		if (this->filteredTexture != NULL) {
-			cvReleaseImage(&this->filteredTexture);
-			cvReleaseMat(&this->filteredMask);
-		}
-	}
-
-	this->filteredTexture = cvCreateImage(resizedSize, IPL_DEPTH_32F, 1);
-	this->filteredMask = cvCreateMat(resizedSize.height, resizedSize.width, CV_8U);
-}
-
-CvSize LogGaborEncoder::getTemplateSize()
-{
-	return IrisEncoder::getOptimumTemplateSize(256, 20);
 }
 
 CvSize LogGaborEncoder::getResizedTextureSize()
