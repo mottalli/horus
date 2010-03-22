@@ -20,8 +20,6 @@ IrisEncoder::IrisEncoder()
 {
 	this->normalizedTexture = NULL;
 	this->normalizedNoiseMask = NULL;
-	this->resizedTexture = NULL;
-	this->resizedNoiseMask = NULL;
 }
 
 IrisEncoder::~IrisEncoder()
@@ -43,20 +41,12 @@ IrisTemplate IrisEncoder::generateTemplate(const IplImage* image, const Segmenta
 	
 	
 	this->initializeBuffers(tmpImage);
-	IrisEncoder::normalizeIris(tmpImage, this->normalizedTexture, this->normalizedNoiseMask, segmentationResult);
+	IrisEncoder::normalizeIris(tmpImage, this->normalizedTexture, this->normalizedNoiseMask, segmentationResult, IrisEncoder::THETA0, IrisEncoder::THETA1, IrisEncoder::RADIUS_TO_USE);
 
 	// Improve the iris mask
 	this->extendMask();
 
-	if (SAME_SIZE(this->normalizedTexture, this->resizedTexture)) {
-		// No resizing needs to be done -- process the texture directly
-		return this->encodeTexture(this->normalizedTexture, this->normalizedNoiseMask);
-	} else {
-		// The texture needs to be resized
-		cvResize(this->normalizedTexture, this->resizedTexture, CV_INTER_CUBIC);
-		cvResize(this->normalizedNoiseMask, this->resizedNoiseMask, CV_INTER_NN);		// Needs to be NN so it keeps the right bits
-		return this->encodeTexture(this->resizedTexture, this->resizedNoiseMask);
-	}
+	return this->encodeTexture(this->normalizedTexture, this->normalizedNoiseMask);
 	
 	if (tmpImage != image) {
 		cvReleaseImage(&tmpImage);
@@ -139,9 +129,10 @@ void IrisEncoder::initializeBuffers(const IplImage* image)
 		this->normalizedTexture = cvCreateImage(cvSize(parameters->normalizationWidth,parameters->normalizationHeight), IPL_DEPTH_8U, 1);
 		this->normalizedNoiseMask = cvCreateMat(parameters->normalizationHeight,parameters->normalizationWidth, CV_8U);
 	}
+}
 
-	if (this->resizedTexture == NULL || this->resizedTexture->width != parameters->templateWidth || this->resizedTexture->height != parameters->templateHeight) {
-		this->resizedTexture = cvCreateImage(cvSize(parameters->templateWidth,parameters->templateHeight), IPL_DEPTH_8U, 1);
-		this->resizedNoiseMask = cvCreateMat(parameters->templateHeight, parameters->templateWidth, CV_8U);
-	}
+CvSize IrisEncoder::getOptimumTemplateSize(int width, int height)
+{
+	int optimumWidth = int(std::ceil(float(width)/32.0)) * 32; // Must be a multiple of 32
+	return cvSize(optimumWidth, height);
 }

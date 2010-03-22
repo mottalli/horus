@@ -27,10 +27,9 @@ public:
 
 	IplImage* normalizedTexture;
 	CvMat* normalizedNoiseMask;
-	IplImage* resizedTexture;
-	CvMat* resizedNoiseMask;
 
 	static void normalizeIris(const IplImage* image, IplImage* dest, CvMat* destMask, const SegmentationResult& segmentationResult, double theta0=THETA0, double theta1=THETA1, double radius=RADIUS_TO_USE);
+	static CvSize getOptimumTemplateSize(int width, int height);		// Returns the optimum template size that is closer to (width, height)
 protected:
 	void initializeBuffers(const IplImage* image);
 	void extendMask();

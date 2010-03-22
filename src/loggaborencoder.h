@@ -9,8 +9,10 @@ using namespace std;
 
 class LogGabor1DFilter {
 public:
+
+	typedef enum { FILTER_REAL, FILTER_IMAG } FilterType;
 	LogGabor1DFilter();
-	LogGabor1DFilter(double f0, double sigmanOnF);
+	LogGabor1DFilter(double f0, double sigmanOnF, FilterType type=FILTER_IMAG);
 	virtual ~LogGabor1DFilter();
 
 	struct {
@@ -21,6 +23,7 @@ public:
 
 private:
 	double f0, sigmaOnF;
+	FilterType type;
 
 	void initializeFilter(const IplImage* image);		// Must release the result
 };
@@ -32,12 +35,13 @@ public:
 	LogGaborEncoder();
 	~LogGaborEncoder();
 
-	IplImage *filteredTexture, *filteredTextureReal, *filteredTextureImag;
+	IplImage *filteredTexture;
 	CvMat *filteredMask;
-	CvMat *thresholdedTextureReal, *thresholdedTextureImag;
-	CvMat *resultFilter, *resultMask;
+
+	static CvSize getTemplateSize();
 
 protected:
+	static CvSize getResizedTextureSize();
 	vector<LogGabor1DFilter> filterBank;
 	virtual IrisTemplate encodeTexture(const IplImage* texture, const CvMat* mask);
 	void initializeBuffers(const IplImage* texture);
