@@ -20,8 +20,10 @@ Decorator::Decorator()
 
 void Decorator::drawSegmentationResult(IplImage* image, const SegmentationResult& segmentationResult)
 {
-	this->drawContour(image, segmentationResult.irisContour, this->irisColor);
-	this->drawContour(image, segmentationResult.pupilContour, this->pupilColor);
+	CvScalar irisColor_ = (image->nChannels == 1 ? CV_RGB(255,255,255) : this->irisColor);
+	CvScalar pupilColor_ = (image->nChannels == 1 ? CV_RGB(255,255,255) : this->pupilColor);
+	this->drawContour(image, segmentationResult.irisContour, irisColor_);
+	this->drawContour(image, segmentationResult.pupilContour, pupilColor_);
 
 	Circle irisCircle = segmentationResult.irisCircle;
 
@@ -75,12 +77,7 @@ void Decorator::drawContour(IplImage* image, const Contour& contour, CvScalar co
 
 	for (int i = 1; i < n; i++) {
 		const CvPoint p = contour[i];
-
-		if (false) {
-
-		} else {
-			cvLine(image, lastPoint, p, color, 1);
-		}
+		cvLine(image, lastPoint, p, color, 1);
 		lastPoint = p;
 	}
 
@@ -110,24 +107,41 @@ void Decorator::drawTemplate(IplImage* image, const IrisTemplate& irisTemplate)
 	// mask = 0 => res = 0
 	// template = 1 => res = 255
 	// template = 0 => res = 128
-	cvThreshold(imgTemplate, imgTemplate, 127, 0 /* notused */, CV_THRESH_TRUNC);
-	cvAddS(imgTemplate, cvScalar(128), imgTemplate, imgMask);
+	//cvThreshold(imgTemplate, imgTemplate, 127, 0 /* notused */, CV_THRESH_TRUNC);
+	//cvAddS(imgTemplate, cvScalar(128), imgTemplate, imgMask);
 
-	CvSize size = cvGetSize(imgTemplate);
 
 	CvMat region;
 	CvPoint topleftTemplate = cvPoint(10, 10);
 
+	IplImage* decoratedTemplate = cvCreateImage(cvSize(imgTemplate->width+2, 3*imgTemplate->height+2), IPL_DEPTH_8U, 1);
+	cvSet(decoratedTemplate, cvScalar(128));
+	int width = imgTemplate->width;
+	for (int i = 0; i < imgTemplate->height; i++) {
+		CvMat tmpsrc, tmpdest;
+		cvGetSubRect(imgTemplate, &tmpsrc, cvRect(0, i, width, 1));
+		cvGetSubRect(decoratedTemplate, &tmpdest, cvRect(1, 3*i+2, width, 1));
+		cvCopy(&tmpsrc, &tmpdest);
+	}
+
+	IplImage* resizedDecorated = cvCreateImage(cvSize(0.75*decoratedTemplate->width, 2.0*decoratedTemplate->height), IPL_DEPTH_8U, 1);
+	cvResize(decoratedTemplate, resizedDecorated, CV_INTER_NN);
+
+	CvSize size = cvGetSize(resizedDecorated);
+
+
 	cvGetSubRect(image, &region, cvRect(topleftTemplate.x, topleftTemplate.y, size.width, size.height));
 	if (image->nChannels == 3) {
-		cvMerge(imgTemplate, NULL, NULL, NULL, &region);
-		cvMerge(NULL, imgTemplate, NULL, NULL, &region);
-		cvMerge(NULL, NULL, imgTemplate, NULL, &region);
+		cvMerge(resizedDecorated, NULL, NULL, NULL, &region);
+		cvMerge(NULL, resizedDecorated, NULL, NULL, &region);
+		cvMerge(NULL, NULL, resizedDecorated, NULL, &region);
 	} else {
-		cvCopy(imgTemplate, &region);
+		cvCopy(resizedDecorated, &region);
 	}
 	cvRectangle(image, topleftTemplate, cvPoint(topleftTemplate.x+size.width-1, topleftTemplate.y+size.height-1), CV_RGB(0,0,0), 1);
 
 	cvReleaseImage(&imgTemplate);
 	cvReleaseImage(&imgMask);
+	cvReleaseImage(&decoratedTemplate);
+	cvReleaseImage(&resizedDecorated);
 }
