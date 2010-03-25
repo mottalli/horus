@@ -16,6 +16,8 @@ public:
 	void doMatch(const IrisTemplate& irisTemplate, void (*statusCallback)(int) = NULL, int nRots=20, int rotStep=2);
 
 protected:
+	void calculatePartsDistances(const IrisTemplate& irisTemplate, int nParts, int nRots, int rotStep);
+	
 	bool dirty;
 	GPUDatabase gpuDatabase;
 };

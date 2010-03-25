@@ -27,3 +27,7 @@ void cleanupDatabase(GPUDatabase* database);
 extern "C"
 void doGPUMatch(const vector<const uint8_t*>& rotatedTemplates, const vector<const uint8_t*>& rotatedMasks, GPUDatabase* database,
 				vector<double>& resultDistances, double& matchingTime);
+
+extern "C"
+void doGPUAContrarioMatch(const vector<const uint8_t*>& rotatedTemplates, const vector<const uint8_t*>& rotatedMasks, GPUDatabase* database,
+						  unsigned nParts, vector< vector<double> >& resultDistances, double& matchingTime);

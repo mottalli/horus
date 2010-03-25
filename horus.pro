@@ -49,3 +49,4 @@ SOURCES += src/segmentationresult.cpp \
     src/tools.cpp \
     src/pupilsegmentator.cpp \
     src/gaborencoder.cpp
+OTHER_FILES += src/irisdatabase_kernel.cu

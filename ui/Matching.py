@@ -12,7 +12,9 @@ def doMatch(irisDatabase, template, imagen=None, segmentacion=None):
 		return
 
 	irisDatabase.doMatch(template, None)
+	tiempoHamming = irisDatabase.getMatchingTime()
 	irisDatabase.doAContrarioMatch(template, None)
+	tiempoAContrario = irisDatabase.getMatchingTime()
 	
 	#informacionUsuario = irisDatabase.informacionUsuario(irisDatabase.getMinDistanceId())
 	matchId = irisDatabase.getMinNFAId()

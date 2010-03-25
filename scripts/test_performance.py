@@ -18,7 +18,7 @@ codigo_base = base.conn.execute('SELECT codigo_gabor FROM base_iris WHERE segmen
 codigo_base = horus.unserializeIrisTemplate(str(codigo_base[0]))
 
 count = 0
-print "Tamaño | Tiempo match | Tiempo a contrario | Tiempo match CUDA | Tiempo a contrario CUDA | Error"
+print "Tamaño | Tiempo match | Tiempo a contrario | Tiempo match CUDA | Tiempo a contrario CUDA | Dif. prom. HD | Dif. prom. NFA"
 while count < cant_total:
 	rows = base.conn.execute('SELECT id_imagen,codigo_gabor FROM base_iris WHERE segmentacion_correcta=1')
 	for row in rows:
@@ -42,6 +42,10 @@ while count < cant_total:
 			rd = array(irisDatabase.resultDistances)
 			rdcuda = array(irisDatabaseCUDA.resultDistances)
 			
+			rnfa = array(irisDatabase.resultNFAs)
+			rnfacuda = array(irisDatabaseCUDA.resultNFAs)
+			
 			error = abs(mean(rd-rdcuda))
+			errorcuda = abs(mean(rnfa-rnfacuda))
 
-			print '%i, %.4f, %.4f, %.4f, %.4f %.4f' % (count, matchTime, aContrarioMatchTime, matchTimeCUDA, aContrarioMatchTimeCUDA, error)
+			print '%i, %.4f, %.4f, %.4f, %.4f %.8f, %.8f' % (count, matchTime, aContrarioMatchTime, matchTimeCUDA, aContrarioMatchTimeCUDA, error, errorcuda)

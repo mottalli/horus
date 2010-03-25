@@ -11,7 +11,11 @@ import herramientas
 CANTIDAD_PARTES = 4
 	
 def correrMatchAContrario(base):
-	irisDatabase = horus.IrisDatabase()
+	if horus.HORUS_CUDA_SUPPORT:
+		print "NOTA: usando aceleración CUDA"
+		irisDatabase = horus.IrisDatabaseCUDA()
+	else:
+		irisDatabase = horus.IrisDatabase()
 
 	rows = base.conn.execute('SELECT * FROM base_iris WHERE segmentacion_correcta=1')
 	
@@ -49,14 +53,17 @@ def correrMatchAContrario(base):
 		print "Tiempo: %.2f ms." % irisDatabase.getMatchingTime()
 		
 		# Escribe los datos
-		for (j, nfa) in enumerate(irisDatabase.resultNFAs):
+		for j in range(len(irisDatabase.resultNFAs)):
+			nfa = irisDatabase.resultNFAs[j]
 			idImagen2 = irisDatabase.ids[j]
 			if idImagen1 == idImagen2: continue
 			intraClase = 1 if clases[idImagen1] == clases[idImagen2] else 0
 			base.conn.execute('INSERT INTO nfa_a_contrario VALUES(?,?,?,?)', [idImagen1, idImagen2, nfa, intraClase])
 		
-		for (parte, distancias) in enumerate(irisDatabase.resultPartsDistances):
-			for (j, distancia) in enumerate(distancias):
+		for parte in range(len(irisDatabase.resultPartsDistances)):
+			distancias = irisDatabase.resultPartsDistances[parte]
+			for j in range(len(distancias)):
+				distancia = distancias[j]
 				idImagen2 = irisDatabase.ids[j]
 				if idImagen1 >= idImagen2: continue
 				intraClase = 1 if clases[idImagen1] == clases[idImagen2] else 0

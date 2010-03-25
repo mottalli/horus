@@ -71,6 +71,26 @@ void IrisDatabase::doMatch(const IrisTemplate& irisTemplate, void (*statusCallba
 	this->matchingTime = this->clock.stop();
 }
 
+void IrisDatabase::calculatePartsDistances(const IrisTemplate& irisTemplate, int nParts, int nRots, int rotStep)
+{
+	size_t n = this->templates.size();
+
+	assert(this->resultPartsDistances.size() == nParts);
+	assert(this->resultPartsDistances[0].size() == n);
+
+	TemplateComparator comparator(irisTemplate, nRots, rotStep);
+
+	// Calculate the distances between the parts
+	for (size_t i = 0; i < n; i++) {
+		std::vector<double> partsDistances = comparator.compareParts(*(this->templates[i]), nParts);
+		assert(partsDistances.size() == nParts);
+
+		for (int p = 0; p < nParts; p++) {
+			this->resultPartsDistances[p][i] = partsDistances[p];
+		}
+	}
+}
+
 void IrisDatabase::doAContrarioMatch(const IrisTemplate& irisTemplate, int nParts, void (*statusCallback)(int), int nRots, int rotStep)
 {
 	this->clock.start();
@@ -82,22 +102,14 @@ void IrisDatabase::doAContrarioMatch(const IrisTemplate& irisTemplate, int nPart
 	size_t n = this->templates.size();
 	this->resultPartsDistances = vector< vector<double> >(nParts, vector<double>(n));		// This is a copy in a better format to interface with Python
 
+	this->calculatePartsDistances(irisTemplate, nParts, nRots, rotStep);
+
 
 	for (int p = 0; p < nParts; p++) {
 		//distances[p] = cvCreateMat(1, n, CV_32F);
 		distances[p] = cvCreateImage(cvSize(1, n), IPL_DEPTH_32F, 1);
-	}
-
-	TemplateComparator comparator(irisTemplate, nRots, rotStep);
-
-	// Calculate the distances between the parts
-	for (size_t i = 0; i < n; i++) {
-		std::vector<double> partsDistances = comparator.compareParts(*(this->templates[i]), nParts);
-		assert(partsDistances.size() == nParts);
-
-		for (int p = 0; p < nParts; p++) {
-			cvSetReal1D(distances[p], i, partsDistances[p]);
-			this->resultPartsDistances[p][i] = partsDistances[p];
+		for (size_t i = 0; i < n; i++) {
+			cvSetReal1D(distances[p], i, this->resultPartsDistances[p][i]);
 		}
 	}
 
@@ -131,6 +143,7 @@ void IrisDatabase::doAContrarioMatch(const IrisTemplate& irisTemplate, int nPart
 	// Now calculate the NFA between the template and all the templates in the database
 	this->resultNFAs = vector<double>(n);
 	this->minNFA = INT_MAX;
+
 
 	for (int i = 0; i < n; i++) {
 		this->resultNFAs[i] = std::log10(double(n));

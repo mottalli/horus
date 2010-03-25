@@ -8,7 +8,11 @@ class Database:
 	def __init__(self, basePath='_base'):
 		self.basePath = basePath
 		self.baseFile = os.path.join(basePath, 'base.db')
-		self.irisDatabase = horus.IrisDatabase()
+		if horus.HORUS_CUDA_SUPPORT:
+			print "Nota: Activando aceleración CUDA"
+			self.irisDatabase = horus.IrisDatabaseCUDA()
+		else:
+			self.irisDatabase = horus.IrisDatabase()
 		
 		if not os.path.exists(self.baseFile):
 			raise Exception('No existe el archivo ' + self.baseFile)
@@ -101,5 +105,8 @@ class Database:
 	
 	def getDistanceFor(self, templateId):
 		return self.irisDatabase.getDistanceFor(templateId)
+	
+	def getMatchingTime(self):
+		return self.irisDatabase.getMatchingTime()
 
 database = Database()

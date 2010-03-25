@@ -42,6 +42,8 @@ public:
 	int ignoreId;
 
 protected:
+	virtual void calculatePartsDistances(const IrisTemplate& irisTemplate, int nParts, int nRots, int rotStep);
+
 	vector<IrisTemplate*> templates;
 	map<int, int> positions;
 
