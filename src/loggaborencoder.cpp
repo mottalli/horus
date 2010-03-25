@@ -127,7 +127,7 @@ void LogGabor1DFilter::initializeFilter(const IplImage* image)
 LogGaborEncoder::LogGaborEncoder()
 {
 	this->filterBank.push_back(LogGabor1DFilter(1.0/32.0, 0.5, LogGabor1DFilter::FILTER_IMAG));
-	this->filterBank.push_back(LogGabor1DFilter(1/16.0, 0.7, LogGabor1DFilter::FILTER_IMAG));
+	//this->filterBank.push_back(LogGabor1DFilter(1/16.0, 0.7, LogGabor1DFilter::FILTER_IMAG));
 	this->filteredTexture = NULL;
 	this->filteredMask = NULL;
 }
@@ -168,7 +168,6 @@ IrisTemplate LogGaborEncoder::encodeTexture(const IplImage* texture, const CvMat
 
 	for (size_t f = 0; f < nFilters; f++) {
 		LogGabor1DFilter& filter = this->filterBank[f];
-		//filter.applyFilter(texture, this->filteredTexture, mask, this->filteredMask);
 		filter.applyFilter(resizedTexture, this->filteredTexture, resizedMask, this->filteredMask);
 
 		for (size_t s = 0; s < nSlots; s++) {
@@ -179,11 +178,11 @@ IrisTemplate LogGaborEncoder::encodeTexture(const IplImage* texture, const CvMat
 				assert(xtexture < resizedTextureSize.width && ytexture < resizedTextureSize.height);
 
 				unsigned char templateBit = (cvGetReal2D(this->filteredTexture, ytemplate, xtemplate) > 0 ? 1 : 0);
-				unsigned char maskBit = ((cvGetReal2D(this->filteredMask, ytemplate, xtemplate) == 0.0) ? 0 : 1);
+				unsigned char maskBit1 = ((cvGetReal2D(this->filteredMask, ytemplate, xtemplate) == 0.0) ? 0 : 1);
+				unsigned char maskBit2 = (abs(cvGetReal2D(this->filteredTexture, ytemplate, xtemplate)) < 0.001 ? 0 : 1);
 
 				cvSetReal2D(resultTemplate, ytemplate, xtemplate, templateBit);
-				//TODO: Fix this, it shouldn't overwrite the mask, it should AND against it
-				cvSetReal2D(resultMask, ytemplate, xtemplate, maskBit);
+				cvSetReal2D(resultMask, ytemplate, xtemplate, maskBit1 & maskBit2);
 			}
 		}
 	}

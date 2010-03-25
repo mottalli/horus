@@ -25,6 +25,7 @@ void IrisDatabase::addTemplate(int templateId, const IrisTemplate& irisTemplate)
 	IrisTemplate* newTemplate = new IrisTemplate(irisTemplate);
 	this->templates.push_back(newTemplate);
 	this->ids.push_back(templateId);
+	this->positions[templateId] = this->ids.size()-1;
 }
 
 void IrisDatabase::deleteTemplate(int templateId)
@@ -36,6 +37,7 @@ void IrisDatabase::deleteTemplate(int templateId)
 		if (*it1 == templateId) {
 			this->ids.erase(it1);
 			this->templates.erase(it2);
+			this->positions.erase(templateId);
 			break;
 		}
 	}

@@ -101,47 +101,50 @@ void Decorator::drawParabola(IplImage* image, const Parabola& parabola, int xMin
 void Decorator::drawTemplate(IplImage* image, const IrisTemplate& irisTemplate)
 {
 	IplImage* imgTemplate = irisTemplate.getTemplateImage();
-	IplImage* imgMask = irisTemplate.getNoiseMaskImage();
+	CvMat* mask = irisTemplate.getUnpackedMask();
 
 	// Joins the template and the mask in the same image as follows:
 	// mask = 0 => res = 0
 	// template = 1 => res = 255
 	// template = 0 => res = 128
-	//cvThreshold(imgTemplate, imgTemplate, 127, 0 /* notused */, CV_THRESH_TRUNC);
-	//cvAddS(imgTemplate, cvScalar(128), imgTemplate, imgMask);
+	cvThreshold(imgTemplate, imgTemplate, 127, 0 /* notused */, CV_THRESH_TRUNC);
+	cvAddS(imgTemplate, cvScalar(127), imgTemplate);
+	cvMul(imgTemplate, mask, imgTemplate);
 
+	IplImage* decoratedTemplate;
+
+	if (imgTemplate->height < 10) {
+		IplImage* tmp = cvCreateImage(cvSize(imgTemplate->width+2, 3*imgTemplate->height+2), IPL_DEPTH_8U, 1);
+		cvSet(tmp, cvScalar(128));
+		int width = imgTemplate->width;
+		for (int i = 0; i < imgTemplate->height; i++) {
+			CvMat tmpsrc, tmpdest;
+			cvGetSubRect(imgTemplate, &tmpsrc, cvRect(0, i, width, 1));
+			cvGetSubRect(tmp, &tmpdest, cvRect(1, 3*i+2, width, 1));
+			cvCopy(&tmpsrc, &tmpdest);
+		}
+		decoratedTemplate = cvCreateImage(cvSize(0.75*tmp->width, 2.0*tmp->height), IPL_DEPTH_8U, 1);
+		cvResize(tmp, decoratedTemplate, CV_INTER_NN);
+		cvReleaseImage(&tmp);
+	} else {
+		decoratedTemplate = cvCloneImage(imgTemplate);
+	}
 
 	CvMat region;
 	CvPoint topleftTemplate = cvPoint(10, 10);
-
-	IplImage* decoratedTemplate = cvCreateImage(cvSize(imgTemplate->width+2, 3*imgTemplate->height+2), IPL_DEPTH_8U, 1);
-	cvSet(decoratedTemplate, cvScalar(128));
-	int width = imgTemplate->width;
-	for (int i = 0; i < imgTemplate->height; i++) {
-		CvMat tmpsrc, tmpdest;
-		cvGetSubRect(imgTemplate, &tmpsrc, cvRect(0, i, width, 1));
-		cvGetSubRect(decoratedTemplate, &tmpdest, cvRect(1, 3*i+2, width, 1));
-		cvCopy(&tmpsrc, &tmpdest);
-	}
-
-	IplImage* resizedDecorated = cvCreateImage(cvSize(0.75*decoratedTemplate->width, 2.0*decoratedTemplate->height), IPL_DEPTH_8U, 1);
-	cvResize(decoratedTemplate, resizedDecorated, CV_INTER_NN);
-
-	CvSize size = cvGetSize(resizedDecorated);
-
+	CvSize size = cvGetSize(decoratedTemplate);
 
 	cvGetSubRect(image, &region, cvRect(topleftTemplate.x, topleftTemplate.y, size.width, size.height));
 	if (image->nChannels == 3) {
-		cvMerge(resizedDecorated, NULL, NULL, NULL, &region);
-		cvMerge(NULL, resizedDecorated, NULL, NULL, &region);
-		cvMerge(NULL, NULL, resizedDecorated, NULL, &region);
+		cvMerge(decoratedTemplate, NULL, NULL, NULL, &region);
+		cvMerge(NULL, decoratedTemplate, NULL, NULL, &region);
+		cvMerge(NULL, NULL, decoratedTemplate, NULL, &region);
 	} else {
-		cvCopy(resizedDecorated, &region);
+		cvCopy(decoratedTemplate, &region);
 	}
 	cvRectangle(image, topleftTemplate, cvPoint(topleftTemplate.x+size.width-1, topleftTemplate.y+size.height-1), CV_RGB(0,0,0), 1);
 
 	cvReleaseImage(&imgTemplate);
-	cvReleaseImage(&imgMask);
+	cvReleaseMat(&mask);
 	cvReleaseImage(&decoratedTemplate);
-	cvReleaseImage(&resizedDecorated);
 }

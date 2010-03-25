@@ -90,5 +90,16 @@ class Database:
 		self.conn.execute('UPDATE base_iris SET imagen=? WHERE id_imagen=?', [nombreImagen, id])
 		
 		self.conn.commit()
+		
+		self.irisDatabase.addTemplate(id, template)
+	
+	def databaseSize(self):
+		return self.irisDatabase.databaseSize()
+	
+	def getNFAFor(self, templateId):
+		return self.irisDatabase.getNFAFor(templateId)
+	
+	def getDistanceFor(self, templateId):
+		return self.irisDatabase.getDistanceFor(templateId)
 
 database = Database()

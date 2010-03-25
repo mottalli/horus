@@ -1,4 +1,5 @@
 #!/usr/bin/python
+# -*- coding: UTF8 -*-
 import sys
 
 import horus
@@ -17,6 +18,7 @@ codigo_base = base.conn.execute('SELECT codigo_gabor FROM base_iris WHERE segmen
 codigo_base = horus.unserializeIrisTemplate(str(codigo_base[0]))
 
 count = 0
+print "Tamaño | Tiempo match | Tiempo a contrario | Tiempo match CUDA | Tiempo a contrario CUDA | Error"
 while count < cant_total:
 	rows = base.conn.execute('SELECT id_imagen,codigo_gabor FROM base_iris WHERE segmentacion_correcta=1')
 	for row in rows:

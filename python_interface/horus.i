@@ -8,8 +8,8 @@
 	CvMat* arg = 0;
 	SWIG_ConvertPtr($input, &argp, SWIGTYPE_p_CvMat, 0);
 	arg = reinterpret_cast<CvMat*>(argp);
-	IplImage *tmp = new IplImage;
-	$1 = cvGetImage(arg, tmp);
+	IplImage* tmp = new IplImage;
+	$1 = cvGetImage(argp, tmp);
 }
 
 %typemap(freearg) IplImage* {
@@ -98,3 +98,21 @@ namespace std
 		IrisEncoder::normalizeIris(&image, &dest, destMask, segmentationResult, theta0, theta1, radius);
 	}
 }
+
+
+%typemap(in) CvArr* {
+	void* arg = 0;
+	SWIG_ConvertPtr($input, &arg, SWIGTYPE_p_IplImage, 0);
+	$1 = reinterpret_cast<CvArr*>(arg);
+}
+
+// For OpenCV 2.0 compatibility -- grabs an Horus IplImage* and returns a Python CvMat.
+%newobject pyutilCloneImage;
+%inline %{
+	CvMat* pyutilCloneFromHorus(const CvArr* src) {
+		CvSize size = cvGetSize(src);
+		CvMat* m = cvCreateMat(size.height, size.width, CV_8U);
+		cvCopy(src, m);
+		return m;
+	}
+%}

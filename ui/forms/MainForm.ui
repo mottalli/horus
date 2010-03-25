@@ -99,7 +99,7 @@
           <string>Identif. automática</string>
          </property>
          <property name="checked">
-          <bool>false</bool>
+          <bool>true</bool>
          </property>
         </widget>
        </item>
@@ -169,7 +169,7 @@
      <x>0</x>
      <y>0</y>
      <width>716</width>
-     <height>24</height>
+     <height>25</height>
     </rect>
    </property>
    <widget class="QMenu" name="menu_Archivo">

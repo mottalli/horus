@@ -114,10 +114,11 @@ IrisTemplate GaborEncoder::encodeTexture(const IplImage* texture, const CvMat* m
 				assert(xtexture < this->filteredTexture->width && ytexture < this->filteredTexture->height);
 
 				unsigned char templateBit = (cvGetReal2D(this->filteredTexture, ytexture, xtexture) >  0.0 ? 1 : 0);
-				unsigned char maskBit = ((cvGetReal2D(this->filteredMask, ytexture, xtexture) == 0.0) ? 0 : 1);
+				unsigned char maskBit1 = ((cvGetReal2D(this->filteredMask, ytemplate, xtemplate) == 0.0) ? 0 : 1);
+				unsigned char maskBit2 = (abs(cvGetReal2D(this->filteredTexture, ytemplate, xtemplate)) < 0.001 ? 0 : 1);
+
 				cvSetReal2D(resultTemplate, ytemplate, xtemplate, templateBit);
-				//TODO: Fix this, it shouldn't overwrite the mask, it should AND against it
-				cvSetReal2D(resultMask, ytemplate, xtemplate, maskBit);
+				cvSetReal2D(resultMask, ytemplate, xtemplate, maskBit1 & maskBit2);
 			}
 		}
 

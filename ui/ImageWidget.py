@@ -1,6 +1,6 @@
 # -*- coding: UTF8 -*-
 
-from opencv import *
+import opencv
 from opencv import highgui
 from PyQt4 import QtCore, QtGui
 
@@ -25,40 +25,40 @@ class ImageWidget(QtGui.QWidget):
 	
 	def showImage(self, image):
 		self._convertImage(image)
-		size = cvGetSize(image)
+		size = opencv.cvGetSize(image)
 		self.setFixedSize(QtCore.QSize(size.width, size.height))
 		self.repaint()
 		
 	def _convertImage(self, image):
 		recreate = False
-		size = cvGetSize(image)
+		size = opencv.cvGetSize(image)
 		
 		if self.buffer is None:
 			recreate = True
 		elif size.width != self.buffer.width or size.height != self.buffer.height:
-			cvReleaseImage(self.buffer)
-			cvReleaseImage(self.bufferR)
-			cvReleaseImage(self.bufferG)
-			cvReleaseImage(self.bufferB)
+			opencv.cvReleaseImage(self.buffer)
+			opencv.cvReleaseImage(self.bufferR)
+			opencv.cvReleaseImage(self.bufferG)
+			opencv.cvReleaseImage(self.bufferB)
 			recreate = True
 			
-		elemType = cvGetElemType(image)
+		elemType = opencv.cvGetElemType(image)
 		
 		if recreate:
-			self.buffer = cvCreateImage(size, IPL_DEPTH_8U, 4)
-			self.bufferB = cvCreateImage(size, IPL_DEPTH_8U, 1)
-			self.bufferG = cvCreateImage(size, IPL_DEPTH_8U, 1)
-			self.bufferR = cvCreateImage(size, IPL_DEPTH_8U, 1)
+			self.buffer = opencv.cvCreateImage(size, opencv.IPL_DEPTH_8U, 4)
+			self.bufferB = opencv.cvCreateImage(size, opencv.IPL_DEPTH_8U, 1)
+			self.bufferG = opencv.cvCreateImage(size, opencv.IPL_DEPTH_8U, 1)
+			self.bufferR = opencv.cvCreateImage(size, opencv.IPL_DEPTH_8U, 1)
 		
-		if elemType == CV_8UC1:
-			cvMerge(image, None, None, None, self.buffer)
-			cvMerge(None, image, None, None, self.buffer)
-			cvMerge(None, None, image, None, self.buffer)
-		elif elemType == CV_8UC3:
-			cvSplit(image, self.bufferB, self.bufferG, self.bufferR, None)
-			cvMerge(self.bufferB, None, None, None, self.buffer)
-			cvMerge(None, self.bufferG, None, None, self.buffer)
-			cvMerge(None, None, self.bufferR, None, self.buffer)
+		if elemType == opencv.CV_8UC1:
+			opencv.cvMerge(image, None, None, None, self.buffer)
+			opencv.cvMerge(None, image, None, None, self.buffer)
+			opencv.cvMerge(None, None, image, None, self.buffer)
+		elif elemType == opencv.CV_8UC3:
+			opencv.cvSplit(image, self.bufferB, self.bufferG, self.bufferR, None)
+			opencv.cvMerge(self.bufferB, None, None, None, self.buffer)
+			opencv.cvMerge(None, self.bufferG, None, None, self.buffer)
+			opencv.cvMerge(None, None, self.bufferR, None, self.buffer)
 		else:
 			raise Exception('Unsupported type')
 

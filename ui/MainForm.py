@@ -1,8 +1,8 @@
 	# -*- coding: UTF8 -*-
 from PyQt4 import uic
 from PyQt4 import QtGui, QtCore
-from opencv import *
-from opencv.highgui import *
+import opencv
+from opencv import highgui
 import os.path
 
 import VideoThread, ProcessingThread
@@ -41,8 +41,8 @@ class MainForm(QtGui.QMainWindow, Ui_MainForm):
 	def availableFrame(self, frame):
 		if (self.lastSegmentationResult):
 			if not self.frameDecorado:
-				self.frameDecorado = cvCreateImage(cvGetSize(frame), IPL_DEPTH_8U, 3)
-			cvCopy(frame, self.frameDecorado)
+				self.frameDecorado = opencv.cvCreateImage(opencv.cvGetSize(frame), opencv.IPL_DEPTH_8U, 3)
+			opencv.cvCopy(frame, self.frameDecorado)
 			self.decorator.drawSegmentationResult(self.frameDecorado, self.lastSegmentationResult)
 			self.videoWidget.showImage(self.frameDecorado)
 		else:
@@ -68,15 +68,15 @@ class MainForm(QtGui.QMainWindow, Ui_MainForm):
 			self.irisScore.setValue(0)
 			
 		if resultado >= horus.VideoProcessor.FOCUSED_IRIS:
-			self.decorator.pupilColor = CV_RGB(0,255,0)
-			self.decorator.irisColor = CV_RGB(255,0,0)
+			self.decorator.pupilColor = opencv.CV_RGB(0,255,0)
+			self.decorator.irisColor = opencv.CV_RGB(255,0,0)
 		else:
-			self.decorator.pupilColor = CV_RGB(255,255,255)
-			self.decorator.irisColor = CV_RGB(255,255,255)
+			self.decorator.pupilColor = opencv.CV_RGB(255,255,255)
+			self.decorator.irisColor = opencv.CV_RGB(255,255,255)
 		
 		if resultado == horus.VideoProcessor.GOT_TEMPLATE:
-			self.decorator.pupilColor = CV_RGB(255,255,0)
-			self.decorator.irisColor = CV_RGB(255,255,0)
+			self.decorator.pupilColor = opencv.CV_RGB(255,255,0)
+			self.decorator.irisColor = opencv.CV_RGB(255,255,0)
 			
 		
 		self.focusScore.setValue(videoProcessor.lastFocusScore)
@@ -101,27 +101,27 @@ class MainForm(QtGui.QMainWindow, Ui_MainForm):
 	
 	def gotTemplate(self, videoProcessor):
 		self.lastTemplate = videoProcessor.getTemplate()
-		self.templateFrame = videoProcessor.getTemplateFrame()
+		self.templateFrame = horus.pyutilCloneFromHorus(videoProcessor.getTemplateFrame())
 		self.templateFrameSegmentation = videoProcessor.getTemplateSegmentation()
 		self.mostrarThumbnail(self.templateFrame, self.templateFrameSegmentation, self.lastTemplate)
 
 		if self.chkIdentificacionAutomatica.checkState() == QtCore.Qt.Checked:
 			self.identificarTemplate(self.lastTemplate, self.templateFrame, self.templateFrameSegmentation)
 		
-		self.lastCapture = cvClone(self.templateFrame)
+		self.lastCapture = opencv.cvClone(self.templateFrame)
 	
 	def mostrarThumbnail(self, imagen, segmentacion=None, template=None):
-		size = cvGetSize(imagen)
+		size = opencv.cvGetSize(imagen)
 		if not self.thumbnailColorTmp or self.thumbnailColorTmp.width != size.width or self.thumbnailColorTmp.height != size.height:
-			self.thumbnailColorTmp = cvCreateImage(size, IPL_DEPTH_8U, 3)
-			self.thumbnail = cvCreateImage(cvSize(320, 240), IPL_DEPTH_8U, 3)
+			self.thumbnailColorTmp = opencv.cvCreateImage(size, opencv.IPL_DEPTH_8U, 3)
+			self.thumbnail = opencv.cvCreateImage(opencv.cvSize(320, 240), opencv.IPL_DEPTH_8U, 3)
 		
-		cvCvtColor(imagen, self.thumbnailColorTmp, CV_GRAY2BGR)
+		opencv.cvCvtColor(imagen, self.thumbnailColorTmp, opencv.CV_GRAY2BGR)
 		if segmentacion:
-			self.decorator.pupilColor = CV_RGB(0,255,0)
-			self.decorator.irisColor = CV_RGB(255,0,0)
+			self.decorator.pupilColor = opencv.CV_RGB(0,255,0)
+			self.decorator.irisColor = opencv.CV_RGB(255,0,0)
 			self.decorator.drawSegmentationResult(self.thumbnailColorTmp, segmentacion)
-		cvResize(self.thumbnailColorTmp, self.thumbnail, CV_INTER_CUBIC)
+		opencv.cvResize(self.thumbnailColorTmp, self.thumbnail, opencv.CV_INTER_CUBIC)
 		
 		if template:
 			self.decorator.drawTemplate(self.thumbnail, template)
@@ -145,7 +145,7 @@ class MainForm(QtGui.QMainWindow, Ui_MainForm):
 	def on_btnRegistrar_clicked(self):
 		#TODO: Cambiar esto a la acción del menú "Procesar archivo"
 		#nombreArchivo = QtGui.QFileDialog.getOpenFileName(self, "Abrir archivo...")
-		#imagen = cvLoadImage(str(nombreArchivo), 0)
+		#imagen = opencv.cvLoadImage(str(nombreArchivo), 0)
 		#self.forzarIdentificacion(imagen)
 		self.registrarTemplate(self.lastTemplate, self.templateFrame, self.templateFrameSegmentation)
 
@@ -170,4 +170,4 @@ class MainForm(QtGui.QMainWindow, Ui_MainForm):
 	
 	def capturar(self, frame):
 		nombreArchivo = QtGui.QFileDialog.getSaveFileName(self, "Guardar archivo...")
-		cvSaveImage(str(nombreArchivo), frame)
+		opencv.cvSaveImage(str(nombreArchivo), frame)
