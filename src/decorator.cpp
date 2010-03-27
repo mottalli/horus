@@ -103,13 +103,9 @@ void Decorator::drawTemplate(IplImage* image, const IrisTemplate& irisTemplate)
 	IplImage* imgTemplate = irisTemplate.getTemplateImage();
 	CvMat* mask = irisTemplate.getUnpackedMask();
 
-	// Joins the template and the mask in the same image as follows:
-	// mask = 0 => res = 0
-	// template = 1 => res = 255
-	// template = 0 => res = 128
-	cvThreshold(imgTemplate, imgTemplate, 127, 0 /* notused */, CV_THRESH_TRUNC);
-	cvAddS(imgTemplate, cvScalar(127), imgTemplate);
-	cvMul(imgTemplate, mask, imgTemplate);
+	cvSet(mask, cvScalar(255), mask);
+	cvNot(mask, mask);					// Hacky way to NOT the template
+	cvSet(imgTemplate, cvScalar(127), mask);
 
 	IplImage* decoratedTemplate;
 
@@ -123,7 +119,7 @@ void Decorator::drawTemplate(IplImage* image, const IrisTemplate& irisTemplate)
 			cvGetSubRect(tmp, &tmpdest, cvRect(1, 3*i+2, width, 1));
 			cvCopy(&tmpsrc, &tmpdest);
 		}
-		decoratedTemplate = cvCreateImage(cvSize(0.75*tmp->width, 2.0*tmp->height), IPL_DEPTH_8U, 1);
+		decoratedTemplate = cvCreateImage(cvSize(1.5*tmp->width, 2.5*tmp->height), IPL_DEPTH_8U, 1);
 		cvResize(tmp, decoratedTemplate, CV_INTER_NN);
 		cvReleaseImage(&tmp);
 	} else {

@@ -47,8 +47,11 @@ GaborFilter::~GaborFilter()
 
 void GaborFilter::applyFilter(const CvMat* src, CvMat* dest, const CvMat* mask, CvMat* destMask)
 {
+	assert(SAME_SIZE(src, dest));
 	assert(SAME_SIZE(mask, destMask));
 	cvFilter2D(src, dest, this->filter);
+
+	cvCopy(mask, destMask);		//TODO: set threshold here
 }
 
 GaborEncoder::GaborEncoder()
@@ -96,16 +99,6 @@ IrisTemplate GaborEncoder::encodeTexture(const IplImage* texture, const CvMat* m
 		GaborFilter& filter = this->filterBank[f];
 		filter.applyFilter(doubleTexture, this->filteredTexture, mask, this->filteredMask);
 
-		/*CvMat* tmp = cvCreateMat(this->filteredTexture->rows, this->filteredTexture->cols, CV_8U);
-		cvThreshold(this->filteredTexture, tmp, 0, 1, CV_THRESH_BINARY);
-		const CvMat* aMostrar = tmp;
-		IplImage* im = cvCreateImage(cvGetSize(aMostrar), IPL_DEPTH_8U, 1);
-		cvNormalize(aMostrar, im, 0, 255, CV_MINMAX);
-		cvNamedWindow("filtered");
-		cvShowImage("filtered", im);
-		cvWaitKey(0);*/
-
-
 		for (size_t s = 0; s < nSlots; s++) {
 			int xtemplate = s*slotSize + f;
 			int xtexture = (texture->width/nSlots) * s;
@@ -114,7 +107,7 @@ IrisTemplate GaborEncoder::encodeTexture(const IplImage* texture, const CvMat* m
 				assert(xtexture < this->filteredTexture->width && ytexture < this->filteredTexture->height);
 
 				unsigned char templateBit = (cvGetReal2D(this->filteredTexture, ytexture, xtexture) >  0.0 ? 1 : 0);
-				unsigned char maskBit1 = ((cvGetReal2D(this->filteredMask, ytemplate, xtemplate) == 0.0) ? 0 : 1);
+				unsigned char maskBit1 = ((cvGetReal2D(this->filteredMask, ytexture, ytexture) == 0.0) ? 0 : 1);
 				unsigned char maskBit2 = (abs(cvGetReal2D(this->filteredTexture, ytemplate, xtemplate)) < 0.001 ? 0 : 1);
 
 				cvSetReal2D(resultTemplate, ytemplate, xtemplate, templateBit);

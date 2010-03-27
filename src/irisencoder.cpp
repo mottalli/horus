@@ -88,7 +88,7 @@ void IrisEncoder::normalizeIris(const IplImage* image, IplImage* dest, CvMat* de
 
 	// Initialize the mask to 1 (all bits enabled)
 	if (destMask) {
-		cvSet(destMask, cvScalar(1,1,1));
+		cvSet(destMask, cvScalar(1));
 	}
 
 	for (size_t i = 0; i < irisPoints.size(); i++) {
