@@ -20,11 +20,11 @@ public:
 	CvScalar upperEyelidColor;
 	CvScalar lowerEyelidColor;
 
-	void drawSegmentationResult(IplImage* image, const SegmentationResult& segmentationResult);
+	void drawSegmentationResult(Mat& image, const SegmentationResult& segmentationResult) const;
 	void drawTemplate(IplImage* image, const IrisTemplate& irisTemplate);
-	void drawEncodingZone(IplImage* image, const SegmentationResult& segmentationResult);
+	void drawEncodingZone(Mat& image, const SegmentationResult& segmentationResult);
 private:
-	void drawContour(IplImage* image, const Contour& contour, CvScalar color);
+	void drawContour(Mat& image, const Contour& contour, const Scalar& color) const;
 	void drawParabola(IplImage* image, const Parabola& parabola, int xMin, int xMax, CvScalar color);
 };
 

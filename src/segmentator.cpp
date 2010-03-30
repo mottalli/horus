@@ -15,66 +15,55 @@
 
 Segmentator::Segmentator()
 {
-	this->buffers.workingImage = NULL;
 }
 
 Segmentator::~Segmentator() {
 }
 
-SegmentationResult Segmentator::segmentImage(const IplImage* image) {
+SegmentationResult Segmentator::segmentImage(const Mat& image) {
 	SegmentationResult result;
-	const IplImage* imageToSegment;		// Can either user image or workingImage depending on image format
+	Mat imageToSegment;		// Can either user image or workingImage depending on image format
 
-	this->setupBuffers(image);
+	assert(image.depth() == CV_8U);
 
-	if (image->nChannels == 1 && image->depth == IPL_DEPTH_8U) {
+	if (image.channels() == 1) {
 		imageToSegment = image;
-	} else {
-		cvCvtColor(image, this->buffers.workingImage, CV_RGB2GRAY);
-		imageToSegment = this->buffers.workingImage;
+	} else if (image.channels() == 3) {
+		cvtColor(image, this->workingImage, CV_BGR2GRAY);
+		imageToSegment = this->workingImage;
 	}
 
-	ContourAndCloseCircle pupilResult = this->_pupilSegmentator.segmentPupil(imageToSegment);
-	ContourAndCloseCircle irisResult = this->_irisSegmentator.segmentIris(imageToSegment, pupilResult);
+	const IplImage iplimage = (const IplImage)imageToSegment;
+	const IplImage* pimage = &iplimage;
+	ContourAndCloseCircle pupilResult = this->pupilSegmentator.segmentPupil(imageToSegment);
+	ContourAndCloseCircle irisResult = this->irisSegmentator.segmentIris(pimage, pupilResult);
 
 	result.pupilContour = pupilResult.first;
 	result.pupilCircle = pupilResult.second;
 	result.irisContour = irisResult.first;
 	result.irisCircle = irisResult.second;
-	result.pupilContourQuality = this->_pupilSegmentator.getPupilContourQuality();
+	result.pupilContourQuality = this->pupilSegmentator.getPupilContourQuality();
 
 	result.eyelidsSegmented = false;
 
 	return result;
 };
 
-void Segmentator::segmentEyelids(const IplImage* image, SegmentationResult& result)
+void Segmentator::segmentEyelids(const Mat& image, SegmentationResult& result)
 {
-	const IplImage* imageToSegment;		// Can either user image or workingImage depending on image format
+	Mat imageToSegment;		// Can either user image or workingImage depending on image format
 
-	this->setupBuffers(image);
+	assert(image.depth() == IPL_DEPTH_8U);
 
-	if (image->nChannels == 1 && image->depth == IPL_DEPTH_8U) {
+	if (image.channels() == 1) {
 		imageToSegment = image;
-	} else {
-		cvCvtColor(image, this->buffers.workingImage, CV_RGB2GRAY);
-		imageToSegment = this->buffers.workingImage;
+	} else if (image.channels() == 3) {
+		cvtColor(image, this->workingImage, CV_BGR2GRAY);
+		imageToSegment = this->workingImage;
 	}
 
-	std::pair<Parabola, Parabola> eyelids = this->_eyelidSegmentator.segmentEyelids(imageToSegment, result.pupilCircle, result.irisCircle);
+	std::pair<Parabola, Parabola> eyelids = this->eyelidSegmentator.segmentEyelids(&IplImage(imageToSegment), result.pupilCircle, result.irisCircle);
 	result.upperEyelid = eyelids.first;
 	result.lowerEyelid = eyelids.second;
 	result.eyelidsSegmented = true;
-}
-
-void Segmentator::setupBuffers(const IplImage* image)
-{
-	if (this->buffers.workingImage == NULL || this->buffers.workingImage->width != image->width || this->buffers.workingImage->height != image->height) {
-		if (this->buffers.workingImage != NULL) {
-			cvReleaseImage(&this->buffers.workingImage);
-		}
-
-		this->buffers.workingImage = cvCreateImage(cvGetSize(image), IPL_DEPTH_8U, 1);
-	}
-
 }

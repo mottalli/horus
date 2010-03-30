@@ -40,23 +40,23 @@ GaborEncoder gaborEncoder;
 
 int main(int argc, char** argv) {
 	const char* imagePath = "/home/marcelo/iris/BBDD/UBA/marcelo_der_1.bmp";
-	IplImage* image = cvLoadImage(imagePath, 0);
+	Mat image = imread(imagePath);
 
-    SegmentationResult res = segmentator.segmentImage(image);
-
+	SegmentationResult segmentationResult = segmentator.segmentImage(image);
 
 	//IrisTemplate template_ = logGaborEncoder.generateTemplate(image, res);
-	IrisTemplate template_ = gaborEncoder.generateTemplate(image, res);
+	//IrisTemplate template_ = gaborEncoder.generateTemplate(image, res);
 
 	/*IplImage* imTemplate = template_.getTemplateImage();
 	cvNamedWindow("templ");
 	cvShowImage("templ", beautificarTemplate(imTemplate));*/
 
-	decorator.drawSegmentationResult(image, res);
-	decorator.drawTemplate(image, template_);
+	decorator.drawSegmentationResult(image, segmentationResult);
+	decorator.drawEncodingZone(image, segmentationResult);
+	//decorator.drawTemplate(image, template_);
 
-	cvNamedWindow("imagen");
-	cvShowImage("imagen", image);
+	namedWindow("imagen", 1);
+	imshow("imagen", image);
 
 
 	char k;

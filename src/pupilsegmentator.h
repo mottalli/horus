@@ -15,25 +15,25 @@ public:
 	PupilSegmentator();
 	virtual ~PupilSegmentator();
 
-	ContourAndCloseCircle segmentPupil(const IplImage* image);
+	ContourAndCloseCircle segmentPupil(const Mat& image);
 	inline int getPupilContourQuality() const { return this->pupilContourQuality; }
 
 	// Internal buffers
-	IplImage* similarityImage;
-	IplImage* equalizedImage;
-	IplImage* adjustmentRing;
-	IplImage* adjustmentRingGradient;
-	IplImage* workingImage;
-	CvMat* adjustmentSnake;
-	CvMat* LUT;
+	Mat_<uint8_t> similarityImage;
+	Mat_<uint8_t> equalizedImage;
+	Mat_<uint8_t> adjustmentRing;
+	Mat_<int16_t> adjustmentRingGradient;
+	Mat_<uint8_t> workingImage;
+	Mat_<float> adjustmentSnake;
+	Mat_<uint8_t> _LUT;
 	double resizeFactor;
 
 private:
-	void setupBuffers(const IplImage* image);
+	void setupBuffers(const Mat& image);
 	void similarityTransform();
-	Circle approximatePupil(const IplImage* image);
-	Circle cascadedIntegroDifferentialOperator(const IplImage* image);
-	int calculatePupilContourQuality(const IplImage* region, const IplImage* regionGradient, const CvMat* contourSnake);
+	Circle approximatePupil(const Mat_<uint8_t>& image);
+	Circle cascadedIntegroDifferentialOperator(const Mat_<uint8_t>& image);
+	int calculatePupilContourQuality(const Mat_<uint8_t>& region, const Mat_<uint16_t>& regionGradient, const Mat_<float>& contourSnake);
 
 	int pupilContourQuality;
 
@@ -41,10 +41,10 @@ private:
 		int maxRad;
 		int maxStep;
 	} MaxAvgRadiusResult;
-	MaxAvgRadiusResult maxAvgRadius(const IplImage* image, int x, int y, int radmin, int radmax, int radstep);
+	MaxAvgRadiusResult maxAvgRadius(const Mat_<uint8_t>& image, int x, int y, int radmin, int radmax, int radstep);
 
-	uint8_t circleAverage(const IplImage* image, int x, int y, int radius);
-	Contour adjustPupilContour(const IplImage* image, const Circle& approximateCircle);
+	uint8_t circleAverage(const Mat_<uint8_t>& image, int x, int y, int radius);
+	Contour adjustPupilContour(const Mat_<uint8_t>& image, const Circle& approximateCircle);
 
 	double _lastSigma, _lastMu;
 };

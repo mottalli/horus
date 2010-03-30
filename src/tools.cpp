@@ -318,3 +318,4 @@ void Tools::updateSize(CvMat** mat, CvSize size, int depth)
 		*mat = cvCreateMat(size.height, size.width, depth);
 	}
 }
+

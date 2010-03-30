@@ -18,27 +18,27 @@ Decorator::Decorator()
 	this->lowerEyelidColor = CV_RGB(0,0,255);
 }
 
-void Decorator::drawSegmentationResult(IplImage* image, const SegmentationResult& segmentationResult)
+void Decorator::drawSegmentationResult(Mat& image, const SegmentationResult& segmentationResult) const
 {
-	CvScalar irisColor_ = (image->nChannels == 1 ? CV_RGB(255,255,255) : this->irisColor);
-	CvScalar pupilColor_ = (image->nChannels == 1 ? CV_RGB(255,255,255) : this->pupilColor);
+	Scalar irisColor_ = (image.channels() == 1 ? CV_RGB(255,255,255) : this->irisColor);
+	Scalar pupilColor_ = (image.channels() == 1 ? CV_RGB(255,255,255) : this->pupilColor);
 	this->drawContour(image, segmentationResult.irisContour, irisColor_);
 	this->drawContour(image, segmentationResult.pupilContour, pupilColor_);
 
-	Circle irisCircle = segmentationResult.irisCircle;
+	const Circle& irisCircle = segmentationResult.irisCircle;
 
 	if (segmentationResult.eyelidsSegmented) {
 		int xMin = segmentationResult.irisCircle.xc-segmentationResult.irisCircle.radius;
 		int xMax = segmentationResult.irisCircle.xc+segmentationResult.irisCircle.radius;
-		this->drawParabola(image, segmentationResult.upperEyelid, xMin, xMax, this->upperEyelidColor);
-		this->drawParabola(image, segmentationResult.lowerEyelid, xMin, xMax, this->lowerEyelidColor);
+		//this->drawParabola(image, segmentationResult.upperEyelid, xMin, xMax, this->upperEyelidColor);
+		//this->drawParabola(image, segmentationResult.lowerEyelid, xMin, xMax, this->lowerEyelidColor);
 	}
 
 	/*cvCircle(image, cvPoint(segmentationResult.irisCircle.xc,segmentationResult.irisCircle.yc), segmentationResult.irisCircle.radius, CV_RGB(255,255,255), 1);
 	cvCircle(image, cvPoint(segmentationResult.pupilCircle.xc,segmentationResult.pupilCircle.yc), segmentationResult.pupilCircle.radius, CV_RGB(255,255,255), 1);*/
 }
 
-void Decorator::drawEncodingZone(IplImage* image, const SegmentationResult& segmentationResult)
+void Decorator::drawEncodingZone(Mat& image, const SegmentationResult& segmentationResult)
 {
 	bool fill = false;
 	Parameters* parameters = Parameters::getParameters();
@@ -54,19 +54,23 @@ void Decorator::drawEncodingZone(IplImage* image, const SegmentationResult& segm
 		CvPoint coord = irisPoints[i].first;
 		int x = int(imagePoint.x), y = int(imagePoint.y);
 
-		if (x < 0 || x >= image->width || y < 0 || y > image->height) {
+		if (x < 0 || x >= image.size().width  || y < 0 || y > image.size().height) {
 			continue;
 		}
 
 		if (fill || (coord.x == 0 || coord.x == width-1 || coord.y == 0 || coord.y == height-1)) {
-			cvSet2D(image, y, x, CV_RGB(255,255,0));
+			if (image.channels() == 1) {
+				image.at<uchar>(y,x) = 255;
+			} else if (image.channels() == 3) {
+				image.at<Vec3b>(y, x) = Vec3b(0,255,255);
+			}
 		}
 	}
 
 }
 
 
-void Decorator::drawContour(IplImage* image, const Contour& contour, CvScalar color)
+void Decorator::drawContour(Mat& image, const Contour& contour, const Scalar& color) const
 {
 	if (contour.size() < 2) return;
 
@@ -75,13 +79,16 @@ void Decorator::drawContour(IplImage* image, const Contour& contour, CvScalar co
 
 	CvPoint lastPoint = p0;
 
+	Mat_<Vec3b>& image3 = (Mat_<Vec3b>&)image;
+
 	for (int i = 1; i < n; i++) {
 		const CvPoint p = contour[i];
-		cvLine(image, lastPoint, p, color, 1);
+		//image.at<Vec3b>(p.y, p.x) = Vec3b(0, 255, 255);
+		line(image, lastPoint, p, color, 1);
 		lastPoint = p;
 	}
 
-	cvLine(image, lastPoint, p0, color, 1);
+	line(image, lastPoint, p0, color, 1);
 }
 
 void Decorator::drawParabola(IplImage* image, const Parabola& parabola, int xMin, int xMax, CvScalar color)

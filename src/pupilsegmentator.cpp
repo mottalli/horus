@@ -7,31 +7,21 @@
 
 #include "pupilsegmentator.h"
 #include "helperfunctions.h"
-#include <cmath>
+#include "tools.h"
 
 PupilSegmentator::PupilSegmentator()
 {
-	this->LUT = cvCreateMat(256, 1, CV_8UC1);
-	this->similarityImage = NULL;
 	this->_lastSigma = this->_lastMu = -100.0;
-
-	this->workingImage = NULL;
-
-	this->adjustmentRing = NULL;
-	this->adjustmentRingGradient = NULL;
 }
 
 PupilSegmentator::~PupilSegmentator()
 {
-	cvReleaseMat(&this->LUT);
-
-	if (this->similarityImage != NULL) {
-		cvReleaseImage(&this->similarityImage);
-	}
 }
 
-ContourAndCloseCircle PupilSegmentator::segmentPupil(const IplImage* image)
+ContourAndCloseCircle PupilSegmentator::segmentPupil(const Mat& image)
 {
+	assert(image.channels() == 1 && image.depth() == CV_8U);
+
 	this->setupBuffers(image);
 	ContourAndCloseCircle result;
 
@@ -48,99 +38,42 @@ ContourAndCloseCircle PupilSegmentator::segmentPupil(const IplImage* image)
 
 }
 
-void PupilSegmentator::setupBuffers(const IplImage* image)
+void PupilSegmentator::setupBuffers(const Mat& image)
 {
 	Parameters* parameters = Parameters::getParameters();
 
 	// Initialize the working image
 	int bufferWidth = parameters->bufferWidth;
+	int width = image.cols, height = image.rows;
 
-	int workingWidth, workingHeight;
-	int width = image->width, height = image->height;
-	double resizeFactor;
+	this->resizeFactor = ((width > bufferWidth) ? double(bufferWidth) / double(width) : 1.0);
 
-	if (image->width > bufferWidth) {
-		resizeFactor = double(bufferWidth) / double(image->width);
-		workingWidth = int(double(width) * resizeFactor);
-		workingHeight = int(double(height) * resizeFactor);
+	if (this->resizeFactor != 1.0) {
+		resize(image, this->workingImage, Size(), this->resizeFactor, this->resizeFactor);
 	} else {
-		resizeFactor = 1.0;
-		workingWidth = width;
-		workingHeight = height;
+		this->workingImage = image;
 	}
 
-	this->resizeFactor = resizeFactor;
-
-	IplImage*& workingImage = this->workingImage;
-
-	if (workingImage == NULL || workingImage->width != workingWidth
-			|| workingImage->height != workingHeight) {
-		if (workingImage != NULL) {
-			cvReleaseImage(&workingImage);
-		}
-
-		workingImage = cvCreateImage(cvSize(workingWidth, workingHeight),
-				IPL_DEPTH_8U, 1);
-	}
-
-	if (resizeFactor == 1.0) {
-		cvCopy(image, workingImage);
-	} else {
-		cvResize(image, workingImage, CV_INTER_LINEAR);
-	}
-
-	if (this->similarityImage == NULL
-			|| !SAME_SIZE(this->similarityImage, workingImage)) {
-		if (this->similarityImage != NULL) {
-			cvReleaseImage(&this->similarityImage);
-			cvReleaseImage(&this->equalizedImage);
-		}
-		this->similarityImage = cvCreateImage(cvGetSize(workingImage),
-				IPL_DEPTH_8U, 1);
-		this->equalizedImage = cvCreateImage(cvGetSize(workingImage),
-				IPL_DEPTH_8U, 1);
-	}
-
-	if (this->adjustmentRing == NULL
-			|| this->adjustmentRing->width
-					!= parameters->pupilAdjustmentRingWidth
-			|| this->adjustmentRing->height
-					!= parameters->pupilAdjustmentRingHeight) {
-		if (this->adjustmentRing != NULL) {
-			cvReleaseImage(&this->adjustmentRing);
-			cvReleaseImage(&this->adjustmentRingGradient);
-			cvReleaseMat(&this->adjustmentSnake);
-		}
-
-		this->adjustmentRing = cvCreateImage(cvSize(
-				parameters->pupilAdjustmentRingWidth,
-				parameters->pupilAdjustmentRingHeight), IPL_DEPTH_8U, 1);
-		this->adjustmentRingGradient = cvCreateImage(cvSize(
-				parameters->pupilAdjustmentRingWidth,
-				parameters->pupilAdjustmentRingHeight), IPL_DEPTH_16S, 1);
-		this->adjustmentSnake = cvCreateMat(1,
-				parameters->pupilAdjustmentRingWidth, CV_32F);
-	}
-
+	this->adjustmentRing.create(Size(parameters->pupilAdjustmentRingWidth, parameters->pupilAdjustmentRingHeight));
+	this->adjustmentRingGradient.create(Size(parameters->pupilAdjustmentRingWidth, parameters->pupilAdjustmentRingHeight));
+	this->adjustmentSnake.create(Size(parameters->pupilAdjustmentRingWidth, 1));
 }
 
-Circle PupilSegmentator::approximatePupil(const IplImage* image)
+Circle PupilSegmentator::approximatePupil(const Mat_<uint8_t>& image)
 {
 	// First, equalize the image
-	cvEqualizeHist(image, this->equalizedImage);
+	equalizeHist(image, this->equalizedImage);
 
 	// Then apply the similarity transformation
 	this->similarityTransform();
-	cvSmooth(this->similarityImage, this->similarityImage,
-			CV_GAUSSIAN, 13);
+	blur(this->similarityImage, this->similarityImage, Size(13, 13));
 
 	// Now perform the cascaded integro-differential operator
-	return this->cascadedIntegroDifferentialOperator(
-			this->similarityImage);
+	return this->cascadedIntegroDifferentialOperator(this->similarityImage);
 
 }
 
-Contour PupilSegmentator::adjustPupilContour(const IplImage* image, const Circle& approximateCircle)
+Contour PupilSegmentator::adjustPupilContour(const Mat_<uint8_t>& image, const Circle& approximateCircle)
 {
 	int radiusMin = approximateCircle.radius * 0.5, radiusMax =
 			approximateCircle.radius * 1.5;
@@ -150,21 +83,19 @@ Contour PupilSegmentator::adjustPupilContour(const IplImage* image, const Circle
 	int infraredThreshold = Parameters::getParameters()->infraredThreshold;
 
 	// Calculate the vertical gradient
-	cvSobel(this->adjustmentRing, this->adjustmentRingGradient,
-			0, 1, 3);
-	cvSmooth(this->adjustmentRingGradient,
-			this->adjustmentRingGradient, CV_GAUSSIAN, 3, 3);
+	Sobel(this->adjustmentRing, this->adjustmentRingGradient, this->adjustmentRingGradient.type(), 0, 1, 3);
+	blur(this->adjustmentRingGradient, this->adjustmentRingGradient, Size(3,3));
 
 	// Shortcut to avoid having huge lines
-	IplImage* gradient = this->adjustmentRingGradient;
-	CvMat* snake = this->adjustmentSnake;
+	Mat_<int16_t>& gradient = this->adjustmentRingGradient;
+	Mat_<float>& snake = this->adjustmentSnake;
 
 	// Find the points where the vertical gradient is maximum
-	for (int x = 0; x < gradient->width; x++) {
+	for (int x = 0; x < gradient.cols; x++) {
 		int maxGrad = INT_MIN;
 		int bestY = 0;
-		for (int y = 0; y < gradient->height; y++) {
-			int gxy = cvGetReal2D(gradient, y, x);
+		for (int y = 0; y < gradient.rows; y++) {
+			int gxy = gradient(y, x);
 			if (gxy > maxGrad) {
 				maxGrad = gxy;
 				bestY = y;
@@ -173,38 +104,38 @@ Contour PupilSegmentator::adjustPupilContour(const IplImage* image, const Circle
 			// A maximum in the gradient may have been caused by the reflections
 			// of the infrared LEDs. In this case, default to the original circle
 			bool hasInfraredLed = false;
-			hasInfraredLed = hasInfraredLed || (cvGetReal2D(this->adjustmentRing, bestY, x) > infraredThreshold);
-			hasInfraredLed = hasInfraredLed || (bestY-1 >= 0 && cvGetReal2D(this->adjustmentRing, bestY-1, x) > infraredThreshold);
-			hasInfraredLed = hasInfraredLed || (bestY+1 < this->adjustmentRing->height && cvGetReal2D(this->adjustmentRing, bestY+1, x) > infraredThreshold);
+			hasInfraredLed = hasInfraredLed || (this->adjustmentRing(bestY, x) > infraredThreshold);
+			hasInfraredLed = hasInfraredLed || (bestY-1 >= 0 && this->adjustmentRing(bestY-1, x) > infraredThreshold);
+			hasInfraredLed = hasInfraredLed || (bestY+1 < this->adjustmentRing.rows && this->adjustmentRing(bestY+1, x) > infraredThreshold);
 			if (hasInfraredLed) {
 				// The middle point is where the original circular contour passes through
-				bestY = gradient->height/2;
+				bestY = gradient.rows/2;
 			}
 		}
 
-		cvSetReal2D(snake, 0, x, bestY);
+		snake(0, x) = bestY;
 	}
 
 	// Smooth the snake
 	HelperFunctions::smoothSnakeFourier(snake, 3);
-	int delta = gradient->height * 0.1;
+	int delta = gradient.rows * 0.1;
 
 	// Improve the estimation
-	for (int x = 0; x < gradient->width; x++) {
+	for (int x = 0; x < gradient.cols; x++) {
 		int maxGrad = INT_MIN;
 		int bestY = 0;
-		int v = cvGetReal2D(snake, 0, x);
+		int v = snake(0, x);
 		int ymin = std::max(0, v - delta);
-		int ymax = std::min(gradient->height, v + delta);
+		int ymax = std::min(gradient.rows, v + delta);
 		for (int y = ymin; y < ymax; y++) {
-			int gxy = cvGetReal2D(gradient, y, x);
+			int gxy = gradient(y,x);
 			if (gxy > maxGrad) {
 				maxGrad = gxy;
 				bestY = y;
 			}
 		}
 
-		cvSetReal2D(snake, 0, x, bestY);
+		snake(0, x) = bestY;
 	}
 
 	HelperFunctions::smoothSnakeFourier(snake, 5);
@@ -213,11 +144,11 @@ Contour PupilSegmentator::adjustPupilContour(const IplImage* image, const Circle
 	this->pupilContourQuality = this->calculatePupilContourQuality(this->adjustmentRing, this->adjustmentRingGradient, snake);
 
 	// Now, transform the points from the ring coordinates to the image coordinates
-	Contour result(snake->cols);
-	for (int x = 0; x < gradient->width; x++) {
-		int y = cvGetReal2D(snake, 0, x);
-		double theta = (double(x) / double(snake->cols)) * 2.0 * M_PI;
-		double radius = (double(y) / double(gradient->height - 1))
+	Contour result(snake.cols);
+	for (int x = 0; x < gradient.cols; x++) {
+		int y = snake(0, x);
+		double theta = (double(x) / double(snake.cols)) * 2.0 * M_PI;
+		double radius = (double(y) / double(gradient.rows - 1))
 				* double(radiusMax - radiusMin) + double(radiusMin);
 
 		int ximag = int(double(approximateCircle.xc) + std::cos(theta) * radius);
@@ -229,12 +160,12 @@ Contour PupilSegmentator::adjustPupilContour(const IplImage* image, const Circle
 	return result;
 }
 
-Circle PupilSegmentator::cascadedIntegroDifferentialOperator(const IplImage* image)
+Circle PupilSegmentator::cascadedIntegroDifferentialOperator(const Mat_<uint8_t>& image)
 {
 	int minrad = 10, minradabs = 10;
 	int maxrad = 80;
 	int minx = 10, miny = 10;
-	int maxx = image->width - 10, maxy = image->height - 10;
+	int maxx = image.cols - 10, maxy = image.rows - 10;
 	int x, y, radius = 0;
 	//int maxStep = INT_MIN;
 	int bestX = 0, bestY = 0, bestRadius = 0;
@@ -263,9 +194,9 @@ Circle PupilSegmentator::cascadedIntegroDifferentialOperator(const IplImage* ima
 		}
 
 		minx = std::max<int>(bestX - steps[i], 0);
-		maxx = std::min<int>(bestX + steps[i], image->width);
+		maxx = std::min<int>(bestX + steps[i], image.cols);
 		miny = std::max<int>(bestY - steps[i], 0);
-		maxy = std::min<int>(bestY + steps[i], image->height);
+		maxy = std::min<int>(bestY + steps[i], image.rows);
 		minrad = std::max<int>(bestRadius - radiusSteps[i], minradabs);
 		maxrad = bestRadius + radiusSteps[i];
 
@@ -279,7 +210,7 @@ Circle PupilSegmentator::cascadedIntegroDifferentialOperator(const IplImage* ima
 	return bestCircle;
 }
 
-PupilSegmentator::MaxAvgRadiusResult PupilSegmentator::maxAvgRadius(const IplImage* image, int x, int y, int radmin, int radmax, int radstep)
+PupilSegmentator::MaxAvgRadiusResult PupilSegmentator::maxAvgRadius(const Mat_<uint8_t>& image, int x, int y, int radmin, int radmax, int radstep)
 {
 	int maxDifference, difference;
 	uint8_t actualAvg, nextAvg;
@@ -304,43 +235,49 @@ PupilSegmentator::MaxAvgRadiusResult PupilSegmentator::maxAvgRadius(const IplIma
 	return result;
 }
 
-uint8_t PupilSegmentator::circleAverage(const IplImage* image, int xc, int yc, int rc)
+uint8_t PupilSegmentator::circleAverage(const Mat_<uint8_t>& image, int xc, int yc, int rc)
 {
 	// Optimized Bresenham algorithm for circles
 	int x = 0;
 	int y = rc;
 	int d = 3 - 2 * rc;
 	int i, w;
-	uint8_t *row1, *row2, *row3, *row4;
+	const uint8_t *row1, *row2, *row3, *row4;
 	unsigned S, n;
 
 	i = 0;
 	n = 0;
 	S = 0;
 
-	if ((xc + rc) >= image->width || (xc - rc) < 0 || (yc + rc)
-			>= image->height || (yc - rc) < 0) {
+	int width = image.cols, height = image.rows;
+
+	if ((xc + rc) >= width || (xc - rc) < 0 || (yc + rc)
+			>= height || (yc - rc) < 0) {
 		while (x < y) {
 			i++;
 			w = (i - 1) * 8 + 1;
 
-			row1 = ((uint8_t*) (image->imageData)) + image->widthStep
+			/*row1 = ((uint8_t*) (image->imageData)) + image->widthStep
 					* (yc + y);
 			row2 = ((uint8_t*) (image->imageData)) + image->widthStep
 					* (yc - y);
 			row3 = ((uint8_t*) (image->imageData)) + image->widthStep
 					* (yc + x);
 			row4 = ((uint8_t*) (image->imageData)) + image->widthStep
-					* (yc - x);
+					* (yc - x);*/
+			row1 = image.ptr(yc+y);
+			row2 = image.ptr(yc-y);
+			row3 = image.ptr(yc+x);
+			row4 = image.ptr(yc-x);
 
-			bool row1in = ((yc + y) >= 0 && (yc + y) < image->height);
-			bool row2in = ((yc - y) >= 0 && (yc - y) < image->height);
-			bool row3in = ((yc + x) >= 0 && (yc + x) < image->height);
-			bool row4in = ((yc - x) >= 0 && (yc - y) < image->height);
-			bool xcMxin = ((xc + x) >= 0 && (xc + x) < image->width);
-			bool xcmxin = ((xc - x) >= 0 && (xc - x) < image->width);
-			bool xcMyin = ((xc + y) >= 0 && (xc + y) < image->width);
-			bool xcmyin = ((xc - y) >= 0 && (xc - y) < image->width);
+			bool row1in = ((yc + y) >= 0 && (yc + y) < height);
+			bool row2in = ((yc - y) >= 0 && (yc - y) < height);
+			bool row3in = ((yc + x) >= 0 && (yc + x) < height);
+			bool row4in = ((yc - x) >= 0 && (yc - y) < height);
+			bool xcMxin = ((xc + x) >= 0 && (xc + x) < width);
+			bool xcmxin = ((xc - x) >= 0 && (xc - x) < width);
+			bool xcMyin = ((xc + y) >= 0 && (xc + y) < width);
+			bool xcmyin = ((xc - y) >= 0 && (xc - y) < width);
 
 			if (row1in && xcMxin) {
 				S += unsigned(row1[xc + x]);
@@ -349,7 +286,6 @@ uint8_t PupilSegmentator::circleAverage(const IplImage* image, int xc, int yc, i
 			if (row1in && xcmxin) {
 				S += unsigned(row1[xc - x]);
 				n++;
-
 			}
 			if (row2in && xcMxin) {
 				S += unsigned(row2[xc + x]);
@@ -390,7 +326,7 @@ uint8_t PupilSegmentator::circleAverage(const IplImage* image, int xc, int yc, i
 			i++;
 			w = (i - 1) * 8 + 1;
 
-			row1 = ((uint8_t*) (image->imageData)) + image->widthStep
+			/*row1 = ((uint8_t*) (image->imageData)) + image->widthStep
 					* (yc + y);
 			row2 = ((uint8_t*) (image->imageData)) + image->widthStep
 					* (yc - y);
@@ -398,6 +334,12 @@ uint8_t PupilSegmentator::circleAverage(const IplImage* image, int xc, int yc, i
 					* (yc + x);
 			row4 = ((uint8_t*) (image->imageData)) + image->widthStep
 					* (yc - x);
+					*/
+
+			row1 = image.ptr(yc+y);
+			row2 = image.ptr(yc-y);
+			row3 = image.ptr(yc+x);
+			row4 = image.ptr(yc-x);
 
 			S += unsigned(row1[xc + x]);
 			S += unsigned(row1[xc - x]);
@@ -429,59 +371,60 @@ void PupilSegmentator::similarityTransform()
 
 	double sigma = parameters->sigmaPupil;
 	double mu = parameters->muPupil;
-	double num, denom = 2.0 * sigma * sigma;
-	double res;
 
 	if (this->_lastSigma != sigma || this->_lastMu != mu) {
 		// Rebuild the lookup table
 		this->_lastSigma = sigma;
 		this->_lastMu = mu;
 
-		uint8_t* pLUT = this->LUT->data.ptr;
+		this->_LUT = Mat(Size(256,1), CV_8U);
+		uchar* pLUT = this->_LUT.ptr(0);
+
+		double num, denom = 2.0 * sigma * sigma;
+		double res;
+
 		for (int i = 0; i < 256; i++) {
 			num = (double(i) - mu) * (double(i) - mu);
 			res = std::exp(-num / denom) * 255.0;
-			pLUT[i] = (uint8_t) (res);
+			pLUT[i] = (uchar) (res);
 		}
 	}
 
-	cvLUT(this->equalizedImage, this->similarityImage,
-			this->LUT);
+	LUT(this->equalizedImage, this->_LUT, this->similarityImage);
 }
 
-int PupilSegmentator::calculatePupilContourQuality(const IplImage* region, const IplImage* regionGradient, const CvMat* contourSnake)
+int PupilSegmentator::calculatePupilContourQuality(const Mat_<uint8_t>& region, const Mat_<uint16_t>& regionGradient, const Mat_<float>& contourSnake)
 {
-	assert(regionGradient->width == contourSnake->width);
-	assert(regionGradient->depth == int(IPL_DEPTH_16S));
-	assert(region->width == regionGradient->width && region->height == regionGradient->height);
+	assert(regionGradient.cols == contourSnake.cols);
+	assert(region.size() == regionGradient.size());
 
 	int infraredThreshold = Parameters::getParameters()->infraredThreshold;
 
-	int delta = region->height * 0.1;
+	int delta = region.rows * 0.1;
 	//const int delta = 2;
 
 	double sum2 = 0;
 	double norm2 = 0;
 	double v;
-	for (int x = 0; x < regionGradient->width; x++) {
+	for (int x = 0; x < regionGradient.cols; x++) {
 		// Skip this row if there's an infrared reflection
 		bool skip = false;
-		for (int y = 0; y < region->height; y++) {
-			if (cvGetReal2D(region, y, x) >= infraredThreshold) {
+		for (int y = 0; y < region.rows; y++) {
+			if (region(y,x) >= infraredThreshold) {
 				skip = true;
 				break;
 			}
 		}
 		if (skip) continue;
 
-		int yborder = int(cvGetReal2D(contourSnake, 0, x));
+		int yborder = int(contourSnake(0, x));
 		int ymin = std::max(0, yborder-delta);
-		int ymax = std::min(regionGradient->height, yborder+delta);
+		int ymax = std::min(regionGradient.rows, yborder+delta);
 
 		if (yborder < 0) return 0;
 
-		for (int y = 0; y < regionGradient->height; y++) {
-			v = cvGetReal2D(regionGradient, y, x);
+		for (int y = 0; y < regionGradient.rows; y++) {
+			v = regionGradient(y,x);
 			norm2 += v*v;
 			if (y >= ymin && y < ymax) {
 				sum2 += v*v;

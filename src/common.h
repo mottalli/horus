@@ -10,6 +10,10 @@
 #include <limits.h>
 #include <stdint.h>
 #include <cassert>
+#include <stdexcept>
+
+using namespace std;
+using namespace cv;
 
 
 #include "types.h"

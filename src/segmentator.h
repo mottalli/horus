@@ -17,20 +17,17 @@ class Segmentator {
 public:
 	Segmentator();
 	virtual ~Segmentator();
-	SegmentationResult segmentImage(const IplImage* image);
-	void segmentEyelids(const IplImage* image, SegmentationResult& result);
 
-	struct {
-		IplImage* workingImage;
-		float resizeFactor;
-	} buffers;
+	SegmentationResult segmentImage(const Mat& image);
+	void segmentEyelids(const Mat& image, SegmentationResult& result);
 
-	//private:
-	PupilSegmentator _pupilSegmentator;
-	IrisSegmentator _irisSegmentator;
-	EyelidSegmentator _eyelidSegmentator;
+	PupilSegmentator pupilSegmentator;
+	IrisSegmentator irisSegmentator;
+	EyelidSegmentator eyelidSegmentator;
 
-	void setupBuffers(const IplImage* image);
+private:
+	Mat workingImage;
+	float resizeFactor;
 };
 
 
