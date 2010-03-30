@@ -47,8 +47,6 @@ void IrisDatabaseCUDA::calculatePartsDistances(const IrisTemplate& irisTemplate,
 
 		loadDatabase(rawTemplates, rawMasks, packedWidth, packedHeight, &this->gpuDatabase);
 		this->dirty = false;
-
-		this->resultDistances = vector<double>(this->templates.size());
 	}
 	
 	TemplateComparator comparator(irisTemplate, nRots, rotStep);
