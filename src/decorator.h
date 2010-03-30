@@ -1,10 +1,3 @@
-/*
- * decorator.h
- *
- *  Created on: Jun 4, 2009
- *      Author: marcelo
- */
-
 #pragma once
 
 #include "common.h"

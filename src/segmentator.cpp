@@ -21,6 +21,8 @@ Segmentator::~Segmentator() {
 }
 
 SegmentationResult Segmentator::segmentImage(const Mat& image) {
+	clock.start();
+
 	SegmentationResult result;
 	Mat imageToSegment;		// Can either user image or workingImage depending on image format
 
@@ -43,6 +45,8 @@ SegmentationResult Segmentator::segmentImage(const Mat& image) {
 	result.pupilContourQuality = this->pupilSegmentator.getPupilContourQuality();
 
 	result.eyelidsSegmented = false;
+
+	this->segmentationTime = clock.stop();
 
 	return result;
 };

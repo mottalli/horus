@@ -1,10 +1,3 @@
-/*
- * irisencoder.cpp
- *
- *  Created on: Jun 10, 2009
- *      Author: marcelo
- */
-
 #include <cmath>
 #include <iostream>
 

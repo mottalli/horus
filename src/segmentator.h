@@ -12,6 +12,7 @@
 #include "irissegmentator.h"
 #include "eyelidsegmentator.h"
 #include "segmentationresult.h"
+#include "clock.h"
 
 class Segmentator {
 public:
@@ -25,9 +26,12 @@ public:
 	IrisSegmentator irisSegmentator;
 	EyelidSegmentator eyelidSegmentator;
 
+	double segmentationTime;
+
 private:
 	Mat workingImage;
 	float resizeFactor;
+	Clock clock;
 };
 
 
