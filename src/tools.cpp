@@ -72,7 +72,7 @@ void Tools::drawHistogram(const IplImage* img)
 	for (int i = 0; i < bins; i++) {
 		float value = cvQueryHistValue_1D(hist, i);
 		int normalized = cvRound(imgHist->height*(value/max_value));
-		cvLine(imgHist, cvPoint(i,imgHist->height), cvPoint(i, imgHist->height-normalized), CV_RGB(0,0,0));
+		cvLine(imgHist, Point(i,imgHist->height), Point(i, imgHist->height-normalized), CV_RGB(0,0,0));
 	}
 
 	cvNamedWindow("histogram");
@@ -251,13 +251,13 @@ std::string Tools::base64Decode(std::string const& encoded_string) {
   return ret;
 }
 
-std::vector< std::pair<CvPoint, CvPoint> > Tools::iterateIris(const SegmentationResult& segmentation, int width, int height, double theta0, double theta1, double radius)
+std::vector< std::pair<Point, Point> > Tools::iterateIris(const SegmentationResult& segmentation, int width, int height, double theta0, double theta1, double radius)
 {
-	std::vector< std::pair<CvPoint, CvPoint> > res;
+	std::vector< std::pair<Point, Point> > res;
 	const Contour& pupilContour = segmentation.pupilContour;
 	const Contour& irisContour = segmentation.irisContour;
 
-	CvPoint p0, p1;
+	Point p0, p1;
 	for (int x = 0; x < width; x++) {
 		double theta = (double(x)/double(width)) * (theta1-theta0) + theta0;
 		if (theta < 0) theta = 2.0 * M_PI + theta;
@@ -282,7 +282,7 @@ std::vector< std::pair<CvPoint, CvPoint> > Tools::iterateIris(const Segmentation
 			double ximage = xfrom + w*(xto-xfrom);
 			double yimage = yfrom + w*(yto-yfrom);
 
-			res.push_back(std::pair<CvPoint, CvPoint>(cvPoint(x, y), cvPoint(ximage, yimage)));
+			res.push_back(std::pair<Point, Point>(Point(x, y), Point(ximage, yimage)));
 		}
 	}
 
@@ -291,7 +291,7 @@ std::vector< std::pair<CvPoint, CvPoint> > Tools::iterateIris(const Segmentation
 
 void Tools::superimposeTexture(IplImage* image, const IplImage* texture, const SegmentationResult& segmentation, double theta0, double theta1, double radius)
 {
-	std::vector< std::pair<CvPoint, CvPoint> > irisIt = Tools::iterateIris(segmentation, texture->width, texture->height, theta0, theta1, radius);
+	std::vector< std::pair<Point, Point> > irisIt = Tools::iterateIris(segmentation, texture->width, texture->height, theta0, theta1, radius);
 	for (size_t i = 0; i < irisIt.size(); i++) {
 		int xsrc = irisIt[i].first.x, ysrc = irisIt[i].first.y;
 		int xdest = std::floor(irisIt[i].second.x + 0.5), ydest = std::floor(irisIt[i].second.y + 0.5);

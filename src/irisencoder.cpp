@@ -83,7 +83,7 @@ void IrisEncoder::normalizeIris(const IplImage* image, IplImage* dest, CvMat* de
 {
 	int normalizedWidth = dest->width, normalizedHeight = dest->height;
 
-	std::vector< std::pair<CvPoint, CvPoint> > irisPoints = Tools::iterateIris(segmentationResult,
+	vector< pair<Point, Point> > irisPoints = Tools::iterateIris(segmentationResult,
 		normalizedWidth, normalizedHeight, theta0, theta1, radius);
 
 	// Initialize the mask to 1 (all bits enabled)
@@ -92,13 +92,13 @@ void IrisEncoder::normalizeIris(const IplImage* image, IplImage* dest, CvMat* de
 	}
 
 	for (size_t i = 0; i < irisPoints.size(); i++) {
-		CvPoint imagePoint = irisPoints[i].second;
-		CvPoint coord = irisPoints[i].first;
+		Point imagePoint = irisPoints[i].second;
+		Point coord = irisPoints[i].first;
 
-		int ximage0 = int(std::floor(imagePoint.x));
-		int ximage1 = int(std::ceil(imagePoint.x));
-		int yimage0 = int(std::floor(imagePoint.y));
-		int yimage1 = int(std::ceil(imagePoint.y));
+		int ximage0 = int(floor(imagePoint.x));
+		int ximage1 = int(ceil(imagePoint.x));
+		int yimage0 = int(floor(imagePoint.y));
+		int yimage1 = int(ceil(imagePoint.y));
 
 		if (ximage0 < 0 || ximage1 >= image->width || yimage0 < 0 || yimage1 >= image->height) {
 			cvSetReal2D(dest, coord.y, coord.x, 0);
@@ -128,6 +128,6 @@ void IrisEncoder::normalizeIris(const IplImage* image, IplImage* dest, CvMat* de
 
 CvSize IrisEncoder::getOptimumTemplateSize(int width, int height)
 {
-	int optimumWidth = int(std::ceil(float(width)/32.0)) * 32; // Must be a multiple of 32
+	int optimumWidth = int(ceil(float(width)/32.0)) * 32; // Must be a multiple of 32
 	return cvSize(optimumWidth, height);
 }

@@ -9,16 +9,20 @@
 
 #include <vector>
 #include <opencv/cv.h>
+#include <opencv/cxcore.h>
 #include <stdint.h>
 
-typedef std::vector<CvPoint> Contour;
+using namespace std;
+using namespace cv;
+
+typedef vector<Point> Contour;
 
 typedef struct {
     int xc, yc, radius;
 } Circle;
 
 
-typedef std::pair<Contour, Circle> ContourAndCloseCircle;
+typedef pair<Contour, Circle> ContourAndCloseCircle;
 
 
 class Parabola

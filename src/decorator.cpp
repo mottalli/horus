@@ -33,9 +33,6 @@ void Decorator::drawSegmentationResult(Mat& image, const SegmentationResult& seg
 		//this->drawParabola(image, segmentationResult.upperEyelid, xMin, xMax, this->upperEyelidColor);
 		//this->drawParabola(image, segmentationResult.lowerEyelid, xMin, xMax, this->lowerEyelidColor);
 	}
-
-	/*cvCircle(image, cvPoint(segmentationResult.irisCircle.xc,segmentationResult.irisCircle.yc), segmentationResult.irisCircle.radius, CV_RGB(255,255,255), 1);
-	cvCircle(image, cvPoint(segmentationResult.pupilCircle.xc,segmentationResult.pupilCircle.yc), segmentationResult.pupilCircle.radius, CV_RGB(255,255,255), 1);*/
 }
 
 void Decorator::drawEncodingZone(Mat& image, const SegmentationResult& segmentationResult)
@@ -45,13 +42,13 @@ void Decorator::drawEncodingZone(Mat& image, const SegmentationResult& segmentat
 
 	int width = parameters->normalizationWidth, height = parameters->normalizationHeight;
 
-	std::vector< std::pair<CvPoint, CvPoint> > irisPoints = Tools::iterateIris(segmentationResult,
+	std::vector< std::pair<Point, Point> > irisPoints = Tools::iterateIris(segmentationResult,
 		width, height, IrisEncoder::THETA0,
 		IrisEncoder::THETA1, IrisEncoder::RADIUS_TO_USE);
 
 	for (size_t i = 0; i < irisPoints.size(); i++) {
-		CvPoint imagePoint = irisPoints[i].second;
-		CvPoint coord = irisPoints[i].first;
+		Point imagePoint = irisPoints[i].second;
+		Point coord = irisPoints[i].first;
 		int x = int(imagePoint.x), y = int(imagePoint.y);
 
 		if (x < 0 || x >= image.size().width  || y < 0 || y > image.size().height) {
@@ -74,15 +71,15 @@ void Decorator::drawContour(Mat& image, const Contour& contour, const Scalar& co
 {
 	if (contour.size() < 2) return;
 
-	const CvPoint p0 = contour[0];
+	const Point p0 = contour[0];
 	int n = contour.size();
 
-	CvPoint lastPoint = p0;
+	Point lastPoint = p0;
 
 	Mat_<Vec3b>& image3 = (Mat_<Vec3b>&)image;
 
 	for (int i = 1; i < n; i++) {
-		const CvPoint p = contour[i];
+		const Point p = contour[i];
 		//image.at<Vec3b>(p.y, p.x) = Vec3b(0, 255, 255);
 		line(image, lastPoint, p, color, 1);
 		lastPoint = p;
@@ -96,9 +93,9 @@ void Decorator::drawParabola(IplImage* image, const Parabola& parabola, int xMin
 	if (xMin < 0) xMin = 1;
 	if (xMax < 0 || xMax >= image->width) xMax = image->width-1;
 
-	CvPoint lastPoint = cvPoint(xMin, int(parabola.value(xMin)));
+	Point lastPoint = Point(xMin, int(parabola.value(xMin)));
 	for (int x = xMin+1; x <= xMax; x++) {
-		CvPoint point = cvPoint(x, int(parabola.value(x)));
+		Point point = Point(x, int(parabola.value(x)));
 
 		cvLine(image, lastPoint, point, color, 1);
 		lastPoint = point;
@@ -134,7 +131,7 @@ void Decorator::drawTemplate(IplImage* image, const IrisTemplate& irisTemplate)
 	}
 
 	CvMat region;
-	CvPoint topleftTemplate = cvPoint(10, 10);
+	Point topleftTemplate = Point(10, 10);
 	CvSize size = cvGetSize(decoratedTemplate);
 
 	cvGetSubRect(image, &region, cvRect(topleftTemplate.x, topleftTemplate.y, size.width, size.height));
@@ -145,7 +142,7 @@ void Decorator::drawTemplate(IplImage* image, const IrisTemplate& irisTemplate)
 	} else {
 		cvCopy(decoratedTemplate, &region);
 	}
-	cvRectangle(image, topleftTemplate, cvPoint(topleftTemplate.x+size.width-1, topleftTemplate.y+size.height-1), CV_RGB(0,0,0), 1);
+	cvRectangle(image, topleftTemplate, Point(topleftTemplate.x+size.width-1, topleftTemplate.y+size.height-1), CV_RGB(0,0,0), 1);
 
 	cvReleaseImage(&imgTemplate);
 	cvReleaseMat(&mask);

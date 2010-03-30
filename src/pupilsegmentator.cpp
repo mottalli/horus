@@ -125,8 +125,8 @@ Contour PupilSegmentator::adjustPupilContour(const Mat_<uint8_t>& image, const C
 		int maxGrad = INT_MIN;
 		int bestY = 0;
 		int v = snake(0, x);
-		int ymin = std::max(0, v - delta);
-		int ymax = std::min(gradient.rows, v + delta);
+		int ymin = max(0, v - delta);
+		int ymax = min(gradient.rows, v + delta);
 		for (int y = ymin; y < ymax; y++) {
 			int gxy = gradient(y,x);
 			if (gxy > maxGrad) {
@@ -151,10 +151,10 @@ Contour PupilSegmentator::adjustPupilContour(const Mat_<uint8_t>& image, const C
 		double radius = (double(y) / double(gradient.rows - 1))
 				* double(radiusMax - radiusMin) + double(radiusMin);
 
-		int ximag = int(double(approximateCircle.xc) + std::cos(theta) * radius);
-		int yimag = int(double(approximateCircle.yc) + std::sin(theta) * radius);
+		int ximag = int(double(approximateCircle.xc) + cos(theta) * radius);
+		int yimag = int(double(approximateCircle.yc) + sin(theta) * radius);
 
-		result[x] = cvPoint(ximag, yimag);
+		result[x] = Point(ximag, yimag);
 	}
 
 	return result;
@@ -170,7 +170,7 @@ Circle PupilSegmentator::cascadedIntegroDifferentialOperator(const Mat_<uint8_t>
 	//int maxStep = INT_MIN;
 	int bestX = 0, bestY = 0, bestRadius = 0;
 
-	std::vector<int> steps(3), radiusSteps(3);
+	vector<int> steps(3), radiusSteps(3);
 	steps[0] = 10;
 	steps[1] = 3;
 	steps[2] = 1;
@@ -193,11 +193,11 @@ Circle PupilSegmentator::cascadedIntegroDifferentialOperator(const Mat_<uint8_t>
 			}
 		}
 
-		minx = std::max<int>(bestX - steps[i], 0);
-		maxx = std::min<int>(bestX + steps[i], image.cols);
-		miny = std::max<int>(bestY - steps[i], 0);
-		maxy = std::min<int>(bestY + steps[i], image.rows);
-		minrad = std::max<int>(bestRadius - radiusSteps[i], minradabs);
+		minx = max<int>(bestX - steps[i], 0);
+		maxx = min<int>(bestX + steps[i], image.cols);
+		miny = max<int>(bestY - steps[i], 0);
+		maxy = min<int>(bestY + steps[i], image.rows);
+		minrad = max<int>(bestRadius - radiusSteps[i], minradabs);
 		maxrad = bestRadius + radiusSteps[i];
 
 	}
@@ -385,7 +385,7 @@ void PupilSegmentator::similarityTransform()
 
 		for (int i = 0; i < 256; i++) {
 			num = (double(i) - mu) * (double(i) - mu);
-			res = std::exp(-num / denom) * 255.0;
+			res = exp(-num / denom) * 255.0;
 			pLUT[i] = (uchar) (res);
 		}
 	}
@@ -418,8 +418,8 @@ int PupilSegmentator::calculatePupilContourQuality(const Mat_<uint8_t>& region, 
 		if (skip) continue;
 
 		int yborder = int(contourSnake(0, x));
-		int ymin = std::max(0, yborder-delta);
-		int ymax = std::min(regionGradient.rows, yborder+delta);
+		int ymin = max(0, yborder-delta);
+		int ymax = min(regionGradient.rows, yborder+delta);
 
 		if (yborder < 0) return 0;
 

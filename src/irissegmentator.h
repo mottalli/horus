@@ -1,31 +1,21 @@
-/*
- * File:   irissegmentator.h
- * Author: marcelo
- *
- * Created on January 21, 2009, 8:39 PM
- */
-
 #pragma once
 
-#include "types.h"
+#include "common.h"
 
 class IrisSegmentator {
 public:
     IrisSegmentator();
     virtual ~IrisSegmentator();
 
-    struct {
-		IplImage* adjustmentRing;
-		IplImage* adjustmentRingGradient;
-        CvMat* adjustmentSnake;
-    } buffers;
+	Mat_<uint8_t> adjustmentRing;
+	Mat_<int16_t> adjustmentRingGradient;
+	Mat_<float> adjustmentSnake;
 
-	ContourAndCloseCircle segmentIris(const IplImage* image, const ContourAndCloseCircle& pupilSegmentation);
+	ContourAndCloseCircle segmentIris(const Mat& image, const ContourAndCloseCircle& pupilSegmentation);
 
 private:
-	void setupBuffers(const IplImage* image);
-	ContourAndCloseCircle segmentIrisRecursive(const IplImage* image, const ContourAndCloseCircle& pupilSegmentation, int radiusMax=-1, int radiusMin=-1);
-
+	void setupBuffers(const Mat_<uint8_t>& image);
+	ContourAndCloseCircle segmentIrisRecursive(const Mat_<uint8_t>& image, const ContourAndCloseCircle& pupilSegmentation, int radiusMax=-1, int radiusMin=-1);
 };
 
 

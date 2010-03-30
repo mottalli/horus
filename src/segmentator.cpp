@@ -33,10 +33,8 @@ SegmentationResult Segmentator::segmentImage(const Mat& image) {
 		imageToSegment = this->workingImage;
 	}
 
-	const IplImage iplimage = (const IplImage)imageToSegment;
-	const IplImage* pimage = &iplimage;
 	ContourAndCloseCircle pupilResult = this->pupilSegmentator.segmentPupil(imageToSegment);
-	ContourAndCloseCircle irisResult = this->irisSegmentator.segmentIris(pimage, pupilResult);
+	ContourAndCloseCircle irisResult = this->irisSegmentator.segmentIris(imageToSegment, pupilResult);
 
 	result.pupilContour = pupilResult.first;
 	result.pupilCircle = pupilResult.second;
