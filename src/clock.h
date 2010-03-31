@@ -1,6 +1,6 @@
 #pragma once
 
-#include <ctime>
+#include <sys/time.h>
 
 class Clock {
 public:
@@ -12,7 +12,7 @@ public:
 	inline double time() const { return _time; };
 private:
     double _time;
-    std::clock_t _tic, _toc;
+	struct timeval _tic, _toc;
 
 };
 

@@ -1,10 +1,3 @@
-/* 
- * File:   clock.cpp
- * Author: marcelo
- * 
- * Created on January 26, 2009, 2:35 AM
- */
-
 #include "clock.h"
 
 Clock::Clock() {
@@ -16,12 +9,12 @@ Clock::~Clock() {
 
 
 void Clock::start() {
-    _tic = std::clock();
+	gettimeofday(&_tic, 0);
 }
 
 double Clock::stop() {
-    _toc = std::clock();
-    _time = (double(_toc-_tic)/double(CLOCKS_PER_SEC)) * 1000.0;
+	gettimeofday(&_toc, 0);
+	_time = 1000.0*(_toc.tv_sec-_tic.tv_sec) + (_toc.tv_usec-_tic.tv_usec)/1000.0;
 
     return  _time;
 }

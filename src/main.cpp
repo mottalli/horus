@@ -58,6 +58,8 @@ int main(int argc, char** argv) {
 	cvNamedWindow("imagen");
 	cvShowImage("imagen", image);
 
+	cout << "T: " << segmentator.segmentationTime << " ms" << endl;
+
 
 	char k;
 	do {

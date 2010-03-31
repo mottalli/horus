@@ -12,6 +12,7 @@
 #include "irissegmentator.h"
 #include "eyelidsegmentator.h"
 #include "segmentationresult.h"
+#include "clock.h"
 
 class Segmentator {
 public:
@@ -31,6 +32,10 @@ public:
 	EyelidSegmentator _eyelidSegmentator;
 
 	void setupBuffers(const IplImage* image);
+
+	double segmentationTime;
+private:
+	Clock clock;
 };
 
 
