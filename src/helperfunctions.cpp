@@ -2,7 +2,7 @@
 
 void HelperFunctions::extractRing(const Mat_<uint8_t>& src, Mat_<uint8_t>& dest, int x0, int y0, int radiusMin, int radiusMax)
 {
-	assert(src.channels() == dest.channels() == 1);
+	assert(src.channels() == 1 && dest.channels() == 1);
 	assert(radiusMin < radiusMax);
 
 	int xsrc, ysrc, xdest, ydest;

@@ -102,7 +102,7 @@ void Decorator::drawParabola(IplImage* image, const Parabola& parabola, int xMin
 	}
 }
 
-void Decorator::drawTemplate(IplImage* image, const IrisTemplate& irisTemplate)
+void Decorator::drawTemplate(Mat& image, const IrisTemplate& irisTemplate)
 {
 	IplImage* imgTemplate = irisTemplate.getTemplateImage();
 	CvMat* mask = irisTemplate.getUnpackedMask();
@@ -134,15 +134,15 @@ void Decorator::drawTemplate(IplImage* image, const IrisTemplate& irisTemplate)
 	Point topleftTemplate = Point(10, 10);
 	CvSize size = cvGetSize(decoratedTemplate);
 
-	cvGetSubRect(image, &region, cvRect(topleftTemplate.x, topleftTemplate.y, size.width, size.height));
-	if (image->nChannels == 3) {
+	cvGetSubRect(TO_IPLIMAGE(image), &region, cvRect(topleftTemplate.x, topleftTemplate.y, size.width, size.height));
+	if (image.channels() == 3) {
 		cvMerge(decoratedTemplate, NULL, NULL, NULL, &region);
 		cvMerge(NULL, decoratedTemplate, NULL, NULL, &region);
 		cvMerge(NULL, NULL, decoratedTemplate, NULL, &region);
 	} else {
 		cvCopy(decoratedTemplate, &region);
 	}
-	cvRectangle(image, topleftTemplate, Point(topleftTemplate.x+size.width-1, topleftTemplate.y+size.height-1), CV_RGB(0,0,0), 1);
+	cvRectangle(TO_IPLIMAGE(image), topleftTemplate, Point(topleftTemplate.x+size.width-1, topleftTemplate.y+size.height-1), CV_RGB(0,0,0), 1);
 
 	cvReleaseImage(&imgTemplate);
 	cvReleaseMat(&mask);

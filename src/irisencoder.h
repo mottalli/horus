@@ -1,16 +1,12 @@
-/*
- * irisencoder.h
- *
- *  Created on: Jun 10, 2009
- *      Author: marcelo
- */
-
 #pragma once
 
 #include "common.h"
 #include "segmentationresult.h"
 #include "iristemplate.h"
 
+/**
+ * Abstract class -- must implement texture encoding algorithm
+ */
 class IrisEncoder {
 public:
 	static const double THETA0;
@@ -20,14 +16,15 @@ public:
 	IrisEncoder();
 	virtual ~IrisEncoder();
 
-	IrisTemplate generateTemplate(const IplImage* image, const SegmentationResult& segmentationResult);
+	IrisTemplate generateTemplate(const Mat& image, const SegmentationResult& segmentationResult);
 
-	IplImage* normalizedTexture;
-	CvMat* normalizedNoiseMask;
-
-	static void normalizeIris(const IplImage* image, IplImage* dest, CvMat* destMask, const SegmentationResult& segmentationResult, double theta0=THETA0, double theta1=THETA1, double radius=RADIUS_TO_USE);
-	static CvSize getOptimumTemplateSize(int width, int height);		// Returns the optimum template size that is closer to (width, height)
 protected:
+	static void normalizeIris(const Mat_<uint8_t>& image, Mat_<uint8_t>& dest, Mat_<uint8_t>& destMask, const SegmentationResult& segmentationResult, double theta0=THETA0, double theta1=THETA1, double radius=RADIUS_TO_USE);
+	static Size getOptimumTemplateSize(int width, int height);		// Returns the optimum template size that is closer to (width, height)
+
+	Mat_<uint8_t> normalizedTexture;
+	Mat_<uint8_t> normalizedNoiseMask;
+
 	void extendMask();
 
 	virtual IrisTemplate encodeTexture(const IplImage* texture, const CvMat* mask) = 0;

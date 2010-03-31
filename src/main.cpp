@@ -44,8 +44,8 @@ int main(int argc, char** argv) {
 
 	SegmentationResult segmentationResult = segmentator.segmentImage(image);
 
-	//IrisTemplate template_ = logGaborEncoder.generateTemplate(image, res);
-	//IrisTemplate template_ = gaborEncoder.generateTemplate(image, res);
+	//IrisTemplate template_ = logGaborEncoder.generateTemplate(image, segmentationResult);
+	IrisTemplate template_ = gaborEncoder.generateTemplate(image, segmentationResult);
 
 	/*IplImage* imTemplate = template_.getTemplateImage();
 	cvNamedWindow("templ");
@@ -53,7 +53,7 @@ int main(int argc, char** argv) {
 
 	decorator.drawSegmentationResult(image, segmentationResult);
 	decorator.drawEncodingZone(image, segmentationResult);
-	//decorator.drawTemplate(image, template_);
+	decorator.drawTemplate(image, template_);
 
 	namedWindow("imagen", 1);
 	imshow("imagen", image);
@@ -67,4 +67,33 @@ int main(int argc, char** argv) {
 	} while (k != 'q');
 
 	return 0;
+}
+
+int main1(int argc, char** argv) {
+	VideoCapture capture(0);
+
+	Mat frame;
+	char k;
+
+	namedWindow("video", 1);
+
+	while (true) {
+		capture >> frame;
+
+		SegmentationResult segmentationResult = segmentator.segmentImage(frame);
+		//IrisTemplate template_ = gaborEncoder.generateTemplate(&((IplImage)frame), segmentationResult);
+		IrisTemplate template_ = logGaborEncoder.generateTemplate(&((IplImage)frame), segmentationResult);
+
+		decorator.drawSegmentationResult(frame, segmentationResult);
+		decorator.drawTemplate(frame, template_);
+
+
+		cout << "T: " << segmentator.segmentationTime << " ms" << endl;
+
+		imshow("video", frame);
+
+		if ('q' == (k = waitKey(20)) ) {
+			break;
+		}
+	}
 }
