@@ -27,6 +27,6 @@ protected:
 
 	void extendMask();
 
-	virtual IrisTemplate encodeTexture(const IplImage* texture, const CvMat* mask) = 0;
+	virtual IrisTemplate encodeTexture(const Mat_<uint8_t>& texture, const Mat_<uint8_t>& mask) = 0;
 };
 

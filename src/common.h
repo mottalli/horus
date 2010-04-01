@@ -15,6 +15,8 @@
 using namespace std;
 using namespace cv;
 
+// "Lo que no cuesta, no vale"
+
 
 #include "types.h"
 #include "parameters.h"

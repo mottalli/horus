@@ -6,7 +6,7 @@ GaborFilter::GaborFilter()
 {
 }
 
-GaborFilter::GaborFilter(int width, int height, double u0, double v0, double alpha, double beta, FilterType type)
+GaborFilter::GaborFilter(int width, int height, float u0, float v0, float alpha, float beta, FilterType type)
 {
 	this->width = width;
 	this->height = height;
@@ -16,112 +16,98 @@ GaborFilter::GaborFilter(int width, int height, double u0, double v0, double alp
 	this->beta = beta;
 	this->type = type;
 
-	double x0 = -1, y0 = -1;
-	double x1 = 1, y1 = 1;
+	float x0 = -1, y0 = -1;
+	float x1 = 1, y1 = 1;
 
-	this->filter = cvCreateMat(height, width, CV_32FC1);
+	this->filter.create(height, width);
 	for (int i = 0; i < height; i++) {
-		double y = y0 + ((y1-y0)/double(height-1)) * double(i);
+		float y = y0 + ((y1-y0)/float(height-1)) * float(i);
 		for (int j = 0; j < width; j++) {
-			double x = x0 + ((x1-x0)/double(width-1)) * double(j);
+			float x = x0 + ((x1-x0)/float(width-1)) * float(j);
 
-			double env = exp(-M_PI* ((x*x)/(alpha*alpha)  + (y*y)/(beta*beta)));		// Gaussian envelope
-			double f = 2.0*M_PI*(u0*x + v0*y);
+			float env = exp(-M_PI* ((x*x)/(alpha*alpha)  + (y*y)/(beta*beta)));		// Gaussian envelope
+			float f = 2.0*M_PI*(u0*x + v0*y);
 
-			double carrier;
+			float carrier;
 			if (type == FILTER_REAL) {
 				carrier = cos(f);
 			} else if (type == FILTER_IMAG) {
 				carrier = -sin(f);
 			}
 
-			cvSetReal2D(this->filter, i, j, env*carrier);
+			this->filter(i, j) = env*carrier;
 		}
 	}
 }
 
 GaborFilter::~GaborFilter()
 {
-	//cvReleaseMat(&this->filter);
 }
 
-void GaborFilter::applyFilter(const CvMat* src, CvMat* dest, const CvMat* mask, CvMat* destMask)
+void GaborFilter::applyFilter(const Mat_<float>& src, Mat_<float>& dest, const Mat_<uint8_t>& mask, Mat_<uint8_t>& destMask)
 {
-	assert(SAME_SIZE(src, dest));
-	assert(SAME_SIZE(mask, destMask));
-	cvFilter2D(src, dest, this->filter);
+	assert(src.size() == dest.size());
+	assert(mask.size() == destMask.size());
 
-	cvCopy(mask, destMask);		//TODO: set threshold here
+	filter2D(src, dest, dest.depth(), this->filter);
+
+	mask.copyTo(destMask);
 }
 
 GaborEncoder::GaborEncoder()
 {
 	this->filterBank.push_back(GaborFilter(15, 15, 0.5, 0.5, 2, 2, GaborFilter::FILTER_IMAG));
 	//this->filterBank.push_back(GaborFilter(15, 15, 0.5, -0.5, 2, 2, GaborFilter::FILTER_IMAG));
-	//this->filterBank.push_back(GaborFilter(15, 15, 0.5, 1, 2, 2, GaborFilter::FILTER_IMAG));
+	this->filterBank.push_back(GaborFilter(15, 15, 0.5, 1, 2, 2, GaborFilter::FILTER_IMAG));
 	//this->filterBank.push_back(GaborFilter(15, 15, -0.5, 1, 2, 2, GaborFilter::FILTER_IMAG));
-	this->filteredTexture = NULL;
-	this->filteredMask = NULL;
-	this->doubleTexture = NULL;
 }
 
 GaborEncoder::~GaborEncoder()
 {
-	if (this->filteredTexture != NULL) {
-		cvReleaseMat(&this->filteredTexture);
-		cvReleaseMat(&this->filteredMask);
-		cvReleaseMat(&this->doubleTexture);
-	}
 }
 
-IrisTemplate GaborEncoder::encodeTexture(const IplImage* texture, const CvMat* mask)
+IrisTemplate GaborEncoder::encodeTexture(const Mat_<uint8_t>& texture, const Mat_<uint8_t>& mask)
 {
-	assert(SAME_SIZE(texture, mask));
-	assert(texture->nChannels == 1);
-	assert(texture->depth == IPL_DEPTH_8U);
+	assert(texture.size() == mask.size());
+	assert(texture.channels() == 1 && mask.channels() == 1);
 
-	CvSize templateSize = GaborEncoder::getTemplateSize();
+	Size templateSize = GaborEncoder::getTemplateSize();
 	size_t nFilters = this->filterBank.size();
 	size_t nSlots = templateSize.width / nFilters;
 	int slotSize = nFilters;
 
-	CvMat* resultTemplate = cvCreateMat(templateSize.height, templateSize.width, CV_8U);
-	CvMat* resultMask = cvCreateMat(templateSize.height, templateSize.width, CV_8U);
+	this->resultTemplate.create(templateSize);
+	this->resultMask.create(templateSize);
 
-	Tools::updateSize(&this->doubleTexture, cvGetSize(texture), CV_32F);
-	Tools::updateSize(&this->filteredTexture, cvGetSize(texture), CV_32F);
-	Tools::updateSize(&this->filteredMask, cvGetSize(texture));
+	this->floatTexture.create(texture.size());
+	this->filteredTexture.create(texture.size());
+	this->filteredMask.create(texture.size());
 
-	cvConvert(texture, this->doubleTexture);		// Use double precision
-
+	texture.convertTo(this->floatTexture, this->floatTexture.type());		// Use decimal precision
 
 	for (size_t f = 0; f < nFilters; f++) {
 		GaborFilter& filter = this->filterBank[f];
-		filter.applyFilter(doubleTexture, this->filteredTexture, mask, this->filteredMask);
+		filter.applyFilter(this->floatTexture, this->filteredTexture, mask, this->filteredMask);
 
 		for (size_t s = 0; s < nSlots; s++) {
 			int xtemplate = s*slotSize + f;
-			int xtexture = (texture->width/nSlots) * s;
+			int xtexture = (texture.cols/nSlots) * s;
 			for (int ytemplate = 0; ytemplate < templateSize.height; ytemplate++) {
-				int ytexture = (texture->height/templateSize.height) * ytemplate;
-				assert(xtexture < this->filteredTexture->width && ytexture < this->filteredTexture->height);
+				int ytexture = (texture.rows/templateSize.height) * ytemplate;
+				assert(xtexture < this->filteredTexture.cols && ytexture < this->filteredTexture.rows);
 
-				unsigned char templateBit = (cvGetReal2D(this->filteredTexture, ytexture, xtexture) >  0.0 ? 1 : 0);
-				unsigned char maskBit1 = ((cvGetReal2D(this->filteredMask, ytexture, ytexture) == 0.0) ? 0 : 1);
-				unsigned char maskBit2 = (abs(cvGetReal2D(this->filteredTexture, ytemplate, xtemplate)) < 0.001 ? 0 : 1);
+				unsigned char templateBit =  (this->filteredTexture(ytexture, xtexture)  >  0.0 ? 1 : 0);
+				unsigned char maskBit1 = (this->filteredMask(ytexture, xtexture) ? 1 : 0);
+				unsigned char maskBit2 =  (abs(this->filteredTexture(ytexture, xtexture)) < 0.001 ? 0 : 1);
 
-				cvSetReal2D(resultTemplate, ytemplate, xtemplate, templateBit);
-				cvSetReal2D(resultMask, ytemplate, xtemplate, maskBit1 & maskBit2);
+				this->resultTemplate(ytemplate, xtemplate) = templateBit;
+				this->resultMask(ytemplate, xtemplate) = maskBit1 & maskBit2;
 			}
 		}
-
 	}
 
 
-	IrisTemplate result(resultTemplate, resultMask);
-
-	cvReleaseMat(&resultTemplate);
-	cvReleaseMat(&resultMask);
+	IrisTemplate result(TO_CVMAT(resultTemplate), TO_CVMAT(resultMask));
 
 	return result;
 }

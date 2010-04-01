@@ -44,7 +44,7 @@ IrisTemplate IrisEncoder::generateTemplate(const Mat& image, const SegmentationR
 	// Improve the iris mask
 	this->extendMask();
 
-	return this->encodeTexture(TO_IPLIMAGE(this->normalizedTexture), TO_CVMAT(this->normalizedNoiseMask));
+	return this->encodeTexture(this->normalizedTexture, this->normalizedNoiseMask);
 }
 
 void IrisEncoder::extendMask()

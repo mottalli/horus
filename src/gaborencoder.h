@@ -8,16 +8,16 @@ class GaborFilter
 public:
 	typedef enum { FILTER_REAL, FILTER_IMAG } FilterType;
 	GaborFilter();
-	GaborFilter(int width, int height, double u0, double v0, double alpha, double beta, FilterType type=FILTER_IMAG);
+	GaborFilter(int width, int height, float u0, float v0, float alpha, float beta, FilterType type=FILTER_IMAG);
 	virtual ~GaborFilter();
 
-	void applyFilter(const CvMat* src, CvMat* dest, const CvMat* mask, CvMat* destMask);
+	void applyFilter(const Mat_<float>& src, Mat_<float>& dest, const Mat_<uint8_t>& mask, Mat_<uint8_t>& destMask);
 
-	CvMat* filter;
+	Mat_<float> filter;
 
 private:
 	int width, height;
-	double u0, v0, alpha, beta;
+	float u0, v0, alpha, beta;
 	FilterType type;
 };
 
@@ -27,14 +27,16 @@ public:
 	GaborEncoder();
 	virtual ~GaborEncoder();
 
-	CvMat *filteredTexture;
-	CvMat *filteredMask;
-	CvMat *doubleTexture;
-
-	static CvSize getTemplateSize() { return IrisEncoder::getOptimumTemplateSize(256, 8); };
+	static Size getTemplateSize() { return IrisEncoder::getOptimumTemplateSize(256, 8); };
 
 protected:
-	virtual IrisTemplate encodeTexture(const IplImage* texture, const CvMat* mask);
+	Mat_<float> filteredTexture;
+	Mat_<uint8_t> filteredMask;
+	Mat_<float> floatTexture;
+	Mat_<uint8_t> resultTemplate;
+	Mat_<uint8_t> resultMask;
+
+	virtual IrisTemplate encodeTexture(const Mat_<uint8_t>& texture, const Mat_<uint8_t>& mask);
 	std::vector<GaborFilter> filterBank;
 };
 

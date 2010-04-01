@@ -1,16 +1,10 @@
-/*
- * videoprocessor.h
- *
- *  Created on: Jun 13, 2009
- *      Author: marcelo
- */
-
 #pragma once
 
 #include "common.h"
 #include "qualitychecker.h"
 #include "segmentator.h"
 #include "loggaborencoder.h"
+#include "gaborencoder.h"
 
 class VideoProcessor {
 public:
@@ -35,7 +29,8 @@ public:
 
 	QualityChecker qualityChecker;
 	Segmentator segmentator;
-	LogGaborEncoder irisEncoder;
+	//LogGaborEncoder irisEncoder;
+	GaborEncoder irisEncoder;
 
 	IplImage* lastFrame;
 	double lastFocusScore;

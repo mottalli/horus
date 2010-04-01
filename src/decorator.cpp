@@ -107,6 +107,7 @@ void Decorator::drawTemplate(Mat& image, const IrisTemplate& irisTemplate)
 	IplImage* imgTemplate = irisTemplate.getTemplateImage();
 	CvMat* mask = irisTemplate.getUnpackedMask();
 
+
 	cvSet(mask, cvScalar(255), mask);
 	cvNot(mask, mask);					// Hacky way to NOT the template
 	cvSet(imgTemplate, cvScalar(127), mask);

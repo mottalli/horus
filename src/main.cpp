@@ -32,8 +32,8 @@ Segmentator segmentator;
 QualityChecker qualityChecker;
 Decorator decorator;
 VideoProcessor videoProcessor;
-LogGaborEncoder logGaborEncoder;
-IrisDCTEncoder irisDCTEncoder;
+//LogGaborEncoder logGaborEncoder;
+//IrisDCTEncoder irisDCTEncoder;
 Parameters* parameters = Parameters::getParameters();
 GaborEncoder gaborEncoder;
 
@@ -81,8 +81,7 @@ int main1(int argc, char** argv) {
 		capture >> frame;
 
 		SegmentationResult segmentationResult = segmentator.segmentImage(frame);
-		//IrisTemplate template_ = gaborEncoder.generateTemplate(&((IplImage)frame), segmentationResult);
-		IrisTemplate template_ = logGaborEncoder.generateTemplate(&((IplImage)frame), segmentationResult);
+		IrisTemplate template_ = gaborEncoder.generateTemplate(&((IplImage)frame), segmentationResult);
 
 		decorator.drawSegmentationResult(frame, segmentationResult);
 		decorator.drawTemplate(frame, template_);
