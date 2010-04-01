@@ -134,7 +134,7 @@ std::string Tools::base64EncodeMat(const CvMat* mat)
 		memcpy(p + y*width, mat->data.ptr + y*mat->step, width);		// Copy one line
 	}
 
-	std::string base64 = Tools::base64Encode(buffer, width*height);
+	std::string base64 = Tools::base64Encode(buffer, width*height+2*sizeof(int16_t));
 
 	delete[] buffer;
 

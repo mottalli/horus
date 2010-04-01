@@ -45,8 +45,8 @@ int main(int argc, char** argv) {
     SegmentationResult res = segmentator.segmentImage(image);
 
 
-	//IrisTemplate template_ = logGaborEncoder.generateTemplate(image, res);
-	IrisTemplate template_ = gaborEncoder.generateTemplate(image, res);
+	IrisTemplate template_ = logGaborEncoder.generateTemplate(image, res);
+	//IrisTemplate template_ = gaborEncoder.generateTemplate(image, res);
 
 	/*IplImage* imTemplate = template_.getTemplateImage();
 	cvNamedWindow("templ");

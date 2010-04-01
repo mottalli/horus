@@ -177,9 +177,9 @@ IrisTemplate LogGaborEncoder::encodeTexture(const IplImage* texture, const CvMat
 				int ytexture = (resizedTextureSize.height/templateSize.height) * ytemplate;
 				assert(xtexture < resizedTextureSize.width && ytexture < resizedTextureSize.height);
 
-				unsigned char templateBit = (cvGetReal2D(this->filteredTexture, ytemplate, xtemplate) > 0 ? 1 : 0);
-				unsigned char maskBit1 = ((cvGetReal2D(this->filteredMask, ytemplate, xtemplate) == 0.0) ? 0 : 1);
-				unsigned char maskBit2 = (abs(cvGetReal2D(this->filteredTexture, ytemplate, xtemplate)) < 0.001 ? 0 : 1);
+				unsigned char templateBit = (cvGetReal2D(this->filteredTexture, ytexture, xtexture) > 0 ? 1 : 0);
+				unsigned char maskBit1 = ((cvGetReal2D(this->filteredMask, ytexture, xtexture) == 0.0) ? 0 : 1);
+				unsigned char maskBit2 = (abs(cvGetReal2D(this->filteredTexture, ytexture, xtexture)) < 0.001 ? 0 : 1);
 
 				cvSetReal2D(resultTemplate, ytemplate, xtemplate, templateBit);
 				cvSetReal2D(resultMask, ytemplate, xtemplate, maskBit1 & maskBit2);
