@@ -4,7 +4,6 @@
 #include "qualitychecker.h"
 #include "segmentator.h"
 #include "loggaborencoder.h"
-#include "gaborencoder.h"
 
 class VideoProcessor {
 public:
@@ -29,8 +28,7 @@ public:
 
 	QualityChecker qualityChecker;
 	Segmentator segmentator;
-	//LogGaborEncoder irisEncoder;
-	GaborEncoder irisEncoder;
+	LogGaborEncoder irisEncoder;
 
 	IplImage* lastFrame;
 	double lastFocusScore;
