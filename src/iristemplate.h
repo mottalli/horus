@@ -12,7 +12,7 @@ namespace Serializer {
 }
 
 class IrisTemplate {
-	friend class TemplateComparator;
+	//friend class TemplateComparator;
 	friend IrisTemplate Serializer::unserializeIrisTemplate(const std::string& serializedTemplate);
 	friend std::string Serializer::serializeIrisTemplate(const IrisTemplate& irisTemplate);
 
@@ -21,10 +21,13 @@ public:
 	IrisTemplate(const IrisTemplate& otherTemplate);
 	IrisTemplate(const Mat& binaryTemplate, const Mat& binaryMask);
 
-	Mat getTemplateImage(void) const;
-	Mat getNoiseMaskImage(void) const;
+	Mat getTemplateImage() const;
+	Mat getNoiseMaskImage() const;
 	Mat getUnpackedTemplate() const;
 	Mat getUnpackedMask() const;
+
+	const Mat_<uint8_t>& getPackedTemplate() const { return this->irisTemplate; };
+	const Mat_<uint8_t>& getPackedMask() const { return this->mask; };
 
 	IrisTemplate& operator=(const IrisTemplate& otherTemplate);
 

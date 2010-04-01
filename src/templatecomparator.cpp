@@ -9,20 +9,16 @@
 #include <cmath>
 #include <iostream>
 
-int countNonZeroBits(const CvMat* mat);
+int countNonZeroBits(const Mat& mat);
 
 TemplateComparator::TemplateComparator(int nRots, int rotStep)
 {
-	this->buffers.maskIntersection = NULL;
-	this->buffers.xorBuffer = NULL;
 	this->nRots = nRots;
 	this->rotStep = rotStep;
 }
 
 TemplateComparator::TemplateComparator(const IrisTemplate& irisTemplate, int nRots, int rotStep)
 {
-	this->buffers.maskIntersection = NULL;
-	this->buffers.xorBuffer = NULL;
 	this->nRots = nRots;
 	this->rotStep = rotStep;
 
@@ -31,18 +27,11 @@ TemplateComparator::TemplateComparator(const IrisTemplate& irisTemplate, int nRo
 
 TemplateComparator::~TemplateComparator()
 {
-	if (this->buffers.maskIntersection != NULL) {
-		cvReleaseMat(&this->buffers.maskIntersection);
-		cvReleaseMat(&this->buffers.xorBuffer);
-	}
 }
 
 double TemplateComparator::compare(const IrisTemplate& otherTemplate)
 {
 	double minHD = 1.0;
-
-	assert(this->buffers.maskIntersection != NULL);
-	assert(this->buffers.xorBuffer != NULL);
 
 	for (std::vector<IrisTemplate>::const_iterator it = this->rotatedTemplates.begin(); it != this->rotatedTemplates.end(); it++) {
 		const IrisTemplate& rotatedTemplate = (*it);
@@ -57,27 +46,26 @@ double TemplateComparator::compare(const IrisTemplate& otherTemplate)
 std::vector<double> TemplateComparator::compareParts(const IrisTemplate& otherTemplate, int nParts)
 {
 	// Note: the width of the template must be a multiple of 8*nParts (remember this->irisTemplate has packed bits)
-	int templateWidth = this->rotatedTemplates[0].getPackedTemplate()->width;
-	int templateHeight = this->rotatedTemplates[0].getPackedTemplate()->height;
+	int templateWidth = this->rotatedTemplates[0].getPackedTemplate().cols;
+	int templateHeight = this->rotatedTemplates[0].getPackedTemplate().rows;
 
 	assert((templateWidth % nParts) == 0);
 	
 	int partWidth = templateWidth / nParts;
 	std::vector<double> minHDs(nParts, 1.0);
 	
-	CvMat part1, mask1, part2, mask2;
-	
 	for (std::vector<IrisTemplate>::const_iterator it = this->rotatedTemplates.begin(); it != this->rotatedTemplates.end(); it++) {
 		const IrisTemplate& rotatedTemplate = (*it);
-		
+
 		for (int p = 0; p < nParts; p++) {
-			CvRect r = cvRect(p*partWidth, 0, partWidth, templateHeight);
-			cvGetSubRect(rotatedTemplate.getPackedTemplate(), &part1, r);
-			cvGetSubRect(rotatedTemplate.getPackedMask(), &mask1, r);
-			cvGetSubRect(otherTemplate.getPackedTemplate(), &part2, r);
-			cvGetSubRect(otherTemplate.getPackedMask(), &mask2, r);
+			Rect r(p*partWidth, 0, partWidth, templateHeight);
+
+			Mat_<uint8_t> part1(rotatedTemplate.getPackedTemplate(), r);
+			Mat_<uint8_t> mask1(rotatedTemplate.getPackedMask(), r);
+			Mat_<uint8_t> part2(otherTemplate.getPackedTemplate(), r);
+			Mat_<uint8_t> mask2(otherTemplate.getPackedMask(), r);
 			
-			double hd = this->packedHammingDistance(&part1, &mask1, &part2, &mask2);
+			double hd = this->packedHammingDistance(part1, mask1, part2, mask2);
 			minHDs[p] = std::min(minHDs[p], hd);
 		}
 	}
@@ -88,26 +76,21 @@ std::vector<double> TemplateComparator::compareParts(const IrisTemplate& otherTe
 void TemplateComparator::setSrcTemplate(const IrisTemplate& irisTemplate)
 {
 
-	CvMat* unpackedTemplate = irisTemplate.getUnpackedTemplate();
-	CvMat* unpackedMask = irisTemplate.getUnpackedMask();
+	Mat unpackedTemplate = irisTemplate.getUnpackedTemplate();
+	Mat unpackedMask = irisTemplate.getUnpackedMask();
 	
-	//assert((unpackedTemplate->cols % 8) == 0);
+	assert((unpackedTemplate.cols % 8) == 0);
 
 	// Buffers for storing the rotated templates and masks
-	CvMat* rotatedTemplate = cvCloneMat(unpackedTemplate);
-	CvMat* rotatedMask = cvCloneMat(unpackedMask);
+	Mat rotatedTemplate = unpackedTemplate.clone();
+	Mat rotatedMask = unpackedMask.clone();
 	
-	if (this->buffers.maskIntersection != NULL) {
-		cvReleaseMat(&this->buffers.maskIntersection);
-		cvReleaseMat(&this->buffers.xorBuffer);
-	}
-	
-	assert(SAME_SIZE(irisTemplate.getPackedMask(), irisTemplate.getPackedTemplate()));
+	assert(irisTemplate.getPackedTemplate().size() == irisTemplate.getPackedMask().size());
 
-	int packedWidth = irisTemplate.getPackedMask()->width;
-	int packedHeight = irisTemplate.getPackedMask()->height;
-	this->buffers.maskIntersection = cvCreateMat(packedHeight, packedWidth, CV_8U);
-	this->buffers.xorBuffer = cvCreateMat(packedHeight, packedWidth, CV_8U);
+	int packedWidth = irisTemplate.getPackedMask().cols;
+	int packedHeight = irisTemplate.getPackedMask().rows;
+	this->maskIntersection.create(packedHeight, packedWidth);
+	this->xorBuffer.create(packedHeight, packedWidth);
 
 	this->rotatedTemplates.clear();
 	this->rotatedTemplates.push_back(irisTemplate);
@@ -121,65 +104,54 @@ void TemplateComparator::setSrcTemplate(const IrisTemplate& irisTemplate)
 		this->rotateMatrix(unpackedMask, rotatedMask, -r);
 		this->rotatedTemplates.push_back(IrisTemplate(rotatedTemplate, rotatedMask));
 	}
-
-	cvReleaseMat(&unpackedTemplate);
-	cvReleaseMat(&unpackedMask);
-	cvReleaseMat(&rotatedTemplate);
-	cvReleaseMat(&rotatedMask);
 }
 
-void TemplateComparator::rotateMatrix(const CvMat* src, CvMat* dest, int step)
+void TemplateComparator::rotateMatrix(const Mat& src, Mat& dest, int step)
 {
-	assert(SAME_SIZE(src, dest));
-
 	if (step == 0) {
-		cvCopy(src, dest);
+		src.copyTo(dest);
 	} else if (step < 0) {
+		dest.create(src.size(), CV_8U);
+
 		// Rotate left
 		step = -step;
-		CvMat pieceSrc, pieceDest;
 
-		cvGetSubRect(src, &pieceSrc, cvRect(0, 0, step, src->height));
-		cvGetSubRect(dest, &pieceDest, cvRect(src->width-step, 0, step, src->height));
-		cvCopy(&pieceSrc, &pieceDest);
+		Mat pieceSrc, pieceDest;
+		pieceSrc = src(Rect(0, 0, step, src.rows));
+		pieceDest = dest(Rect(src.cols-step, 0, step, src.rows));
+		pieceSrc.copyTo(pieceDest);
 
-		cvGetSubRect(src, &pieceSrc, cvRect(step, 0, src->width-step, src->height));
-		cvGetSubRect(dest, &pieceDest, cvRect(0, 0, src->width-step, src->height));
-		cvCopy(&pieceSrc, &pieceDest);
-
+		pieceSrc = src(Rect(step, 0, src.cols-step, src.rows));
+		pieceDest = dest(Rect(0, 0, src.cols-step, src.rows));
+		pieceSrc.copyTo(pieceDest);
 	} else {
+		dest.create(src.size(), CV_8U);
+
 		// Rotate right
-		CvMat pieceSrc, pieceDest;
+		Mat pieceSrc, pieceDest;
 
-		cvGetSubRect(src, &pieceSrc, cvRect(0, 0, src->width-step, src->height));
-		cvGetSubRect(dest, &pieceDest, cvRect(step, 0, src->width-step, src->height));
-		cvCopy(&pieceSrc, &pieceDest);
+		pieceSrc = src(Rect(0, 0, src.cols-step, src.rows));
+		pieceDest = dest(Rect(step, 0, src.cols-step, src.rows));
+		pieceSrc.copyTo(pieceDest);
 
-		cvGetSubRect(src, &pieceSrc, cvRect(src->width-step, 0, step, src->height));
-		cvGetSubRect(dest, &pieceDest, cvRect(0, 0, step, src->height));
-		cvCopy(&pieceSrc, &pieceDest);
+		pieceSrc = src(Rect(src.cols-step, 0, step, src.rows));
+		pieceDest = dest(Rect(0, 0, step, src.rows));
+		pieceSrc.copyTo(pieceDest);
 	}
 }
 
-double TemplateComparator::packedHammingDistance(const CvMat* template1, const CvMat* mask1, const CvMat* template2, const CvMat* mask2)
+double TemplateComparator::packedHammingDistance(const Mat_<uint8_t>& template1, const Mat_<uint8_t>& mask1, const Mat_<uint8_t>& template2, const Mat_<uint8_t>& mask2)
 {
-	assert(SAME_SIZE(template1, mask1));
-	assert(SAME_SIZE(template2, mask2));
-	assert(SAME_SIZE(template1, template2));
-	//assert(SAME_SIZE(mask1, this->buffers.maskIntersection));
-	//assert(SAME_SIZE(template1, this->buffers.xorBuffer));
+	assert(template1.size() == mask1.size());
+	assert(template2.size() == mask2.size());
+	assert(template1.size() == template2.size());
 	
-	// This is done so we can use the same buffer in the call to compareParts()
-	CvMat maskIntersection, xorBuffer;
-	cvGetSubRect(this->buffers.maskIntersection, &maskIntersection, cvRect(0, 0, mask1->width, mask1->height));
-	cvGetSubRect(this->buffers.xorBuffer, &xorBuffer, cvRect(0, 0, template1->width, template1->height));
+	bitwise_and(mask1, mask2, this->maskIntersection);
+	bitwise_xor(template1, template2, this->xorBuffer);
+	bitwise_and(this->xorBuffer, this->maskIntersection, this->xorBuffer);
 
-	cvAnd(mask1, mask2, &maskIntersection);
-	cvXor(template1, template2, &xorBuffer);
-	cvAnd(&xorBuffer, &maskIntersection, &xorBuffer);
-
-	int nonZeroBits = countNonZeroBits(&xorBuffer);
-	int validBits = countNonZeroBits(&maskIntersection);
+	int nonZeroBits = countNonZeroBits(xorBuffer);
+	int validBits = countNonZeroBits(maskIntersection);
 
 	if (validBits == 0) {
 		return 1.0;		// No bits to compare
@@ -214,9 +186,9 @@ double TemplateComparator::packedHammingDistance(const CvMat* template1, const C
  * --------
  * etc...
  */
-int countNonZeroBits(const CvMat* mat)
+int countNonZeroBits(const Mat& mat)
 {
-	//assert(mat->type == CV_8U);		// For some reason this doesn't work! (bug in OpenCV? mat->type gets some random value)
+	assert(mat.depth() == CV_8U);
 
 	static bool initialized = false;
 	static int nonZeroBits[256];		// Note: this could be hard-coded but it's too long and the algorithm to calculate it
@@ -240,14 +212,14 @@ int countNonZeroBits(const CvMat* mat)
 
 	int res = 0;
 
-	for (int y = 0; y < mat->rows; y++) {
-		uint8_t* row = (uint8_t*)(mat->data.ptr) + y*mat->step;
+	for (int y = 0; y < mat.rows; y++) {
+		const uint8_t* row = mat.ptr(y);
 		int x;
-		for (x = 0; x < mat->cols-3; x += 4) {		// Optimization: aligned to 4 byes, extracted from cvCountNonZero
+		for (x = 0; x < mat.cols-3; x += 4) {		// Optimization: aligned to 4 byes, extracted from cvCountNonZero
 			uint8_t val0 = row[x], val1 = row[x+1], val2 = row[x+2], val3 = row[x+3];
 			res += nonZeroBits[val0] + nonZeroBits[val1] + nonZeroBits[val2] + nonZeroBits[val3];
 		}
-		for (; x < mat->cols; x++) {
+		for (; x < mat.cols; x++) {
 			res += nonZeroBits[ row[x] ];
 		}
 	}

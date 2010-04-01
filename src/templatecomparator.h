@@ -23,17 +23,15 @@ public:
 	// For "a contrario" matching
 	std::vector<double> compareParts(const IrisTemplate& otherTemplate, int nParts = 4);
 
-	static void rotateMatrix(const CvMat* src, CvMat* dest, int step);
-
-	struct {
-		CvMat* maskIntersection;
-		CvMat* xorBuffer;
-	} buffers;
-
 	std::vector<IrisTemplate> rotatedTemplates;
 
 private:
-	double packedHammingDistance(const CvMat* template1, const CvMat* mask1, const CvMat* template2, const CvMat* mask2);
+	static void rotateMatrix(const Mat& src, Mat& dest, int step);
+
+	Mat_<uint8_t> maskIntersection;
+	Mat_<uint8_t> xorBuffer;
+
+	double packedHammingDistance(const Mat_<uint8_t>& template1, const Mat_<uint8_t>& mask1, const Mat_<uint8_t>& template2, const Mat_<uint8_t>& mask2);
 
 	int nRots, rotStep;
 

@@ -18,7 +18,7 @@ HEADERS += src/clock.h \
     src/cudacommon.h \
     src/decorator.h \
     src/parameters.h \
-#    src/templatecomparator.h \
+	src/templatecomparator.h \
     src/eyelidsegmentator.h \
     src/loggaborencoder.h \
     src/irisencoder.h \
@@ -47,7 +47,7 @@ SOURCES += src/segmentationresult.cpp \
     src/irissegmentator.cpp \
 #    src/irisdctencoder.cpp \
     src/loggaborencoder.cpp \
-#    src/templatecomparator.cpp \
+	src/templatecomparator.cpp \
     src/tools.cpp \
     src/pupilsegmentator.cpp \
     src/gaborencoder.cpp

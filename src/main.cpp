@@ -37,27 +37,35 @@ GaborEncoder gaborEncoder;
 
 
 int main(int argc, char** argv) {
-	const char* imagePath = "/home/marcelo/iris/BBDD/UBA/marcelo_der_1.bmp";
-	Mat image = imread(imagePath);
+	const char* imagePath1 = "/home/marcelo/iris/BBDD/UBA/marcelo_der_1.bmp";
+	const char* imagePath2 = "/home/marcelo/iris/BBDD/UBA/marcelo_der_2.bmp";
+	Mat image1 = imread(imagePath1);
+	Mat image2 = imread(imagePath2);
 
-	SegmentationResult segmentationResult = segmentator.segmentImage(image);
+	SegmentationResult segmentationResult1 = segmentator.segmentImage(image1);
+	SegmentationResult segmentationResult2 = segmentator.segmentImage(image2);
 
-	IrisTemplate template_ = logGaborEncoder.generateTemplate(image, segmentationResult);
-	//IrisTemplate template_ = gaborEncoder.generateTemplate(image, segmentationResult);
+	/*IrisTemplate template1 = logGaborEncoder.generateTemplate(image1, segmentationResult1);
+	IrisTemplate template2 = logGaborEncoder.generateTemplate(image2, segmentationResult2);*/
+	IrisTemplate template1 = gaborEncoder.generateTemplate(image1, segmentationResult1);
+	IrisTemplate template2 = gaborEncoder.generateTemplate(image2, segmentationResult2);
 
-	/*IplImage* imTemplate = template_.getTemplateImage();
-	cvNamedWindow("templ");
-	cvShowImage("templ", beautificarTemplate(imTemplate));*/
+	decorator.drawSegmentationResult(image1, segmentationResult1);
+	decorator.drawEncodingZone(image1, segmentationResult1);
+	decorator.drawTemplate(image1, template1);
 
-	decorator.drawSegmentationResult(image, segmentationResult);
-	decorator.drawEncodingZone(image, segmentationResult);
-	decorator.drawTemplate(image, template_);
+	decorator.drawSegmentationResult(image2, segmentationResult2);
+	decorator.drawEncodingZone(image2, segmentationResult2);
+	decorator.drawTemplate(image2, template2);
 
-	namedWindow("imagen", 1);
-	imshow("imagen", image);
 
-	cout << "T: " << segmentator.segmentationTime << " ms" << endl;
+	namedWindow("imagen1", 1);
+	imshow("imagen1", image1);
+	namedWindow("imagen2", 1);
+	imshow("imagen2", image2);
 
+	TemplateComparator comparator(template1);
+	cout << "HD: " << comparator.compare(template2) << endl;
 
 	char k;
 	do {

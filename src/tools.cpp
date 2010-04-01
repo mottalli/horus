@@ -300,23 +300,4 @@ void Tools::superimposeTexture(IplImage* image, const IplImage* texture, const S
 	}
 }
 
-void Tools::updateSize(IplImage** image, CvSize size, int depth, int channels)
-{
-	if (*image == NULL || (*image)->width != size.width || (*image)->height != size.height || (*image)->depth != depth) {
-		if (*image != NULL) {
-			cvReleaseImage(image);
-		}
-		*image = cvCreateImage(size, depth, channels);
-	}
-}
-
-void Tools::updateSize(CvMat** mat, CvSize size, int depth)
-{
-	if (*mat == NULL || (*mat)->cols != size.width || (*mat)->cols != size.height || (*mat)->type != depth) {
-		if (*mat != NULL) {
-			cvReleaseMat(mat);
-		}
-		*mat = cvCreateMat(size.height, size.width, depth);
-	}
-}
 
