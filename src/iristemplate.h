@@ -1,10 +1,3 @@
-/*
- * iristemplate.h
- *
- *  Created on: Jun 13, 2009
- *      Author: marcelo
- */
-
 #pragma once
 
 #include "common.h"
@@ -26,22 +19,18 @@ class IrisTemplate {
 public:
 	IrisTemplate();
 	IrisTemplate(const IrisTemplate& otherTemplate);
-	IrisTemplate(const CvMat* binaryTemplate, const CvMat* binaryMask);
+	IrisTemplate(const Mat& binaryTemplate, const Mat& binaryMask);
 
-	// NOTE: Caller must release these!
-	IplImage* getTemplateImage(void) const;
-	IplImage* getNoiseMaskImage(void) const;
-	CvMat* getUnpackedTemplate() const;
-	CvMat* getUnpackedMask() const;
-
-	inline const CvMat* getPackedTemplate() const { return this->irisTemplate; }
-	inline const CvMat* getPackedMask() const { return this->mask; }
+	Mat getTemplateImage(void) const;
+	Mat getNoiseMaskImage(void) const;
+	Mat getUnpackedTemplate() const;
+	Mat getUnpackedMask() const;
 
 	IrisTemplate& operator=(const IrisTemplate& otherTemplate);
 
 	virtual ~IrisTemplate();
 protected:
-	CvMat* irisTemplate;
-	CvMat* mask;
+	Mat_<uint8_t> irisTemplate;
+	Mat_<uint8_t> mask;
 };
 

@@ -29,9 +29,7 @@ void processImage(IplImage* image);
 void captured();
 
 Segmentator segmentator;
-QualityChecker qualityChecker;
 Decorator decorator;
-VideoProcessor videoProcessor;
 LogGaborEncoder logGaborEncoder;
 //IrisDCTEncoder irisDCTEncoder;
 Parameters* parameters = Parameters::getParameters();

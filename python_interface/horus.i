@@ -19,8 +19,8 @@
 %include "../src/common.h"
 
 %{
-#include "../src/clock.h"
 #include "../src/common.h"
+#include "../src/clock.h"
 #include "../src/decorator.h"
 #include "../src/eyelidsegmentator.h"
 #include "../src/helperfunctions.h"
@@ -38,7 +38,7 @@
 #include "../src/tools.h"
 #include "../src/types.h"
 #include "../src/videoprocessor.h"
-#include "../src/irisdctencoder.h"
+//#include "../src/irisdctencoder.h"
 #include "../src/gaborencoder.h"
 #ifdef USE_CUDA
 #include "../src/irisdatabasecuda.h"
@@ -46,7 +46,6 @@
 %}
 
 %include "../src/clock.h"
-%include "../src/common.h"
 %include "../src/decorator.h"
 %include "../src/eyelidsegmentator.h"
 %include "../src/helperfunctions.h"
@@ -64,7 +63,7 @@
 %include "../src/tools.h"
 %include "../src/types.h"
 %include "../src/videoprocessor.h"
-%include "../src/irisdctencoder.h"
+//%include "../src/irisdctencoder.h"
 %include "../src/gaborencoder.h"
 #ifdef USE_CUDA
 %include "../src/irisdatabasecuda.h"
@@ -90,13 +89,13 @@ namespace std
 }
 
 %extend IrisEncoder {
-	void IrisEncoder::normalizeIris(const CvMat* imageMat, CvMat* destMat, CvMat* destMask, const SegmentationResult& segmentationResult, double theta0=IrisEncoder::THETA0, double theta1=IrisEncoder::THETA1, double radius=IrisEncoder::RADIUS_TO_USE)
+/*	void IrisEncoder::normalizeIris(const CvMat* imageMat, CvMat* destMat, CvMat* destMask, const SegmentationResult& segmentationResult, double theta0=IrisEncoder::THETA0, double theta1=IrisEncoder::THETA1, double radius=IrisEncoder::RADIUS_TO_USE)
 	{
 		IplImage image, dest;
 		cvGetImage(imageMat, &image);
 		cvGetImage(destMat, &dest);
 		IrisEncoder::normalizeIris(&image, &dest, destMask, segmentationResult, theta0, theta1, radius);
-	}
+	}*/
 }
 
 

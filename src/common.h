@@ -1,7 +1,7 @@
 #pragma once
 
 #include <opencv/cv.h>
-#include <opencv/cvaux.hpp>
+#include <opencv/cvaux.h>
 #include <opencv/cxcore.h>
 #include <opencv/highgui.h>
 #include <cmath>

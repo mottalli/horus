@@ -41,18 +41,18 @@
 
 namespace Tools
 {
-	void packBits(const CvMat* src, CvMat* dest);
-	void unpackBits(const CvMat* src, CvMat* dest, int trueval = 1);
+	void packBits(const Mat_<uint8_t>& src, Mat_<uint8_t>& dest);
+	void unpackBits(const Mat_<uint8_t>& src, Mat_<uint8_t>& dest, int trueval = 1);
 
 	// Useful debugging functions
 	void drawHistogram(const IplImage* img);
 
 	// Base64 methods
-	std::string base64Encode(unsigned char const* buffer, unsigned int len);
+	std::string base64Encode(const uint8_t* buffer, unsigned int len);
 	std::string base64Decode(std::string const& s);
 
-	std::string base64EncodeMat(const CvMat* mat);
-	CvMat* base64DecodeMat(const std::string &s);
+	std::string base64EncodeMat(const Mat& mat);
+	Mat base64DecodeMat(const std::string &s);
 
 	std::vector< std::pair<Point, Point> > iterateIris(const SegmentationResult& segmentation, int width, int height, double theta0=0.0, double theta1=2.0*M_PI, double radius=1.0);
 	void superimposeTexture(IplImage* image, const IplImage* texture, const SegmentationResult& segmentation, double theta0, double theta1, double radius);

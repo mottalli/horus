@@ -11,39 +11,38 @@ inline uint8_t setBit(uint8_t b, int bit, bool value);
 inline bool getBit(uint8_t b, int bit);
 
 // Pack the binary in src into bits
-void Tools::packBits(const CvMat* src, CvMat* dest)
+void Tools::packBits(const Mat_<uint8_t>& src, Mat_<uint8_t>& dest)
 {
-	assert(src->width / 8 == dest->width);
-	assert(src->height == dest->height);
+	assert( (src.cols % 8) == 0);
+	dest.create(src.rows, src.cols/8);
 
-	for (int y = 0; y < src->height; y++) {
-		const uint8_t* srcrow = &(src->data.ptr[y*src->step]);
+	for (int y = 0; y < src.rows; y++) {
+		const uint8_t* srcrow = src.ptr(y);
 
 		int xsrc = 0;
-		for (int bytenum = 0; bytenum < dest->width; bytenum++) {
-			uint8_t *destbyte =  &(dest->data.ptr[y*dest->step+bytenum]);
+		for (int bytenum = 0; bytenum < dest.cols; bytenum++) {
+			uint8_t& destbyte =  dest(y, bytenum);
 			uint8_t byteval = 0;
 			for (int bit = 0; bit < 8; bit++) {
 				bool value = (srcrow[xsrc] > 0 ? true : false);
 				byteval = setBit(byteval, bit, value);
 				xsrc++;
 			}
-			*destbyte = byteval;
+			destbyte = byteval;
 		}
 	}
 }
 
-void Tools::unpackBits(const CvMat* src, CvMat* dest, int trueval)
+void Tools::unpackBits(const Mat_<uint8_t>& src, Mat_<uint8_t>& dest, int trueval)
 {
-	assert(src->width * 8 == dest->width);
-	assert(src->height == dest->height);
+	dest.create(src.rows, src.cols*8);
 
-	for (int y = 0; y < src->height; y++) {
+	for (int y = 0; y < src.rows; y++) {
 		int xdest = 0;
-		for (int xsrc = 0; xsrc < src->width; xsrc++) {
-			uint8_t byte = src->data.ptr[y*src->step+xsrc];
+		for (int xsrc = 0; xsrc < src.cols; xsrc++) {
+			uint8_t byte = src(y, xsrc);
 			for (int bit = 0; bit < 8; bit++) {
-				cvSetReal2D(dest, y, xdest, getBit(byte, bit) ? trueval : 0);
+				dest(y, xdest) = (getBit(byte, bit) ? trueval : 0);
 				xdest++;
 			}
 		}
@@ -117,10 +116,11 @@ static const std::string base64_chars =
 			 "abcdefghijklmnopqrstuvwxyz"
 			 "0123456789+/";
 
-std::string Tools::base64EncodeMat(const CvMat* mat)
+std::string Tools::base64EncodeMat(const Mat& mat)
 {
-	int width = mat->width, height = mat->height;
-	assert(sizeof(uint8_t) == 1);
+	int width = mat.cols, height = mat.rows;
+	assert(mat.depth() == CV_8U);
+
 	uint8_t* buffer = new uint8_t[2*sizeof(int16_t) + width*height];		// Stores width, height and data
 
 	// Store width and height
@@ -131,17 +131,17 @@ std::string Tools::base64EncodeMat(const CvMat* mat)
 	uint8_t* p = buffer + 2*sizeof(int16_t);		// Pointer to the actual data past the width and height
 
 	for (int y = 0; y < height; y++) {
-		memcpy(p + y*width, mat->data.ptr + y*mat->step, width);		// Copy one line
+		memcpy(p + y*width, mat.ptr(y), width);		// Copy one line
 	}
 
-	std::string base64 = Tools::base64Encode(buffer, width*height);
+	std::string base64 = Tools::base64Encode(buffer, width*height+2*sizeof(int16_t));
 
 	delete[] buffer;
 
 	return base64;
 }
 
-CvMat* Tools::base64DecodeMat(const std::string &s)
+Mat Tools::base64DecodeMat(const std::string &s)
 {
 	int width, height;
 
@@ -154,9 +154,10 @@ CvMat* Tools::base64DecodeMat(const std::string &s)
 
 	uint8_t* p = buffer + 2*sizeof(int16_t);		// Pointer to the actual data past the width and height
 
-	CvMat* res = cvCreateMat(height, width, CV_8U);
+	Mat res(height, width, CV_8U);
+
 	for (int y = 0; y < height; y++) {
-		memcpy(res->data.ptr + y*res->step, p + y*width, width);		// Copy one line
+		memcpy(res.ptr(y), p + y*width, width);		// Copy one line
 	}
 
 	return res;

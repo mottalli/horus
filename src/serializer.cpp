@@ -129,10 +129,10 @@ IrisTemplate Serializer::unserializeIrisTemplate(const std::string& serializedTe
 	stream.get(buffer, bufferSize+1);		// According to documentation, it reads up to (bufferSize+1)-1 characters
 	buffer[bufferSize] = '\0';
 	strbuffer = buffer;
-	CvMat* packedTemplate = Tools::base64DecodeMat(strbuffer);
+	Mat packedTemplate = Tools::base64DecodeMat(strbuffer);
 
 	stream >> strbuffer;
-	CvMat* packedMask = Tools::base64DecodeMat(strbuffer);
+	Mat packedMask = Tools::base64DecodeMat(strbuffer);
 
 	IrisTemplate res;
 	// Note that by doing this, irisTemplate takes posession of the template and the mask

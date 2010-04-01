@@ -104,48 +104,39 @@ void Decorator::drawParabola(IplImage* image, const Parabola& parabola, int xMin
 
 void Decorator::drawTemplate(Mat& image, const IrisTemplate& irisTemplate)
 {
-	IplImage* imgTemplate = irisTemplate.getTemplateImage();
-	CvMat* mask = irisTemplate.getUnpackedMask();
+	Mat imgTemplate = irisTemplate.getTemplateImage();
+	Mat mask = irisTemplate.getUnpackedMask();
 
+	mask.setTo(Scalar(255), mask);
+	bitwise_not(mask, mask);			// Hacky way to NOT the template
+	imgTemplate.setTo(Scalar(127), mask);
 
-	cvSet(mask, cvScalar(255), mask);
-	cvNot(mask, mask);					// Hacky way to NOT the template
-	cvSet(imgTemplate, cvScalar(127), mask);
+	Mat decoratedTemplate;
 
-	IplImage* decoratedTemplate;
+	if (imgTemplate.rows < 10) {
+		Mat tmp(3*imgTemplate.rows+2, imgTemplate.cols+2, CV_8U, Scalar(128));
 
-	if (imgTemplate->height < 10) {
-		IplImage* tmp = cvCreateImage(cvSize(imgTemplate->width+2, 3*imgTemplate->height+2), IPL_DEPTH_8U, 1);
-		cvSet(tmp, cvScalar(128));
-		int width = imgTemplate->width;
-		for (int i = 0; i < imgTemplate->height; i++) {
-			CvMat tmpsrc, tmpdest;
-			cvGetSubRect(imgTemplate, &tmpsrc, cvRect(0, i, width, 1));
-			cvGetSubRect(tmp, &tmpdest, cvRect(1, 3*i+2, width, 1));
-			cvCopy(&tmpsrc, &tmpdest);
+		int width = imgTemplate.cols;
+		for (int i = 0; i < imgTemplate.rows; i++) {
+			Mat r = tmp(Rect(1, 3*i+2, imgTemplate.cols, 1));
+			imgTemplate.row(i).copyTo(r);
 		}
-		decoratedTemplate = cvCreateImage(cvSize(1.5*tmp->width, 2.5*tmp->height), IPL_DEPTH_8U, 1);
-		cvResize(tmp, decoratedTemplate, CV_INTER_NN);
-		cvReleaseImage(&tmp);
+		resize(tmp, decoratedTemplate, Size(1.5*tmp.cols, 2.5*tmp.rows), 1, 1, CV_INTER_NN);
 	} else {
-		decoratedTemplate = cvCloneImage(imgTemplate);
+		decoratedTemplate = imgTemplate.clone();
 	}
 
-	CvMat region;
-	Point topleftTemplate = Point(10, 10);
-	CvSize size = cvGetSize(decoratedTemplate);
+	Rect templateRect(15, 15, decoratedTemplate.cols, decoratedTemplate.rows);
 
-	cvGetSubRect(TO_IPLIMAGE(image), &region, cvRect(topleftTemplate.x, topleftTemplate.y, size.width, size.height));
 	if (image.channels() == 3) {
-		cvMerge(decoratedTemplate, NULL, NULL, NULL, &region);
-		cvMerge(NULL, decoratedTemplate, NULL, NULL, &region);
-		cvMerge(NULL, NULL, decoratedTemplate, NULL, &region);
+		vector<Mat> channels(3, decoratedTemplate);
+		Mat part = image(templateRect);
+		merge(channels, part);
 	} else {
-		cvCopy(decoratedTemplate, &region);
+		Mat m = image(templateRect);
+		decoratedTemplate.copyTo(m);
 	}
-	cvRectangle(TO_IPLIMAGE(image), topleftTemplate, Point(topleftTemplate.x+size.width-1, topleftTemplate.y+size.height-1), CV_RGB(0,0,0), 1);
-
-	cvReleaseImage(&imgTemplate);
-	cvReleaseMat(&mask);
-	cvReleaseImage(&decoratedTemplate);
+	Point p0(templateRect.x-1, templateRect.y-1);
+	Point p1(p0.x + templateRect.width+1, p0.y+templateRect.height+1);
+	rectangle(image, p0, p1, CV_RGB(0,0,0), 1);
 }
