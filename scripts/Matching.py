@@ -8,8 +8,10 @@ from opencv.highgui import *
 def testMatching(base):
 	rows = base.conn.execute('SELECT * FROM base_iris WHERE segmentacion_correcta=1')
 
-#	irisDatabase = horus.IrisDatabase()
-	irisDatabase = horus.IrisDatabaseCUDA()
+	if horus.HORUS_CUDA_SUPPORT:
+		irisDatabase = horus.IrisDatabaseCUDA()
+	else:
+		irisDatabase = horus.IrisDatabase()
 	
 	templates = {}
 	clases = {}

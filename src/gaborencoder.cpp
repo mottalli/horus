@@ -49,7 +49,7 @@ void GaborFilter::applyFilter(const Mat_<float>& src, Mat_<float>& dest, const M
 	assert(src.size() == dest.size());
 	assert(mask.size() == destMask.size());
 
-	filter2D(src, dest, dest.depth(), this->filter);
+	filter2D(src, dest, dest.depth(), this->filter, Point(-1,-1), 0, BORDER_REPLICATE);
 
 	mask.copyTo(destMask);
 }
@@ -58,7 +58,7 @@ GaborEncoder::GaborEncoder()
 {
 	this->filterBank.push_back(GaborFilter(15, 15, 0.5, 0.5, 2, 2, GaborFilter::FILTER_IMAG));
 	//this->filterBank.push_back(GaborFilter(15, 15, 0.5, -0.5, 2, 2, GaborFilter::FILTER_IMAG));
-	this->filterBank.push_back(GaborFilter(15, 15, 0.5, 1, 2, 2, GaborFilter::FILTER_IMAG));
+	//this->filterBank.push_back(GaborFilter(15, 15, 0.5, 1, 2, 2, GaborFilter::FILTER_IMAG));
 	//this->filterBank.push_back(GaborFilter(15, 15, -0.5, 1, 2, 2, GaborFilter::FILTER_IMAG));
 }
 
@@ -97,17 +97,15 @@ IrisTemplate GaborEncoder::encodeTexture(const Mat_<uint8_t>& texture, const Mat
 				assert(xtexture < this->filteredTexture.cols && ytexture < this->filteredTexture.rows);
 
 				unsigned char templateBit =  (this->filteredTexture(ytexture, xtexture)  >  0.0 ? 1 : 0);
-				unsigned char maskBit1 = (this->filteredMask(ytexture, xtexture) ? 1 : 0);
-				unsigned char maskBit2 =  (abs(this->filteredTexture(ytexture, xtexture)) < 0.001 ? 0 : 1);
-
 				this->resultTemplate(ytemplate, xtemplate) = templateBit;
-				this->resultMask(ytemplate, xtemplate) = maskBit1 & maskBit2;
+
+				unsigned char maskBit1 = (this->filteredMask(ytexture, xtexture) ? 1 : 0);
+				this->resultMask(ytemplate, xtemplate) = maskBit1;
 			}
 		}
 	}
 
-
-	IrisTemplate result(TO_CVMAT(resultTemplate), TO_CVMAT(resultMask));
+	IrisTemplate result(resultTemplate, resultMask);
 
 	return result;
 }

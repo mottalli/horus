@@ -150,7 +150,7 @@ Contour PupilSegmentator::adjustPupilContour(const Mat_<uint8_t>& image, const C
 		double theta = (double(x) / double(snake.cols)) * 2.0 * M_PI;
 		double radius = (double(y) / double(gradient.rows - 1))
 				* double(radiusMax - radiusMin) + double(radiusMin);
-		radius++;
+		radius += 2;
 
 		int ximag = int(double(approximateCircle.xc) + cos(theta) * radius);
 		int yimag = int(double(approximateCircle.yc) + sin(theta) * radius);

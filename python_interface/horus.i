@@ -1,23 +1,5 @@
 %module "horus"
 
-%include "std_vector.i"
-%include "std_string.i"
-
-%typemap(in) IplImage* {
-	void* argp = 0;
-	CvMat* arg = 0;
-	SWIG_ConvertPtr($input, &argp, SWIGTYPE_p_CvMat, 0);
-	arg = reinterpret_cast<CvMat*>(argp);
-	IplImage* tmp = new IplImage;
-	$1 = cvGetImage(argp, tmp);
-}
-
-%typemap(freearg) IplImage* {
-	delete $1;
-}
-
-%include "../src/common.h"
-
 %{
 #include "../src/common.h"
 #include "../src/clock.h"
@@ -45,6 +27,65 @@
 #endif
 %}
 
+
+%include "std_vector.i"
+%include "std_string.i"
+
+// Without this Swig complains about knowing nothing about the namespace "cv"
+namespace cv {
+};
+
+
+// This is just done to instantiante CvMat as a pointer in Swig
+%{
+CvMat __horus_swig_unused;
+%}
+CvMat __horus_swig_unused;
+
+
+%typemap(in) Mat const & {
+	// From Python comes a CvMat*
+	CvMat* arg = 0;
+	SWIG_ConvertPtr($input, (void**)&arg, SWIGTYPE_p_CvMat, 0);
+	Mat* inarg = new Mat(arg);
+	$1 = inarg;
+}
+
+%typemap(freearg) Mat const & {
+	delete $1;
+}
+
+%typemap(in) Mat & {
+	// From Python comes a CvMat*
+	CvMat* arg = 0;
+	SWIG_ConvertPtr($input, (void**)&arg, SWIGTYPE_p_CvMat, 0);
+	Mat* inarg = new Mat(arg);
+	$1 = inarg;
+}
+
+%typemap(freearg) Mat & {
+	delete $1;
+}
+
+
+namespace std
+{
+	%template(vectord) vector<double>;
+	%template(vectori) vector<int>;
+	%template(vectorvectord) vector< vector<double> >;
+}
+
+%include "exception.i"
+
+%exception {
+  try {
+    $action
+  } catch (const std::exception& e) {
+    SWIG_exception(SWIG_RuntimeError, e.what());
+  }
+}
+
+%include "../src/common.h"
 %include "../src/clock.h"
 %include "../src/decorator.h"
 %include "../src/eyelidsegmentator.h"
@@ -68,50 +109,3 @@
 #ifdef USE_CUDA
 %include "../src/irisdatabasecuda.h"
 #endif
-
-
-
-namespace std
-{
-	%template(vectord) vector<double>;
-	%template(vectori) vector<int>;
-	%template(vectorvectord) vector< vector<double> >;
-}
-
-%include "exception.i"
-
-%exception {
-  try {
-    $action
-  } catch (const std::exception& e) {
-    SWIG_exception(SWIG_RuntimeError, e.what());
-  }
-}
-
-%extend IrisEncoder {
-/*	void IrisEncoder::normalizeIris(const CvMat* imageMat, CvMat* destMat, CvMat* destMask, const SegmentationResult& segmentationResult, double theta0=IrisEncoder::THETA0, double theta1=IrisEncoder::THETA1, double radius=IrisEncoder::RADIUS_TO_USE)
-	{
-		IplImage image, dest;
-		cvGetImage(imageMat, &image);
-		cvGetImage(destMat, &dest);
-		IrisEncoder::normalizeIris(&image, &dest, destMask, segmentationResult, theta0, theta1, radius);
-	}*/
-}
-
-
-%typemap(in) CvArr* {
-	void* arg = 0;
-	SWIG_ConvertPtr($input, &arg, SWIGTYPE_p_IplImage, 0);
-	$1 = reinterpret_cast<CvArr*>(arg);
-}
-
-// For OpenCV 2.0 compatibility -- grabs an Horus IplImage* and returns a Python CvMat.
-%newobject pyutilCloneImage;
-%inline %{
-	CvMat* pyutilCloneFromHorus(const CvArr* src) {
-		CvSize size = cvGetSize(src);
-		CvMat* m = cvCreateMat(size.height, size.width, CV_8U);
-		cvCopy(src, m);
-		return m;
-	}
-%}

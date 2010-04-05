@@ -1,5 +1,5 @@
 # -*- coding: UTF8 -*-
-from horus import Segmentator, LogGaborEncoder, Decorator, unserializeSegmentationResult, serializeIrisTemplate, unserializeIrisTemplate, TemplateComparator, IrisDCTEncoder, GaborEncoder
+from horus import Segmentator, LogGaborEncoder, Decorator, unserializeSegmentationResult, serializeIrisTemplate, unserializeIrisTemplate, TemplateComparator, GaborEncoder
 from opencv import *
 from opencv.highgui import *
 
