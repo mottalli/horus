@@ -34,9 +34,10 @@ LogGaborEncoder logGaborEncoder;
 //IrisDCTEncoder irisDCTEncoder;
 Parameters* parameters = Parameters::getParameters();
 GaborEncoder gaborEncoder;
+VideoProcessor videoProcessor;
 
 
-int main(int argc, char** argv) {
+int main1(int argc, char** argv) {
 	const char* imagePath1 = "/home/marcelo/iris/BBDD/UBA/marcelo_der_1.bmp";
 	const char* imagePath2 = "/home/marcelo/iris/BBDD/UBA/marcelo_der_2.bmp";
 	Mat image1 = imread(imagePath1);
@@ -75,7 +76,7 @@ int main(int argc, char** argv) {
 	return 0;
 }
 
-int main1(int argc, char** argv) {
+int main(int argc, char** argv) {
 	VideoCapture capture(0);
 
 	Mat frame;
@@ -86,14 +87,9 @@ int main1(int argc, char** argv) {
 	while (true) {
 		capture >> frame;
 
-		SegmentationResult segmentationResult = segmentator.segmentImage(frame);
-		IrisTemplate template_ = gaborEncoder.generateTemplate(&((IplImage)frame), segmentationResult);
+		VideoProcessor::VideoStatus status = videoProcessor.processFrame(frame);
 
-		decorator.drawSegmentationResult(frame, segmentationResult);
-		decorator.drawTemplate(frame, template_);
-
-
-		cout << "T: " << segmentator.segmentationTime << " ms" << endl;
+		decorator.drawSegmentationResult(frame, videoProcessor.lastSegmentationResult);
 
 		imshow("video", frame);
 

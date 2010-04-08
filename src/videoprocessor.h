@@ -24,27 +24,27 @@ public:
 		GOT_TEMPLATE
 	} VideoStatus;
 
-	VideoStatus processFrame(const IplImage* frame);
+	VideoStatus processFrame(const Mat& frame);
 
 	QualityChecker qualityChecker;
 	Segmentator segmentator;
 	LogGaborEncoder irisEncoder;
 
-	IplImage* lastFrame;
 	double lastFocusScore;
 	VideoStatus lastStatus;
 	SegmentationResult lastSegmentationResult;
 	double lastIrisQuality;
 	
 	IrisTemplate getTemplate();
-	const IplImage* getTemplateFrame() const { return this->templateFrame; };
+	const Mat& getTemplateFrame() const { return this->templateFrame; };
 	SegmentationResult getTemplateSegmentation() const { return this->templateSegmentation; };
 
 private:
-	VideoStatus doProcess(const IplImage* frame);
-	void initializeBuffers(const IplImage* frame);
+	Mat lastFrame;
+
+	VideoStatus doProcess(const Mat& frame);
 	
-	IplImage* templateFrame;
+	Mat templateFrame;
 	SegmentationResult templateSegmentation;
 	double templateIrisQuality;
 	

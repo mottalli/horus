@@ -55,7 +55,7 @@ void Segmentator::segmentEyelids(const Mat& image, SegmentationResult& result)
 {
 	Mat imageToSegment;		// Can either user image or workingImage depending on image format
 
-	assert(image.depth() == IPL_DEPTH_8U);
+	assert(image.depth() == CV_8U);
 
 	if (image.channels() == 1) {
 		imageToSegment = image;

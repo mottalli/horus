@@ -14,7 +14,6 @@ void cvShiftDFT(CvArr * src_arr, CvArr * dst_arr );
 
 VideoProcessor::VideoProcessor()
 {
-	this->lastFrame = NULL;
 	this->lastStatus = DEFOCUSED;
 	this->templateWaitCount = 0;
 	this->templateIrisQuality = 0.0;
@@ -24,16 +23,10 @@ VideoProcessor::VideoProcessor()
 
 VideoProcessor::~VideoProcessor()
 {
-	if (this->lastFrame != NULL) {
-		cvReleaseImage(&this->lastFrame);
-		cvReleaseImage(&this->templateFrame);
-	}
 }
 
-VideoProcessor::VideoStatus VideoProcessor::processFrame(const IplImage* frame)
+VideoProcessor::VideoStatus VideoProcessor::processFrame(const Mat& frame)
 {
-	this->initializeBuffers(frame);
-	
 	if (this->framesToSkip > 0) {
 		this->framesToSkip--;
 		this->lastStatus = UNPROCESSED;
@@ -49,7 +42,7 @@ VideoProcessor::VideoStatus VideoProcessor::processFrame(const IplImage* frame)
 	if (this->waitingBestTemplate) {
 		if (this->lastStatus == FOCUSED_IRIS && this->lastIrisQuality > this->templateIrisQuality) {
 			// Got a better quality image
-			cvCopy(this->lastFrame, this->templateFrame);
+			this->lastFrame.copyTo(this->templateFrame);
 			this->templateIrisQuality = this->lastIrisQuality;
 			this->templateSegmentation = this->lastSegmentationResult;
 			this->templateWaitCount = 0;
@@ -71,15 +64,15 @@ VideoProcessor::VideoStatus VideoProcessor::processFrame(const IplImage* frame)
 	return this->lastStatus;
 }
 
-VideoProcessor::VideoStatus VideoProcessor::doProcess(const IplImage* frame)
+VideoProcessor::VideoStatus VideoProcessor::doProcess(const Mat& frame)
 {
-	if (frame->nChannels == 1) {
-		cvCopy(frame, this->lastFrame);
+	if (frame.channels() == 1) {
+		frame.copyTo(this->lastFrame);
 	} else {
-		cvCvtColor(frame, this->lastFrame, CV_BGR2GRAY);
+		cvtColor(frame, this->lastFrame, CV_BGR2GRAY);
 	}
 	
-	const IplImage* image = this->lastFrame;
+	const Mat& image = this->lastFrame;
 
 	Parameters* parameters = Parameters::getParameters();
 
@@ -131,16 +124,4 @@ VideoProcessor::VideoStatus VideoProcessor::doProcess(const IplImage* frame)
 IrisTemplate VideoProcessor::getTemplate()
 {
 	return this->irisEncoder.generateTemplate(this->templateFrame, this->templateSegmentation);
-}
-
-void VideoProcessor::initializeBuffers(const IplImage* frame)
-{
-	if (this->lastFrame == NULL || !SAME_SIZE(this->lastFrame, frame)) {
-		if (this->lastFrame != NULL) {
-			cvReleaseImage(&this->lastFrame);
-			cvReleaseImage(&this->templateFrame);
-		}
-		this->lastFrame = cvCreateImage(cvGetSize(frame), IPL_DEPTH_8U, 1);
-		this->templateFrame = cvCreateImage(cvGetSize(frame), IPL_DEPTH_8U, 1);
-	}
 }

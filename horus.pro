@@ -24,8 +24,9 @@ HEADERS += src/clock.h \
     src/irisencoder.h \
 #    src/irisdatabase.h \
     src/iristemplate.h \
-#    src/videoprocessor.h \
+	src/videoprocessor.h \
     src/pupilsegmentator.h \
+	src/qualitychecker.h \
 #    src/irisdctencoder.h \
     src/tools.h \
     src/gaborencoder.h
@@ -38,7 +39,7 @@ SOURCES += src/segmentationresult.cpp \
     src/segmentator.cpp \
     src/iristemplate.cpp \
     src/serializer.cpp \
-#    src/videoprocessor.cpp \
+	src/videoprocessor.cpp \
     src/decorator.cpp \
     src/eyelidsegmentator.cpp \
 #    src/irisdatabase.cpp \
@@ -50,5 +51,5 @@ SOURCES += src/segmentationresult.cpp \
 	src/templatecomparator.cpp \
     src/tools.cpp \
     src/pupilsegmentator.cpp \
-    src/gaborencoder.cpp
+	src/gaborencoder.cpp
 OTHER_FILES += src/irisdatabase_kernel.cu

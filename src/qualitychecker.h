@@ -1,10 +1,3 @@
-/*
- * qualitychecker.h
- *
- *  Created on: Jun 19, 2009
- *      Author: marcelo
- */
-
 #pragma once
 
 #include "common.h"
@@ -15,9 +8,13 @@ public:
 	QualityChecker();
 	virtual ~QualityChecker();
 
-	double interlacedCorrelation(const IplImage* image);
-	double checkFocus(const IplImage* image);
-	bool validateIris(const IplImage* image, const SegmentationResult& segmentationResult);
-	double getIrisQuality(const IplImage* image, const SegmentationResult& segmentationResult);
+	double interlacedCorrelation(const Mat& image);
+	double checkFocus(const Mat& image);
+	bool validateIris(const Mat& image, const SegmentationResult& segmentationResult);
+	double getIrisQuality(const Mat& image, const SegmentationResult& segmentationResult);
+private:
+	Mat evenFrame, oddFrame;
+	Mat_<float> bufX, bufY, bufMul;
+	Mat bufSobel;
 };
 
