@@ -28,7 +28,3 @@ static const bool HORUS_CUDA_SUPPORT = true;
 #else
 static const bool HORUS_CUDA_SUPPORT = false;
 #endif
-
-//TODO: Remove this
-#define TO_IPLIMAGE(mat) (&((IplImage)mat))
-#define TO_CVMAT(mat) (&((CvMat)mat))

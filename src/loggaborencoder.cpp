@@ -132,7 +132,7 @@ IrisTemplate LogGaborEncoder::encodeTexture(const Mat_<uint8_t>& texture, const 
 		}
 	}
 
-	IrisTemplate result(TO_CVMAT(resultTemplate), TO_CVMAT(resultMask));
+	IrisTemplate result(resultTemplate, resultMask);
 
 	return result;
 }

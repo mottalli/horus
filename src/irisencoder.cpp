@@ -68,8 +68,10 @@ void IrisEncoder::extendMask()
 	}
 }
 
-void IrisEncoder::normalizeIris(const Mat_<uint8_t>& image, Mat_<uint8_t>& dest, Mat_<uint8_t>& destMask, const SegmentationResult& segmentationResult, double theta0, double theta1, double radius)
+void IrisEncoder::normalizeIris(const Mat& image_, Mat& dest_, Mat& destMask_, const SegmentationResult& segmentationResult, double theta0, double theta1, double radius)
 {
+	Mat_<uint8_t> image = image_, dest = dest_, destMask = destMask_;
+
 	int normalizedWidth = dest.cols, normalizedHeight = dest.rows;
 
 	vector< pair<Point, Point> > irisPoints = Tools::iterateIris(segmentationResult,

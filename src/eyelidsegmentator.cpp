@@ -1,10 +1,3 @@
-/*
- * eyelidsegmentator.cpp
- *
- *  Created on: Jun 5, 2009
- *      Author: marcelo
- */
-
 #include "eyelidsegmentator.h"
 #include "parameters.h"
 
@@ -17,43 +10,36 @@ EyelidSegmentator::~EyelidSegmentator()
 {
 }
 
-std::pair<Parabola, Parabola> EyelidSegmentator::segmentEyelids(const IplImage* image, const Circle& pupilCircle, const Circle& irisCircle)
+std::pair<Parabola, Parabola> EyelidSegmentator::segmentEyelids(const Mat& image, const Circle& pupilCircle, const Circle& irisCircle)
 {
-	assert(image->origin == 0);
-
 	int r = irisCircle.radius * 1.5;
-	int x0 = std::max(0, irisCircle.xc-r);
-	int x1 = std::min(image->width-1, irisCircle.xc+r);
-	int y0upper = std::max(0, irisCircle.yc-r);
+	int x0 = max(0, irisCircle.xc-r);
+	int x1 = min(image.cols-1, irisCircle.xc+r);
+	int y0upper = max(0, irisCircle.yc-r);
 	int y1upper = irisCircle.yc;
 	int y0lower= irisCircle.yc;
-	int y1lower = std::min(image->height-1, irisCircle.yc+r);
+	int y1lower = min(image.rows-1, irisCircle.yc+r);
 
-	//TODO: improve this
-	IplImage* gradient = cvCreateImage(cvGetSize(image), IPL_DEPTH_32F, 1);
-	cvSobel(image, gradient, 0, 1, 3);
-	cvSmooth(gradient, gradient, CV_BLUR, 7);
+	Sobel(image, this->gradient, this->gradient.type(), 0, 1, 3);
+	blur(this->gradient, this->gradient, Size(7,7));
 
-
-	Parabola upperEyelid = this->segmentUpper(image, gradient, x0, y0upper, x1, y1upper, pupilCircle, irisCircle);
-	Parabola lowerEyelid = this->segmentLower(image, gradient, x0, y0lower, x1, y1lower, pupilCircle, irisCircle);
+	Parabola upperEyelid = this->segmentUpper(image, this->gradient, x0, y0upper, x1, y1upper, pupilCircle, irisCircle);
+	Parabola lowerEyelid = this->segmentLower(image, this->gradient, x0, y0lower, x1, y1lower, pupilCircle, irisCircle);
 
 	std::pair<Parabola, Parabola> result;
 	result.first = upperEyelid;
 	result.second = lowerEyelid;
 
-	cvReleaseImage(&gradient);
-
 	return result;
 }
 
-Parabola EyelidSegmentator::segmentUpper(const IplImage* image, const IplImage* gradient, int x0, int y0, int x1, int y1, const Circle& pupilCircle, const Circle& irisCircle)
+Parabola EyelidSegmentator::segmentUpper(const Mat_<uint8_t>& image, const Mat_<float>& gradient, int x0, int y0, int x1, int y1, const Circle& pupilCircle, const Circle& irisCircle)
 {
 	Parabola bestParabola;
 	double maxGrad = INT_MIN;
 
 	for (int p = 150; p < 300; p += 50) {
-		std::pair<Parabola, double> res = this->findParabola(image, gradient, p, x0, y0, x1, y1);
+		pair<Parabola, double> res = this->findParabola(image, gradient, p, x0, y0, x1, y1);
 		if (res.second > maxGrad) {
 			maxGrad = res.second;
 			bestParabola = res.first;
@@ -63,13 +49,13 @@ Parabola EyelidSegmentator::segmentUpper(const IplImage* image, const IplImage* 
 	return bestParabola;
 }
 
-Parabola EyelidSegmentator::segmentLower(const IplImage* image, const IplImage* gradient, int x0, int y0, int x1, int y1, const Circle& pupilCircle, const Circle& irisCircle)
+Parabola EyelidSegmentator::segmentLower(const Mat_<uint8_t>& image, const Mat_<float>& gradient, int x0, int y0, int x1, int y1, const Circle& pupilCircle, const Circle& irisCircle)
 {
 	Parabola bestParabola;
 	double maxGrad = INT_MIN;
 
 	for (int p = -300; p < -150; p += 50) {
-		std::pair<Parabola, double> res = this->findParabola(image, gradient, p, x0, y0, x1, y1);
+		pair<Parabola, double> res = this->findParabola(image, gradient, p, x0, y0, x1, y1);
 		if (res.second > maxGrad) {
 			maxGrad = res.second;
 			bestParabola = res.first;
@@ -79,47 +65,41 @@ Parabola EyelidSegmentator::segmentLower(const IplImage* image, const IplImage* 
 	return bestParabola;
 }
 
-std::pair<Parabola, double> EyelidSegmentator::findParabola(const IplImage* image, const IplImage* gradient, int p, int x0, int y0, int x1, int y1)
+std::pair<Parabola, double> EyelidSegmentator::findParabola(const Mat_<uint8_t>& image, const Mat_<float>& gradient, int p, int x0, int y0, int x1, int y1)
 {
 	int step = Parameters::getParameters()->parabolicDetectorStep;
 
 	assert(y1 >= y0);
 	assert(x1 >= x0);
 
-	CvMat* M = cvCreateMat((y1-y0)/step + 1, (x1-x0)/step + 1, CV_32F);
+	Mat_<float> M((y1-y0)/step + 1, (x1-x0)/step + 1);
 
-	for (int i = 0; i < M->rows; i++) {
+	for (int i = 0; i < M.rows; i++) {
 		int y = y0+i*step;
-		for (int j = 0; j < M->cols; j++) {
+		for (int j = 0; j < M.cols; j++) {
 			int x = x0+j*step;
 			double avg = this->parabolaAverage(gradient, image, Parabola(x, y, p));
-			cvSetReal2D(M, i, j, avg);
+			M(i, j) = avg;
 		}
 	}
 
-	CvMat* Dx = cvCreateMat(M->rows, M->cols, CV_32F);
-	CvMat* Dy = cvCreateMat(M->rows, M->cols, CV_32F);
-	CvMat* D = cvCreateMat(M->rows, M->cols, CV_32F);
+	Size s(M.rows, M.cols);
+	Mat_<float> Dx(s), Dy(s), D(s);
 
-	cvSobel(M, Dx, 1, 0);
-	cvSobel(M, Dy, 0, 1);
+	Sobel(M, Dx, Dx.type(), 1, 0);
+	Sobel(M, Dy, Dy.type(), 0, 1);
 
 	// D = Dx^2 + Dy^2
-	cvMul(Dx, Dx, Dx);
-	cvMul(Dy, Dy, Dy);
-	cvAdd(Dx, Dy, D);
+	multiply(Dx, Dx, Dx);
+	multiply(Dy, Dy, Dy);
+	D = Dx + Dy;
 
-	cvSmooth(D, D, CV_BLUR, 3);
+	blur(D, D, Size(3,3));
 
-	CvPoint maxPos;
-	CvPoint minPos;
+	Point maxPos;
+	Point minPos;
 	double max;
-	cvMinMaxLoc(D, &max, NULL, &minPos, &maxPos);
-
-	cvReleaseMat(&M);
-	cvReleaseMat(&Dx);
-	cvReleaseMat(&Dy);
-	cvReleaseMat(&D);
+	minMaxLoc(D, &max, NULL, &minPos, &maxPos);
 
 	int x = x0+maxPos.x*step;
 	int y = y0+maxPos.y*step;
@@ -127,23 +107,20 @@ std::pair<Parabola, double> EyelidSegmentator::findParabola(const IplImage* imag
 	return std::pair<Parabola, double>(Parabola(x, y, p), max);
 }
 
-double EyelidSegmentator::parabolaAverage(const IplImage* gradient, const IplImage* originalImage, const Parabola& parabola)
+double EyelidSegmentator::parabolaAverage(const Mat_<float>& gradient, const Mat_<uint8_t>& originalImage, const Parabola& parabola)
 {
 	double S = 0;
 	int n = 0;
 	double x, y;
 
-	assert(originalImage->depth == IPL_DEPTH_8U);
-	assert(gradient->depth == IPL_DEPTH_32F);
-
-	for (x = 0; x < gradient->width; x += gradient->width/100 + 1) {
+	for (x = 0; x < gradient.cols; x += gradient.cols/100 + 1) {
 		y = parabola.value(x);
-		if (y < 0 || y >= gradient->height) {
+		if (y < 0 || y >= gradient.rows) {
 			continue;
 		}
 
-		float* rowGradient = (float*)(gradient->imageData + int(y)*gradient->widthStep);
-		uint8_t* rowImage = (uint8_t*)(originalImage->imageData + int(y)*originalImage->widthStep);
+		const float* rowGradient = gradient[y];
+		const uint8_t* rowImage = originalImage[y];
 
 		uint8_t v = rowImage[int(x)];
 		if (v < 80 || v > 250) {

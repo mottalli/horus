@@ -30,8 +30,8 @@ void Decorator::drawSegmentationResult(Mat& image, const SegmentationResult& seg
 	if (segmentationResult.eyelidsSegmented) {
 		int xMin = segmentationResult.irisCircle.xc-segmentationResult.irisCircle.radius;
 		int xMax = segmentationResult.irisCircle.xc+segmentationResult.irisCircle.radius;
-		//this->drawParabola(image, segmentationResult.upperEyelid, xMin, xMax, this->upperEyelidColor);
-		//this->drawParabola(image, segmentationResult.lowerEyelid, xMin, xMax, this->lowerEyelidColor);
+		this->drawParabola(image, segmentationResult.upperEyelid, xMin, xMax, this->upperEyelidColor);
+		this->drawParabola(image, segmentationResult.lowerEyelid, xMin, xMax, this->lowerEyelidColor);
 	}
 }
 
@@ -88,16 +88,16 @@ void Decorator::drawContour(Mat& image, const Contour& contour, const Scalar& co
 	line(image, lastPoint, p0, color, 1);
 }
 
-void Decorator::drawParabola(IplImage* image, const Parabola& parabola, int xMin, int xMax, CvScalar color)
+void Decorator::drawParabola(Mat& image, const Parabola& parabola, int xMin, int xMax, const Scalar& color) const
 {
 	if (xMin < 0) xMin = 1;
-	if (xMax < 0 || xMax >= image->width) xMax = image->width-1;
+	if (xMax < 0 || xMax >= image.cols) xMax = image.cols-1;
 
 	Point lastPoint = Point(xMin, int(parabola.value(xMin)));
 	for (int x = xMin+1; x <= xMax; x++) {
 		Point point = Point(x, int(parabola.value(x)));
 
-		cvLine(image, lastPoint, point, color, 1);
+		line(image, lastPoint, point, color, 1);
 		lastPoint = point;
 	}
 }

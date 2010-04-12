@@ -6,7 +6,7 @@
  */
 
 #include "pupilsegmentator.h"
-#include "helperfunctions.h"
+#include "tools.h"
 #include "tools.h"
 
 PupilSegmentator::PupilSegmentator()
@@ -32,7 +32,7 @@ ContourAndCloseCircle PupilSegmentator::segmentPupil(const Mat& image)
 	pupilCircle.yc /= this->resizeFactor;
 
 	result.first = this->adjustPupilContour(image, pupilCircle);
-	result.second = HelperFunctions::approximateCircle(result.first);
+	result.second = Tools::approximateCircle(result.first);
 
 	return result;
 
@@ -77,7 +77,7 @@ Contour PupilSegmentator::adjustPupilContour(const Mat_<uint8_t>& image, const C
 {
 	int radiusMin = approximateCircle.radius * 0.5, radiusMax =
 			approximateCircle.radius * 1.5;
-	HelperFunctions::extractRing(image, this->adjustmentRing,
+	Tools::extractRing(image, this->adjustmentRing,
 			approximateCircle.xc, approximateCircle.yc, radiusMin, radiusMax);
 
 	int infraredThreshold = Parameters::getParameters()->infraredThreshold;
@@ -117,7 +117,7 @@ Contour PupilSegmentator::adjustPupilContour(const Mat_<uint8_t>& image, const C
 	}
 
 	// Smooth the snake
-	HelperFunctions::smoothSnakeFourier(snake, 3);
+	Tools::smoothSnakeFourier(snake, 3);
 	int delta = gradient.rows * 0.1;
 
 	// Improve the estimation
@@ -138,7 +138,7 @@ Contour PupilSegmentator::adjustPupilContour(const Mat_<uint8_t>& image, const C
 		snake(0, x) = bestY;
 	}
 
-	HelperFunctions::smoothSnakeFourier(snake, 5);
+	Tools::smoothSnakeFourier(snake, 5);
 
 	// Use the snake to calculate the quality of the pupil border
 	this->pupilContourQuality = this->calculatePupilContourQuality(this->adjustmentRing, this->adjustmentRingGradient, snake);

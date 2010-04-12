@@ -18,6 +18,6 @@ public:
 	void drawEncodingZone(Mat& image, const SegmentationResult& segmentationResult);
 private:
 	void drawContour(Mat& image, const Contour& contour, const Scalar& color) const;
-	void drawParabola(IplImage* image, const Parabola& parabola, int xMin, int xMax, CvScalar color);
+	void drawParabola(Mat& image, const Parabola& parabola, int xMin, int xMax, const Scalar& color) const;
 };
 

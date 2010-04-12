@@ -1,13 +1,6 @@
-/*
- * File:   irissegmentator.cpp
- * Author: marcelo
- *
- * Created on January 21, 2009, 8:39 PM
- */
-
 #include "irissegmentator.h"
 #include "parameters.h"
-#include "helperfunctions.h"
+#include "tools.h"
 #include <cmath>
 
 IrisSegmentator::IrisSegmentator() {
@@ -36,7 +29,7 @@ ContourAndCloseCircle IrisSegmentator::segmentIrisRecursive(const Mat_<uint8_t>&
 	    radiusMax = pupilCircle.radius * 5.0;
 	}
 
-	HelperFunctions::extractRing(image, this->adjustmentRing, pupilCircle.xc, pupilCircle.yc, radiusMin, radiusMax);
+	Tools::extractRing(image, this->adjustmentRing, pupilCircle.xc, pupilCircle.yc, radiusMin, radiusMax);
 
 	blur(this->adjustmentRing, this->adjustmentRing, Size(3, 15));
 	Sobel(this->adjustmentRing, this->adjustmentRingGradient, CV_16S, 0, 1, 3);
@@ -132,7 +125,7 @@ ContourAndCloseCircle IrisSegmentator::segmentIrisRecursive(const Mat_<uint8_t>&
 	}
 
 	// Smooth the snake
-	HelperFunctions::smoothSnakeFourier(snake, 3);
+	Tools::smoothSnakeFourier(snake, 3);
 
 	// Convert to image coordinates
 	Contour irisContour(snake.cols);
@@ -147,7 +140,7 @@ ContourAndCloseCircle IrisSegmentator::segmentIrisRecursive(const Mat_<uint8_t>&
 	ContourAndCloseCircle result;
 
 	result.first = irisContour;
-	result.second = HelperFunctions::approximateCircle(result.first);
+	result.second = Tools::approximateCircle(result.first);
 
     return result;
 }

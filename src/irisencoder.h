@@ -17,9 +17,9 @@ public:
 	virtual ~IrisEncoder();
 
 	IrisTemplate generateTemplate(const Mat& image, const SegmentationResult& segmentationResult);
+	static void normalizeIris(const Mat& image, Mat& dest, Mat& destMask, const SegmentationResult& segmentationResult, double theta0, double theta1, double radius);
 
 protected:
-	static void normalizeIris(const Mat_<uint8_t>& image, Mat_<uint8_t>& dest, Mat_<uint8_t>& destMask, const SegmentationResult& segmentationResult, double theta0=THETA0, double theta1=THETA1, double radius=RADIUS_TO_USE);
 	static Size getOptimumTemplateSize(int width, int height);		// Returns the optimum template size that is closer to (width, height)
 
 	Mat_<uint8_t> normalizedTexture;

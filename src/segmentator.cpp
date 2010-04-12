@@ -1,16 +1,7 @@
-/*
- * File:   segmentator.cpp
- * Author: marcelo
- *
- * Created on January 21, 2009, 8:37 PM
- */
-
-
 #include <stdexcept>
 #include <iostream>
 
 #include "segmentator.h"
-#include "helperfunctions.h"
 
 
 Segmentator::Segmentator()
@@ -64,7 +55,7 @@ void Segmentator::segmentEyelids(const Mat& image, SegmentationResult& result)
 		imageToSegment = this->workingImage;
 	}
 
-	std::pair<Parabola, Parabola> eyelids = this->eyelidSegmentator.segmentEyelids(&IplImage(imageToSegment), result.pupilCircle, result.irisCircle);
+	std::pair<Parabola, Parabola> eyelids = this->eyelidSegmentator.segmentEyelids(imageToSegment, result.pupilCircle, result.irisCircle);
 	result.upperEyelid = eyelids.first;
 	result.lowerEyelid = eyelids.second;
 	result.eyelidsSegmented = true;

@@ -1,10 +1,3 @@
-/*
- * eyelidsegmentator.h
- *
- *  Created on: Jun 5, 2009
- *      Author: marcelo
- */
-
 #pragma once
 
 #include "common.h"
@@ -15,15 +8,17 @@ public:
 	EyelidSegmentator();
 	virtual ~EyelidSegmentator();
 
-	std::pair<Parabola, Parabola> segmentEyelids(const IplImage* image, const Circle& pupilCircle, const Circle& irisCircle);
+	std::pair<Parabola, Parabola> segmentEyelids(const Mat& image, const Circle& pupilCircle, const Circle& irisCircle);
 
 private:
-	Parabola segmentUpper(const IplImage* image, const IplImage* gradient, int x0, int y0, int x1, int y1, const Circle& pupilCircle, const Circle& irisCircle);
-	Parabola segmentLower(const IplImage* image, const IplImage* gradient, int x0, int y0, int x1, int y1, const Circle& pupilCircle, const Circle& irisCircle);
+	Parabola segmentUpper(const Mat_<uint8_t>& image, const Mat_<float>& gradient, int x0, int y0, int x1, int y1, const Circle& pupilCircle, const Circle& irisCircle);
+	Parabola segmentLower(const Mat_<uint8_t>& image, const Mat_<float>& gradient, int x0, int y0, int x1, int y1, const Circle& pupilCircle, const Circle& irisCircle);
 
-	std::pair<Parabola, double> findParabola(const IplImage* image, const IplImage* gradient, int p, int x0, int y0, int x1, int y1);
-	double parabolaAverage(const IplImage* gradient, const IplImage* originalImage, const Parabola& parabola);
+	std::pair<Parabola, double> findParabola(const Mat_<uint8_t>& image, const Mat_<float>& gradient, int p, int x0, int y0, int x1, int y1);
+	double parabolaAverage(const Mat_<float>& gradient, const Mat_<uint8_t>& originalImage, const Parabola& parabola);
 
 	int pupilRadius;
+
+	Mat_<float> gradient;
 };
 

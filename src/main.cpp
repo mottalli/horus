@@ -37,7 +37,7 @@ GaborEncoder gaborEncoder;
 VideoProcessor videoProcessor;
 
 
-int main1(int argc, char** argv) {
+int main(int argc, char** argv) {
 	const char* imagePath1 = "/home/marcelo/iris/BBDD/UBA/marcelo_der_1.bmp";
 	const char* imagePath2 = "/home/marcelo/iris/BBDD/UBA/marcelo_der_2.bmp";
 	Mat image1 = imread(imagePath1);
@@ -45,6 +45,9 @@ int main1(int argc, char** argv) {
 
 	SegmentationResult segmentationResult1 = segmentator.segmentImage(image1);
 	SegmentationResult segmentationResult2 = segmentator.segmentImage(image2);
+
+	segmentator.segmentEyelids(image1, segmentationResult1);
+	segmentator.segmentEyelids(image2, segmentationResult2);
 
 	IrisTemplate template1 = logGaborEncoder.generateTemplate(image1, segmentationResult1);
 	IrisTemplate template2 = logGaborEncoder.generateTemplate(image2, segmentationResult2);
@@ -76,7 +79,7 @@ int main1(int argc, char** argv) {
 	return 0;
 }
 
-int main(int argc, char** argv) {
+int main1(int argc, char** argv) {
 	VideoCapture capture(0);
 
 	Mat frame;
@@ -88,9 +91,7 @@ int main(int argc, char** argv) {
 		capture >> frame;
 
 		VideoProcessor::VideoStatus status = videoProcessor.processFrame(frame);
-
 		decorator.drawSegmentationResult(frame, videoProcessor.lastSegmentationResult);
-
 		imshow("video", frame);
 
 		if ('q' == (k = waitKey(20)) ) {

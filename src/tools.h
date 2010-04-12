@@ -44,6 +44,10 @@ namespace Tools
 	void packBits(const Mat_<uint8_t>& src, Mat_<uint8_t>& dest);
 	void unpackBits(const Mat_<uint8_t>& src, Mat_<uint8_t>& dest, int trueval = 1);
 
+	void extractRing(const Mat_<uint8_t>& src, Mat_<uint8_t>& dest, int x0, int y0, int radiusMin, int radiusMax);
+	void smoothSnakeFourier(Mat_<float>& snake, int coefficients);
+	Circle approximateCircle(const Contour& contour);
+
 	// Useful debugging functions
 	void drawHistogram(const IplImage* img);
 
@@ -54,7 +58,8 @@ namespace Tools
 	std::string base64EncodeMat(const Mat& mat);
 	Mat base64DecodeMat(const std::string &s);
 
+
 	std::vector< std::pair<Point, Point> > iterateIris(const SegmentationResult& segmentation, int width, int height, double theta0=0.0, double theta1=2.0*M_PI, double radius=1.0);
-	void superimposeTexture(IplImage* image, const IplImage* texture, const SegmentationResult& segmentation, double theta0, double theta1, double radius);
+	void superimposeTexture(Mat& image, const Mat& texture, const SegmentationResult& segmentation, double theta0, double theta1, double radius);
 }
 
