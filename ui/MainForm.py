@@ -1,4 +1,4 @@
-	# -*- coding: UTF8 -*-
+# -*- coding: UTF8 -*-
 from PyQt4 import uic
 from PyQt4 import QtGui, QtCore
 import opencv

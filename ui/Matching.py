@@ -1,3 +1,4 @@
+# -*- coding: UTF8 -*-
 from PyQt4 import uic
 from horus import Decorator
 import opencv
@@ -41,7 +42,7 @@ def doMatch(irisDatabase, template, imagen=None, segmentacion=None):
 	form.lblDistanciaHamming.setText(str(minHD))	
 	form.lblNFA.setText(str(minNFA))
 	form.lblUsuario.setText(informacionUsuario['usuario'])
-	form.lblCantidadImagenes.setText('<font color="red">Sobre un total de %i personas</font>' % (irisDatabase.databaseSize()))
+	form.lblCantidadImagenes.setText('<font color="red">Sobre un total de %i personas - Tiempo de b&uacute;squeda: %.2f miliseg.</font>' % (irisDatabase.databaseSize(), tiempoHamming+tiempoAContrario))
 	form.lblProbError.setText('%.5f%%' % (pow(10, minNFA)*100.0))
 	
 	if minNFA > -2 or minHD > 0.36:

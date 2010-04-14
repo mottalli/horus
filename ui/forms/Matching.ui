@@ -70,7 +70,7 @@ p, li { white-space: pre-wrap; }
      </item>
     </layout>
    </item>
-   <item row="1" column="0">
+   <item row="1" column="0" colspan="2">
     <widget class="QLabel" name="lblCantidadImagenes">
      <property name="font">
       <font>

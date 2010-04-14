@@ -84,6 +84,21 @@ namespace std
   }
 }
 
+%typemap(in) Mat* matin {
+	void* arg = 0;
+	SWIG_ConvertPtr($input, (void**)&arg, SWIGTYPE_p_Mat, 0);
+	$1 = reinterpret_cast<Mat*>(arg);
+}
+%newobject pyutilCloneImage;
+%inline %{
+	CvMat* pyutilCloneFromHorus(Mat* matin) {
+		CvMat* a = new CvMat;
+		*a = (CvMat)*matin;
+		return a;
+	}
+%}
+
+
 %include "../src/common.h"
 %include "../src/clock.h"
 %include "../src/decorator.h"
