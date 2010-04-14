@@ -82,7 +82,7 @@ void IrisDatabase::calculatePartsDistances(const IrisTemplate& irisTemplate, int
 
 	// Calculate the distances between the parts
 	for (size_t i = 0; i < n; i++) {
-		std::vector<double> partsDistances = comparator.compareParts(*(this->templates[i]), nParts);
+		vector<double> partsDistances = comparator.compareParts(*(this->templates[i]), nParts);
 		assert(partsDistances.size() == nParts);
 
 		for (int p = 0; p < nParts; p++) {
@@ -146,14 +146,14 @@ void IrisDatabase::doAContrarioMatch(const IrisTemplate& irisTemplate, int nPart
 
 
 	for (int i = 0; i < n; i++) {
-		this->resultNFAs[i] = std::log10(double(n));
+		this->resultNFAs[i] = log10(double(n));
 
 		for (int p = 0; p < nParts; p++) {
 			double distance = cvGetReal1D(distances[p], i);
-			int bin = std::floor( distance / ((BIN_MAX-BIN_MIN)/BINS) );
+			int bin = floor( distance / ((BIN_MAX-BIN_MIN)/BINS) );
 			assert(bin < BINS);
 
-			this->resultNFAs[i] += std::log10( double(cumhists[p][bin]) / double(n) );		// The accumulated histogram has to be normalized, so we divide by n
+			this->resultNFAs[i] += log10( double(cumhists[p][bin]) / double(n) );		// The accumulated histogram has to be normalized, so we divide by n
 		}
 
 		int matchId = this->ids[i];

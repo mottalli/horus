@@ -51,8 +51,8 @@ int main(int argc, char** argv) {
 
 	IrisTemplate template1 = logGaborEncoder.generateTemplate(image1, segmentationResult1);
 	IrisTemplate template2 = logGaborEncoder.generateTemplate(image2, segmentationResult2);
-	/*IrisTemplate template1 = gaborEncoder.generateTemplate(image1, segmentationResult1);
-	IrisTemplate template2 = gaborEncoder.generateTemplate(image2, segmentationResult2);*/
+	//IrisTemplate template1 = gaborEncoder.generateTemplate(image1, segmentationResult1);
+	//IrisTemplate template2 = gaborEncoder.generateTemplate(image2, segmentationResult2);
 
 	decorator.drawSegmentationResult(image1, segmentationResult1);
 	decorator.drawEncodingZone(image1, segmentationResult1);

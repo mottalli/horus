@@ -37,13 +37,17 @@ void IrisDatabaseCUDA::calculatePartsDistances(const IrisTemplate& irisTemplate,
 
 		for (size_t i = 0; i < this->templates.size(); i++) {
 			// Indirect way of assuring it's CV_8U
-			assert(this->templates[i]->getPackedTemplate()->step == this->templates[i]->getPackedTemplate()->width);
+			const Mat& packedTemplate = this->templates[i]->getPackedTemplate();
+			const Mat& packedMask = this->templates[i]->getPackedMask();
+			assert(packedTemplate.isContinuous() && packedMask.isContinuous());
+			assert(packedTemplate.channels() == 1 && packedMask.channels() == 1);
+			assert(packedTemplate.type() == CV_8U && packedMask.type() == CV_8U);
 
-			rawTemplates[i] = this->templates[i]->getPackedTemplate()->data.ptr;
-			rawMasks[i] = this->templates[i]->getPackedMask()->data.ptr;
+			rawTemplates[i] = packedTemplate.data;
+			rawMasks[i] = packedMask.data;
 		}
 		
-		size_t packedWidth = this->templates[0]->getPackedTemplate()->width, packedHeight = this->templates[0]->getPackedTemplate()->height;
+		size_t packedWidth = this->templates[0]->getPackedTemplate().cols, packedHeight = this->templates[0]->getPackedTemplate().rows;
 
 		loadDatabase(rawTemplates, rawMasks, packedWidth, packedHeight, &this->gpuDatabase);
 		this->dirty = false;
@@ -55,11 +59,11 @@ void IrisDatabaseCUDA::calculatePartsDistances(const IrisTemplate& irisTemplate,
 	
 	vector<const uint8_t*> rawRotatedTemplates(comparator.rotatedTemplates.size()), rawRotatedMasks(comparator.rotatedTemplates.size());
 	for (size_t i = 0; i < comparator.rotatedTemplates.size(); i++) {
-		assert(comparator.rotatedTemplates[i].getPackedTemplate()->width == this->gpuDatabase.templateWidth);
-		assert(comparator.rotatedTemplates[i].getPackedTemplate()->height == this->gpuDatabase.templateHeight);
+		assert(comparator.rotatedTemplates[i].getPackedTemplate().cols == this->gpuDatabase.templateWidth);
+		assert(comparator.rotatedTemplates[i].getPackedTemplate().rows == this->gpuDatabase.templateHeight);
 		
-		rawRotatedTemplates[i] = comparator.rotatedTemplates[i].getPackedTemplate()->data.ptr;
-		rawRotatedMasks[i] = comparator.rotatedTemplates[i].getPackedMask()->data.ptr;
+		rawRotatedTemplates[i] = comparator.rotatedTemplates[i].getPackedTemplate().data;
+		rawRotatedMasks[i] = comparator.rotatedTemplates[i].getPackedMask().data;
 	}
 	
 	
@@ -73,13 +77,17 @@ void IrisDatabaseCUDA::doMatch(const IrisTemplate& irisTemplate, void (*statusCa
 
 		for (size_t i = 0; i < this->templates.size(); i++) {
 			// Indirect way of assuring it's CV_8U
-			assert(this->templates[i]->getPackedTemplate()->step == this->templates[i]->getPackedTemplate()->width);
+			const Mat& packedTemplate = this->templates[i]->getPackedTemplate();
+			const Mat& packedMask = this->templates[i]->getPackedMask();
+			assert(packedTemplate.isContinuous() && packedMask.isContinuous());
+			assert(packedTemplate.channels() == 1 && packedMask.channels() == 1);
+			assert(packedTemplate.type() == CV_8U && packedMask.type() == CV_8U);
 
-			rawTemplates[i] = this->templates[i]->getPackedTemplate()->data.ptr;
-			rawMasks[i] = this->templates[i]->getPackedMask()->data.ptr;
+			rawTemplates[i] = packedTemplate.data;
+			rawMasks[i] = packedMask.data;
 		}
 		
-		size_t packedWidth = this->templates[0]->getPackedTemplate()->width, packedHeight = this->templates[0]->getPackedTemplate()->height;
+		size_t packedWidth = this->templates[0]->getPackedTemplate().cols, packedHeight = this->templates[0]->getPackedTemplate().rows;
 
 		loadDatabase(rawTemplates, rawMasks, packedWidth, packedHeight, &this->gpuDatabase);
 		this->dirty = false;
@@ -91,11 +99,11 @@ void IrisDatabaseCUDA::doMatch(const IrisTemplate& irisTemplate, void (*statusCa
 	
 	vector<const uint8_t*> rawRotatedTemplates(comparator.rotatedTemplates.size()), rawRotatedMasks(comparator.rotatedTemplates.size());
 	for (size_t i = 0; i < comparator.rotatedTemplates.size(); i++) {
-		assert(comparator.rotatedTemplates[i].getPackedTemplate()->width == this->gpuDatabase.templateWidth);
-		assert(comparator.rotatedTemplates[i].getPackedTemplate()->height == this->gpuDatabase.templateHeight);
+		assert(comparator.rotatedTemplates[i].getPackedTemplate().cols == this->gpuDatabase.templateWidth);
+		assert(comparator.rotatedTemplates[i].getPackedTemplate().rows == this->gpuDatabase.templateHeight);
 		
-		rawRotatedTemplates[i] = comparator.rotatedTemplates[i].getPackedTemplate()->data.ptr;
-		rawRotatedMasks[i] = comparator.rotatedTemplates[i].getPackedMask()->data.ptr;
+		rawRotatedTemplates[i] = comparator.rotatedTemplates[i].getPackedTemplate().data;
+		rawRotatedMasks[i] = comparator.rotatedTemplates[i].getPackedMask().data;
 	}
 	
 	doGPUMatch(rawRotatedTemplates, rawRotatedMasks, &this->gpuDatabase, this->resultDistances, this->matchingTime);

@@ -3,16 +3,16 @@
 #include "tools.h"
 
 
-std::string Serializer::serializeParabola(const Parabola& parabola)
+string Serializer::serializeParabola(const Parabola& parabola)
 {
-	std::ostringstream stream;
+	ostringstream stream;
 	stream << parabola.x0 << ',' << parabola.y0 << ',' << parabola.p;
 	return stream.str();
 }
 
-std::string Serializer::serializeContour(const Contour& contour)
+string Serializer::serializeContour(const Contour& contour)
 {
-	std::ostringstream stream;
+	ostringstream stream;
 	stream << contour.size() << ',';
 	for (Contour::const_iterator it = contour.begin(); it != contour.end(); it++) {
 		stream << '(' << (*it).x << ',' << (*it).y << ')';
@@ -20,10 +20,10 @@ std::string Serializer::serializeContour(const Contour& contour)
 	return stream.str();
 }
 
-SegmentationResult Serializer::unserializeSegmentationResult(const std::string& s)
+SegmentationResult Serializer::unserializeSegmentationResult(const string& s)
 {
 	SegmentationResult res;
-	std::istringstream stream(s);
+	istringstream stream(s);
 	char c;
 	int foo;
 
@@ -50,7 +50,7 @@ SegmentationResult Serializer::unserializeSegmentationResult(const std::string& 
 	return res;
 }
 
-Contour Serializer::unserializeContour(std::istringstream& stream)
+Contour Serializer::unserializeContour(istringstream& stream)
 {
 	int size;
 	char c;
@@ -69,7 +69,7 @@ Contour Serializer::unserializeContour(std::istringstream& stream)
 	return res;
 }
 
-Parabola Serializer::unserializeParabola(std::istringstream& stream)
+Parabola Serializer::unserializeParabola(istringstream& stream)
 {
 	char c;
 	int x0, y0, p;
@@ -83,9 +83,9 @@ Parabola Serializer::unserializeParabola(std::istringstream& stream)
 	return Parabola(x0, y0, p);
 }
 
-std::string Serializer::serializeSegmentationResult(const SegmentationResult& sr)
+string Serializer::serializeSegmentationResult(const SegmentationResult& sr)
 {
-	std::ostringstream stream;
+	ostringstream stream;
 
 	stream << serializeContour(sr.pupilContour);
 	stream << serializeContour(sr.irisContour);
@@ -101,22 +101,22 @@ std::string Serializer::serializeSegmentationResult(const SegmentationResult& sr
 	return stream.str();
 }
 
-std::string Serializer::serializeIrisTemplate(const IrisTemplate& irisTemplate)
+string Serializer::serializeIrisTemplate(const IrisTemplate& irisTemplate)
 {
-	std::ostringstream stream;
-	std::string serializedTemplate = Tools::base64EncodeMat(irisTemplate.irisTemplate);
-	std::string serializedMask = Tools::base64EncodeMat(irisTemplate.mask);
+	ostringstream stream;
+	string serializedTemplate = Tools::base64EncodeMat(irisTemplate.irisTemplate);
+	string serializedMask = Tools::base64EncodeMat(irisTemplate.mask);
 
 	stream << "LG," << serializedTemplate.length() << "," << serializedTemplate << serializedMask;
 
 	return stream.str();
 }
 
-IrisTemplate Serializer::unserializeIrisTemplate(const std::string& serializedTemplate)
+IrisTemplate Serializer::unserializeIrisTemplate(const string& serializedTemplate)
 {
-	std::istringstream stream(serializedTemplate);
+	istringstream stream(serializedTemplate);
 	char L, G, comma;
-	std::string strbuffer;
+	string strbuffer;
 	char* buffer;
 	int bufferSize;
 
