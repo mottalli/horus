@@ -2,6 +2,7 @@
 #include <stdint.h>
 #include <cassert>
 #include <iostream>
+#include <stdio.h>
 #include "cudacommon.h"
 #include "clock.h"
 
@@ -82,7 +83,7 @@ __global__ void doGPUAContrarioMatchKernel(const uint8_t* rotatedTemplates, cons
 	unsigned part = threadIdx.y;
 	unsigned nParts = blockDim.y;
 
-	assert((database.templateWidth % 4) == 0);
+	//assert((database.templateWidth % 4) == 0);
 
 	size_t templateSize = database.templateWidth * database.templateHeight;
 
@@ -219,7 +220,8 @@ void doGPUAContrarioMatch(const vector<const uint8_t*>& rotatedTemplates, const 
 {
 	assert(rotatedTemplates.size() == rotatedMasks.size());
 	assert(rotatedTemplates.size() < MAX_ROTS);
-	assert(resultDistances.size() == database->numberOfTemplates);
+	assert(resultDistances.size() == nParts);
+	assert(resultDistances[0].size() == database->numberOfTemplates);
 
 	Clock clock;
 	clock.start();
