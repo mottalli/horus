@@ -16,12 +16,12 @@ def FRR(valoresIntra, threshold):
 	except IndexError:
 		return 0		# No hay falsos rechazos (genera una excepción "tuple index out of range")
 
-def calcularTablaFAR(nfaInter, nfaIntra, epsilons):
+def calcularTablaFAR(distanciasInter, distanciasIntra, thresholds):
 	ret = []
-	for epsilon in epsilons:
-		far = (len(where(nfaInter <= epsilon)[0]) / float(len(nfaInter))) * 100.0
-		frr = (len(where(nfaIntra >= epsilon)[0]) / float(len(nfaIntra))) * 100.0
-		ret.append( (epsilon, far, frr) )
+	for threshold in thresholds:
+		far = (len(where(distanciasInter <= threshold)[0]) / float(len(distanciasInter))) * 100.0
+		frr = (len(where(distanciasIntra >= threshold)[0]) / float(len(distanciasIntra))) * 100.0
+		ret.append( (threshold, far, frr) )
 	
 	return ret
 
@@ -80,19 +80,23 @@ def estadisticas(base, doShow=True):
 
 	(FARs, FRRs, EER, thresholdOptimo) = calcularROC_EER(distanciasIntra, distanciasInter, linspace(0.3, 0.5, 200))
 	# Genera la ROC
-	subplot(121)
-	plot(FARs, FRRs, linewidth=2, color='black')
-	u = EER*2.0
-	plot([0, u],[0, u], color='black', linestyle=':')
-	plot([EER], [EER], 'ko')
-	axis([0, u, 0, u])
-	xlabel('FAR')
-	ylabel('FRR')
+	# subplot(121)
+	# plot(FARs, FRRs, linewidth=2, color='black')
+	# u = EER*2.0
+	# plot([0, u],[0, u], color='black', linestyle=':')
+	# plot([EER], [EER], 'ko')
+	# axis([0, u, 0, u])
+	# xlabel('FAR')
+	# ylabel('FRR')
 
 	#distanciasIntra = array(datosIntra[:, 2])
 	#distanciasInter = array(datosInter[:, 2])
-
-	subplot(122)
+	
+	# Calcula FRR para FAR = 0
+	minDistanciasInter = min(distanciasInter)
+	FRRFAR0 = (len(where(distanciasIntra > minDistanciasInter)[0]) / float(len(distanciasIntra))) * 100.0
+	
+	# subplot(122)
 	(h1, b1) = histogram(distanciasInter, bins=30)
 	(h2, b2) = histogram(distanciasIntra, bins=30)
 	plot(b1[:-1], h1/float(len(distanciasInter)), color='black', label='Inter-class distribution', linestyle='-')
@@ -108,8 +112,10 @@ def estadisticas(base, doShow=True):
 		print "EER (%):", EER
 
 		show()
+		
+	tablaFAR = calcularTablaFAR(distanciasInter, distanciasIntra, linspace(0.32, 0.45, 15))
 	
-	return (separabilidad, thresholdOptimo, EER)
+	return (separabilidad, thresholdOptimo, EER, tablaFAR, FRRFAR0, FARs, FRRs)
 
 def estadisticasAContrario(base, doShow=True):
 
@@ -141,7 +147,7 @@ def estadisticasAContrario(base, doShow=True):
 	stdInter = nfaInter.std()
 	separabilidad = abs(muIntra-muInter)/sqrt( (stdIntra**2 + stdInter**2)/2.0 )
 
-	subplot(221)
+	# subplot(221)
 
 	(h1, b1) = histogram(nfaInter, bins=30)
 	(h2, b2) = histogram(nfaIntra, bins=40)
@@ -155,14 +161,14 @@ def estadisticasAContrario(base, doShow=True):
 
 		(FARs, FRRs, EER, thresholdOptimo) = calcularROC_EER(nfaIntra, nfaInter, linspace(-5,3,50))
 		# Genera la ROC
-		subplot(222)
-		plot(FARs, FRRs, linewidth=2, color='black')
-		u = EER*10.0
-		plot([0, u],[0, u], color='black', linestyle=':')
-		plot([EER], [EER], 'ko')
-		axis([0, u, 0, u])
-		xlabel('FAR')
-		ylabel('FRR')
+		# subplot(222)
+		# plot(FARs, FRRs, linewidth=2, color='black')
+		# u = EER*10.0
+		# plot([0, u],[0, u], color='black', linestyle=':')
+		# plot([EER], [EER], 'ko')
+		# axis([0, u, 0, u])
+		# xlabel('FAR')
+		# ylabel('FRR')
 
 	if True:
 		# Histograma de distancias entre partes
@@ -170,7 +176,8 @@ def estadisticasAContrario(base, doShow=True):
 
 		romanas = ['I', 'II', 'III', 'IV']
 		dashes = ['--', '-', '-.', ':']
-		subplot(223)
+		# subplot(223)
+		figure()
 		for parte in range(CANTIDAD_PARTES):
 			distancias = array([x[0] for x in base.conn.execute('SELECT distancia FROM comparaciones_a_contrario WHERE parte=%i AND intra_clase=0' % (parte,))])
 			(h, b) = histogram(distancias, bins=30)
@@ -187,30 +194,59 @@ def estadisticasAContrario(base, doShow=True):
 		show()
 
 	tablaFAR = calcularTablaFAR(nfaInter, nfaIntra, range(-5, 0))
-	return (separabilidad, thresholdOptimo, EER, tablaFAR)
+	
+	# Calcula FRR para FAR = 0
+	minNFAInter = min(nfaInter)
+	FRRFAR0 = (len(where(nfaIntra > minNFAInter)[0]) / float(len(nfaIntra))) * 100.0
+	
+	return (separabilidad, thresholdOptimo, EER, tablaFAR, FRRFAR0, FARs, FRRs)
 
 def estadisticasFull(base):
 	print 'Calculando estadisticas método clásico...'
-	(separabilidad, thresholdOptimo, EER) = estadisticas(base, False)
+	(separabilidad, thresholdOptimo, EER, tablaFAR, FRRFAR0, FARs, FRRs) = estadisticas(base, False)
 	print 'Calculando estadisticas a contrario...'
-	(separabilidadAC, thresholdOptimoAC, EERAC, tablaFAR) = estadisticasAContrario(base, False)
+	(separabilidadAC, thresholdOptimoAC, EERAC, tablaFARAC, FRRFAR0AC, FARsAC, FRRsAC) = estadisticasAContrario(base, False)
+	
+	N = (base.conn.execute('SELECT COUNT(*) FROM base_iris WHERE segmentacion_correcta=1').fetchone())[0]
 	
 	print 'Metodo clásico'
 	print '-------------'
 	print 'Separabilidad:', separabilidad
 	print 'Threshold optimo (DH):', thresholdOptimo
 	print 'EER (%):', EER
+	print 'FRR para FAR=0 (%):', FRRFAR0
 	print
+	print 'Tabla FAR'
+	print 'HD        |   FAR (%)    |  FRR (%)'
+	print '-----------------------------------'
+	for (hd, far, frr) in tablaFAR:
+		print '%f     | %f     | %f' % (hd, far, frr)
+
+	print
+
 	print 'A Contrario'
 	print '-------------'
 	print 'Separabilidad:', separabilidadAC
 	print 'Threshold optimo (epsilon-significatividad):', thresholdOptimoAC
 	print 'EER (%):', EERAC
+	print 'FRR para FAR=0 (%):', FRRFAR0AC
 	print
 	print 'Tabla FAR'
-	print 'epsilon   |   FAR (%)    |  FRR (%)'
-	print '-----------------------------------'
-	for (epsilon, far, frr) in tablaFAR:
-		print '10^%i     | %f     | %f' % (epsilon, far, frr)
+	print 'epsilon   |   FAR (%)    |  FRR (%)     |  N*FAR'
+	print '-------------------------------------------------'
+	for (epsilon, far, frr) in tablaFARAC:
+		print '10^%i     | %f     | %f         | %f' % (epsilon, far, frr, N*far/100.0)
+
+
+	figure()
+	plot(FARs, FRRs, linewidth=2, color='black', label='ROC using HD')
+	plot(FARsAC, FRRsAC, linewidth=2, color='black', linestyle='--', label='ROC using NFA')
+	xlabel('FAR')
+	ylabel('FRR')
+	legend(loc='upper right')
+	q = max(EER, EERAC) * 2
+	plot([0, q], [0, q], color='black', linestyle=':', linewidth=1)
+	axis([0, q, 0, q])
 
 	show()
+

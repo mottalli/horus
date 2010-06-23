@@ -5,7 +5,8 @@ import horus
 PATH_BASE = '/home/marcelo/iris/BBDD'
 
 PATHS_BASES = {
-		'unificada': PATH_BASE,
+		#'unificada': PATH_BASE,
+		'unificada': '/home/marcelo/Mis_Documentos/Facu/Tesis/Bases de datos',
 		'casia1': str(os.path.join(PATH_BASE, 'CASIA1')),
 		#'casia3': '/home/marcelo/Mis_Documentos/Facu/Tesis/Bases de datos/CASIA-IrisV3-Interval',
 		'casia3p': str(os.path.join(PATH_BASE, 'CASIA3-Preprocesada')),

@@ -5,9 +5,9 @@ from opencv.highgui import *
 
 segmentator = Segmentator()
 decorator = Decorator()
-encoder = LogGaborEncoder()
+#encoder = LogGaborEncoder()
 #encoder = IrisDCTEncoder()
-#encoder = GaborEncoder()
+encoder = GaborEncoder()
 
 def procesar(base, options):
 	imagenes = options.imagen.split(',')

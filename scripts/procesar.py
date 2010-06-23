@@ -4,21 +4,24 @@
 import horus
 import sys
 from opencv.highgui import *
-from opencv import *
+from opencv import cvCloneImage
 
 paths = sys.argv[1:]
 segmentator = horus.Segmentator()
 decorator = horus.Decorator()
-encoder = horus.LogGaborEncoder()
+#encoder = horus.LogGaborEncoder()
+encoder = horus.GaborEncoder()
 
-#p = horus.Parameters.getParameters()
+p = horus.Parameters.getParameters()
+
+
 #p.normalizationWidth = p.templateWidth = 512
 #p.normalizationHeight = p.templateHeight = 48
 #encoder = horus.IrisDCTEncoder()
 
 imagenes = []
 for path in paths:
-	imagenes.append(cvLoadImage(path, 1))
+	imagenes.append(cvLoadImage(path, 0))
 
 while True:
 	templates = []
@@ -43,3 +46,4 @@ while True:
 	while True:
 		k = cvWaitKey(0)
 		if k == 'q': sys.exit(0)
+
