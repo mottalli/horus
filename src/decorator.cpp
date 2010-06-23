@@ -38,6 +38,7 @@ void Decorator::drawSegmentationResult(Mat& image, const SegmentationResult& seg
 void Decorator::drawEncodingZone(Mat& image, const SegmentationResult& segmentationResult)
 {
 	bool fill = false;
+	int step = 5, stepCounter = step;
 	Parameters* parameters = Parameters::getParameters();
 
 	int width = parameters->normalizationWidth, height = parameters->normalizationHeight;
@@ -56,11 +57,16 @@ void Decorator::drawEncodingZone(Mat& image, const SegmentationResult& segmentat
 		}
 
 		if (fill || (coord.x == 0 || coord.x == width-1 || coord.y == 0 || coord.y == height-1)) {
+			if ( (stepCounter--) > 0) {
+				continue;
+			}
+			
 			if (image.channels() == 1) {
 				image.at<uchar>(y,x) = 255;
 			} else if (image.channels() == 3) {
 				image.at<Vec3b>(y, x) = Vec3b(0,255,255);
 			}
+			stepCounter=step;
 		}
 	}
 
