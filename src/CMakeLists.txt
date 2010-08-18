@@ -1,7 +1,6 @@
 FIND_PACKAGE(PkgConfig)
 PKG_CHECK_MODULES(OPENCV opencv)
 
-
 SET(SOURCES clock.cpp decorator.cpp eyelidsegmentator.cpp irisdatabase.cpp irisencoder.cpp
 	irissegmentator.cpp iristemplate.cpp loggaborencoder.cpp parameters.cpp pupilsegmentator.cpp qualitychecker.cpp segmentationresult.cpp
 	segmentator.cpp serializer.cpp templatecomparator.cpp tools.cpp videoprocessor.cpp gaborencoder.cpp

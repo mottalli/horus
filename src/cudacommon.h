@@ -2,6 +2,8 @@
 
 #include <stdint.h>
 #include <vector>
+#include "iristemplate.h"
+#include "templatecomparator.h"
 
 using namespace std;
 
@@ -18,15 +20,13 @@ struct GPUDatabase {
 };
 
 extern "C"
-void loadDatabase(const vector<const uint8_t*>& templates, const vector<const uint8_t*>& masks, size_t templateWidth,
-				  size_t templateHeight, GPUDatabase* database);
+void loadDatabase(const vector<IrisTemplate*>& templates, GPUDatabase& gpuDatabase);
 
 extern "C"
 void cleanupDatabase(GPUDatabase* database);
 
 extern "C"
-void doGPUMatch(const vector<const uint8_t*>& rotatedTemplates, const vector<const uint8_t*>& rotatedMasks, GPUDatabase* database,
-				vector<double>& resultDistances, double& matchingTime);
+void doGPUMatch(const TemplateComparator& comparator, GPUDatabase& database, vector<double>& resultDistances, double& matchingTime);
 
 extern "C"
 void doGPUAContrarioMatch(const vector<const uint8_t*>& rotatedTemplates, const vector<const uint8_t*>& rotatedMasks, GPUDatabase* database,
