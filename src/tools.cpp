@@ -358,7 +358,7 @@ Circle Tools::approximateCircle(const Contour& contour)
 		x = (*it).x;
 		y = (*it).y;
 		if ( (x-result.xc)*(x-result.xc)+(y-result.yc)*(y-result.yc) > bestRadius*bestRadius) {
-			bestRadius = int(sqrt((x-result.xc)*(x-result.xc)+(y-result.yc)*(y-result.yc)));
+			bestRadius = int(sqrt((float)(x-result.xc)*(x-result.xc)+(y-result.yc)*(y-result.yc)));
 		}
 	}
 

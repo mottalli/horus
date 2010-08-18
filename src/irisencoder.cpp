@@ -84,10 +84,10 @@ void IrisEncoder::normalizeIris(const Mat& image_, Mat& dest_, Mat& destMask_, c
 		Point imagePoint = irisPoints[i].second;
 		Point coord = irisPoints[i].first;
 
-		int ximage0 = int(floor(imagePoint.x));
-		int ximage1 = int(ceil(imagePoint.x));
-		int yimage0 = int(floor(imagePoint.y));
-		int yimage1 = int(ceil(imagePoint.y));
+		int ximage0 = imagePoint.x;
+		int ximage1 = imagePoint.x+1;
+		int yimage0 = imagePoint.y;
+		int yimage1 = imagePoint.y+1;
 
 		if (ximage0 < 0 || ximage1 >= image.cols || yimage0 < 0 || yimage1 >= image.rows) {
 			dest(coord.y, coord.x) = 0;
