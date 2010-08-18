@@ -23,6 +23,6 @@ extern "C"
 {
 	void loadDatabase(const vector<IrisTemplate*>& templates, GPUDatabase& gpuDatabase);
 	void cleanupDatabase(GPUDatabase* database);
-	void doGPUMatch(const TemplateComparator& comparator, GPUDatabase& database, vector<double>& resultDistances, double& matchingTime);
-	void doGPUAContrarioMatch(const TemplateComparator& comparator, GPUDatabase& database, unsigned nParts, vector< vector<double> >& resultDistances, double& matchingTime);
+	void doGPUMatch(const TemplateComparator& comparator, GPUDatabase& gpuDatabase, vector<double>& resultDistances, double& matchingTime);
+	void doGPUAContrarioMatch(const TemplateComparator& comparator, GPUDatabase& gpuDatabase, unsigned nParts, vector< vector<double> >& resultDistances, double& matchingTime);
 }

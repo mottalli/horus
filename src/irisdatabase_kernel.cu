@@ -243,7 +243,7 @@ void doGPUMatch(const TemplateComparator& comparator, GPUDatabase& gpuDatabase, 
 	matchingTime = clock.stop();
 };
 
-void doGPUAContrarioMatch(const TemplateComparator& comparator, GPUDatabase& database, unsigned nParts, vector< vector<double> >& resultDistances, double& matchingTime)
+void doGPUAContrarioMatch(const TemplateComparator& comparator, GPUDatabase& gpuDatabase, unsigned nParts, vector< vector<double> >& resultDistances, double& matchingTime)
 {
 	assert(resultDistances.size() == nParts);
 
