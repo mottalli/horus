@@ -15,7 +15,7 @@ IF (CUDA_FOUND)
 	SET(SOURCES ${SOURCES} irisdatabasecuda.cpp)
 	SET(HEADERS ${HEADERS} cudacommon.h)
 	
-	SET(CUDA_SOURCES irisdatabase_kernel.cu)
+	SET(CUDA_SOURCES irisdatabase_kernel.cu gpuwrapper.cu)
 	SET(CUDA_LIBRARIES ${CUDA_LIBRARIES} ${LIBRARIES})
 	SET(CUDA_NVCC_FLAGS --ptxas-options=-v --compiler-options '-fPIC')
 	CUDA_ADD_LIBRARY(horus_cuda ${CUDA_SOURCES})

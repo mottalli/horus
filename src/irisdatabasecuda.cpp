@@ -10,7 +10,7 @@ IrisDatabaseCUDA::IrisDatabaseCUDA()
 
 IrisDatabaseCUDA::~IrisDatabaseCUDA()
 {
-	cleanupDatabase(&this->gpuDatabase);
+	gpu::cleanupDatabase(&this->gpuDatabase);
 }
 
 void IrisDatabaseCUDA::addTemplate(int templateId, const IrisTemplate& irisTemplate)
@@ -33,37 +33,25 @@ void IrisDatabaseCUDA::calculatePartsDistances(const IrisTemplate& irisTemplate,
 	assert(this->resultPartsDistances[0].size() == n);
 
 	if (this->dirty) {
-		loadDatabase(this->templates, this->gpuDatabase);
+		gpu::loadDatabase(this->templates, this->gpuDatabase);
 		this->dirty = false;
 
 		this->resultDistances = vector<double>(this->templates.size());
 	}
 	
 	TemplateComparator comparator(irisTemplate, nRots, rotStep);
-	
-	/*vector<const uint8_t*> rawRotatedTemplates(comparator.rotatedTemplates.size()), rawRotatedMasks(comparator.rotatedTemplates.size());
-	for (size_t i = 0; i < comparator.rotatedTemplates.size(); i++) {
-		assert(comparator.rotatedTemplates[i].getPackedTemplate().cols == this->gpuDatabase.templateWidth);
-		assert(comparator.rotatedTemplates[i].getPackedTemplate().rows == this->gpuDatabase.templateHeight);
-		
-		rawRotatedTemplates[i] = comparator.rotatedTemplates[i].getPackedTemplate().data;
-		rawRotatedMasks[i] = comparator.rotatedTemplates[i].getPackedMask().data;
-	}
-	
-	
-	doGPUAContrarioMatch(rawRotatedTemplates, rawRotatedMasks, &this->gpuDatabase, nParts, this->resultPartsDistances, this->matchingTime);*/
-	doGPUAContrarioMatch(comparator, this->gpuDatabase, nParts, this->resultPartsDistances, this->matchingTime);
+	gpu::doGPUAContrarioMatch(comparator, this->gpuDatabase, nParts, this->resultPartsDistances, this->matchingTime);
 }
 
 void IrisDatabaseCUDA::doMatch(const IrisTemplate& irisTemplate, void (*statusCallback)(int), int nRots, int rotStep)
 {
 	if (this->dirty) {
-		loadDatabase(this->templates, this->gpuDatabase);
+		gpu::loadDatabase(this->templates, this->gpuDatabase);
 		this->dirty = false;
 
 		this->resultDistances = vector<double>(this->templates.size());
 	}
 	
 	TemplateComparator comparator(irisTemplate, nRots, rotStep);
-	doGPUMatch(comparator, this->gpuDatabase, this->resultDistances, this->matchingTime);
+	gpu::doGPUMatch(comparator, this->gpuDatabase, this->resultDistances, this->matchingTime);
 }

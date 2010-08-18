@@ -7,6 +7,9 @@
 
 using namespace std;
 
+#define MAX_ROTS 40
+#define MAX_PARTS 8
+
 struct GPUDatabase {
 	uint8_t* d_templates;
 	uint8_t* d_masks;
@@ -19,10 +22,13 @@ struct GPUDatabase {
 	}
 };
 
-extern "C"
-{
-	void loadDatabase(const vector<IrisTemplate*>& templates, GPUDatabase& gpuDatabase);
-	void cleanupDatabase(GPUDatabase* database);
-	void doGPUMatch(const TemplateComparator& comparator, GPUDatabase& gpuDatabase, vector<double>& resultDistances, double& matchingTime);
-	void doGPUAContrarioMatch(const TemplateComparator& comparator, GPUDatabase& gpuDatabase, unsigned nParts, vector< vector<double> >& resultDistances, double& matchingTime);
+// Wrapper functions (must be defined as "extern C"
+namespace gpu {
+	extern "C"
+	{
+		void loadDatabase(const vector<IrisTemplate*>& templates, GPUDatabase& gpuDatabase);
+		void cleanupDatabase(GPUDatabase* database);
+		void doGPUMatch(const TemplateComparator& comparator, GPUDatabase& gpuDatabase, vector<double>& resultDistances, double& matchingTime);
+		void doGPUAContrarioMatch(const TemplateComparator& comparator, GPUDatabase& gpuDatabase, unsigned nParts, vector< vector<double> >& resultDistances, double& matchingTime);
+	}
 }
