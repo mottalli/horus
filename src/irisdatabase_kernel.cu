@@ -243,52 +243,65 @@ void doGPUMatch(const TemplateComparator& comparator, GPUDatabase& gpuDatabase, 
 	matchingTime = clock.stop();
 };
 
-void doGPUAContrarioMatch(const vector<const uint8_t*>& rotatedTemplates, const vector<const uint8_t*>& rotatedMasks, GPUDatabase* database, unsigned nParts, vector< vector<double> >& resultDistances, double& matchingTime)
+void doGPUAContrarioMatch(const TemplateComparator& comparator, GPUDatabase& database, unsigned nParts, vector< vector<double> >& resultDistances, double& matchingTime)
 {
-	assert(rotatedTemplates.size() == rotatedMasks.size());
-	assert(rotatedTemplates.size() < MAX_ROTS);
 	assert(resultDistances.size() == nParts);
-	assert(resultDistances[0].size() == database->numberOfTemplates);
+
+	const std::vector<IrisTemplate>& rotatedTemplates = comparator.rotatedTemplates;
+	size_t n = gpuDatabase.numberOfTemplates;
+
+	assert(rotatedTemplates.size() < MAX_ROTS);
 
 	Clock clock;
 	clock.start();
 
 	// Load the rotated templates and masks to the GPU
+	size_t templateSize = gpuDatabase.templateWidth * gpuDatabase.templateHeight;
 	uint8_t *d_rotatedTemplates, *d_rotatedMasks;
-	size_t templateSize = database->templateWidth * database->templateHeight;
 	size_t bytes = rotatedTemplates.size() * templateSize;
 
 	CUDA_SAFE_CALL(cudaMalloc(&d_rotatedTemplates, bytes));
 	CUDA_SAFE_CALL(cudaMalloc(&d_rotatedMasks, bytes));
 	for (size_t i = 0; i < rotatedTemplates.size(); i++) {
-		CUDA_SAFE_CALL(cudaMemcpy(d_rotatedTemplates + i*templateSize, rotatedTemplates[i], templateSize, cudaMemcpyHostToDevice));
-		CUDA_SAFE_CALL(cudaMemcpy(d_rotatedMasks + i*templateSize, rotatedMasks[i], templateSize, cudaMemcpyHostToDevice));
+		const Mat& packedTemplate = rotatedTemplates[i].getPackedTemplate();
+		const Mat& packedMask = rotatedTemplates[i].getPackedMask();
+
+		assert(packedTemplate.isContinuous() && packedMask.isContinuous());
+		assert(packedTemplate.channels() == 1 && packedMask.channels() == 1);
+		assert(packedTemplate.type() == CV_8U && packedMask.type() == CV_8U);
+		assert(packedTemplate.size() == packedMask.size());
+		assert(packedTemplate.cols == gpuDatabase.templateWidth);
+		assert(packedTemplate.rows == gpuDatabase.templateHeight);
+
+		CUDA_SAFE_CALL(cudaMemcpy(d_rotatedTemplates + i*templateSize, packedTemplate.data, templateSize, cudaMemcpyHostToDevice));
+		CUDA_SAFE_CALL(cudaMemcpy(d_rotatedMasks + i*templateSize, packedMask.data, templateSize, cudaMemcpyHostToDevice));
 	}
+
 
 	// Output buffer in device
 	float* d_distances;
-	CUDA_SAFE_CALL(cudaMalloc(&d_distances, database->numberOfTemplates*nParts*sizeof(float)));
+	CUDA_SAFE_CALL(cudaMalloc(&d_distances, n*nParts*sizeof(float)));
 
 
 	// Invoke the kernel
 	dim3 blockSize(rotatedTemplates.size(), nParts, 1);
-	dim3 gridSize(database->numberOfTemplates, 1);
+	dim3 gridSize(n, 1);
 
 	doGPUAContrarioMatchKernel<<<gridSize, blockSize>>>(
 		d_rotatedTemplates,
 		d_rotatedMasks,
 		rotatedTemplates.size(),
-		*database,
+		gpuDatabase,
 		d_distances
 	);
 
 	// Retrieve the result
-	float* distances = new float[database->numberOfTemplates*nParts];
-	cudaMemcpy(distances, d_distances, database->numberOfTemplates*sizeof(float)*nParts, cudaMemcpyDeviceToHost);
+	float* distances = new float[n*nParts];
+	cudaMemcpy(distances, d_distances, n*sizeof(float)*nParts, cudaMemcpyDeviceToHost);
 
 
 	// Copy the results
-	for (size_t i = 0; i < database->numberOfTemplates; i++) {
+	for (size_t i = 0; i < n; i++) {
 		for (size_t p = 0; p < nParts; p++) {
 			resultDistances[p][i] = double(distances[i*nParts+p]);
 		}

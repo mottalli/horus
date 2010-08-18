@@ -20,14 +20,9 @@ struct GPUDatabase {
 };
 
 extern "C"
-void loadDatabase(const vector<IrisTemplate*>& templates, GPUDatabase& gpuDatabase);
-
-extern "C"
-void cleanupDatabase(GPUDatabase* database);
-
-extern "C"
-void doGPUMatch(const TemplateComparator& comparator, GPUDatabase& database, vector<double>& resultDistances, double& matchingTime);
-
-extern "C"
-void doGPUAContrarioMatch(const vector<const uint8_t*>& rotatedTemplates, const vector<const uint8_t*>& rotatedMasks, GPUDatabase* database,
-						  unsigned nParts, vector< vector<double> >& resultDistances, double& matchingTime);
+{
+	void loadDatabase(const vector<IrisTemplate*>& templates, GPUDatabase& gpuDatabase);
+	void cleanupDatabase(GPUDatabase* database);
+	void doGPUMatch(const TemplateComparator& comparator, GPUDatabase& database, vector<double>& resultDistances, double& matchingTime);
+	void doGPUAContrarioMatch(const TemplateComparator& comparator, GPUDatabase& database, unsigned nParts, vector< vector<double> >& resultDistances, double& matchingTime);
+}

@@ -41,7 +41,7 @@ void IrisDatabaseCUDA::calculatePartsDistances(const IrisTemplate& irisTemplate,
 	
 	TemplateComparator comparator(irisTemplate, nRots, rotStep);
 	
-	vector<const uint8_t*> rawRotatedTemplates(comparator.rotatedTemplates.size()), rawRotatedMasks(comparator.rotatedTemplates.size());
+	/*vector<const uint8_t*> rawRotatedTemplates(comparator.rotatedTemplates.size()), rawRotatedMasks(comparator.rotatedTemplates.size());
 	for (size_t i = 0; i < comparator.rotatedTemplates.size(); i++) {
 		assert(comparator.rotatedTemplates[i].getPackedTemplate().cols == this->gpuDatabase.templateWidth);
 		assert(comparator.rotatedTemplates[i].getPackedTemplate().rows == this->gpuDatabase.templateHeight);
@@ -51,7 +51,8 @@ void IrisDatabaseCUDA::calculatePartsDistances(const IrisTemplate& irisTemplate,
 	}
 	
 	
-	doGPUAContrarioMatch(rawRotatedTemplates, rawRotatedMasks, &this->gpuDatabase, nParts, this->resultPartsDistances, this->matchingTime);
+	doGPUAContrarioMatch(rawRotatedTemplates, rawRotatedMasks, &this->gpuDatabase, nParts, this->resultPartsDistances, this->matchingTime);*/
+	doGPUAContrarioMatch(comparator, this->gpuDatabase, nParts, this->resultPartsDistances, this->matchingTime);
 }
 
 void IrisDatabaseCUDA::doMatch(const IrisTemplate& irisTemplate, void (*statusCallback)(int), int nRots, int rotStep)
@@ -64,15 +65,5 @@ void IrisDatabaseCUDA::doMatch(const IrisTemplate& irisTemplate, void (*statusCa
 	}
 	
 	TemplateComparator comparator(irisTemplate, nRots, rotStep);
-	
-	/*vector<const uint8_t*> rawRotatedTemplates(comparator.rotatedTemplates.size()), rawRotatedMasks(comparator.rotatedTemplates.size());
-	for (size_t i = 0; i < comparator.rotatedTemplates.size(); i++) {
-		assert(comparator.rotatedTemplates[i].getPackedTemplate().cols == this->gpuDatabase.templateWidth);
-		assert(comparator.rotatedTemplates[i].getPackedTemplate().rows == this->gpuDatabase.templateHeight);
-		
-		rawRotatedTemplates[i] = comparator.rotatedTemplates[i].getPackedTemplate().data;
-		rawRotatedMasks[i] = comparator.rotatedTemplates[i].getPackedMask().data;
-	}*/
-	
 	doGPUMatch(comparator, this->gpuDatabase, this->resultDistances, this->matchingTime);
 }
