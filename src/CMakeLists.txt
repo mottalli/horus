@@ -8,19 +8,19 @@ SET(HEADERS clock.h common.h decorator.h eyelidsegmentator.h irisdatabase.h iris
 	segmentator.h serializer.h templatecomparator.h tools.h videoprocessor.h gaborencoder.h
 )
 
-IF (CUDA_FOUND)
+IF (USE_CUDA)
 	SET(SOURCES ${SOURCES} irisdatabasecuda.cpp)
 	SET(HEADERS ${HEADERS} cudacommon.h)
 	
 	SET(CUDA_SOURCES irisdatabase_kernel.cu gpuwrapper.cu)
 	SET(CUDA_LIBRARIES ${CUDA_LIBRARIES} ${LIBRARIES})
-	SET(CUDA_NVCC_FLAGS --ptxas-options=-v --compiler-options '-fPIC')
+	#SET(CUDA_NVCC_FLAGS --ptxas-options=-v --compiler-options '-fPIC')			# Do this to compile CUDA support in a dynamic library
 	CUDA_ADD_LIBRARY(horus_cuda ${CUDA_SOURCES})
-ENDIF (CUDA_FOUND)
+ENDIF (USE_CUDA)
 
 ADD_EXECUTABLE(horus_bin ${SOURCES} ${HEADERS})
 TARGET_LINK_LIBRARIES(horus_bin ${OpenCV_LIBS})
 
-IF (CUDA_FOUND)
+IF (USE_CUDA)
 	TARGET_LINK_LIBRARIES(horus_bin horus_cuda)
-ENDIF (CUDA_FOUND)
+ENDIF (USE_CUDA)

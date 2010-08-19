@@ -21,11 +21,16 @@ SET(HEADERS ../src/clock.h ../src/decorator.h ../src/eyelidsegmentator.h ../src/
 	../src/irissegmentator.h ../src/iristemplate.h ../src/loggaborencoder.h ../src/parameters.h ../src/pupilsegmentator.h ../src/qualitychecker.h ../src/segmentationresult.h
 	../src/segmentator.h ../src/serializer.h ../src/templatecomparator.h ../src/tools.h ../src/videoprocessor.h ../src/gaborencoder.h)
 
+IF (USE_CUDA)
+	SET(SOURCES ${SOURCES} ../src/irisdatabasecuda.cpp)
+	SET(HEADERS ${HEADERS} ../src/cudacommon.h)
+	SET(CMAKE_SWIG_FLAGS "-DUSE_CUDA")
+ENDIF ()
 	
 SWIG_ADD_MODULE(horus python horus.i ${SOURCES} ${HEADERS})
 SWIG_LINK_LIBRARIES(horus ${PYTHON_LIBRARIES} ${OpenCV_LIBS})
+
 IF (USE_CUDA)
-	SET(CMAKE_SWIG_FLAGS "-DUSE_CUDA")
 	LINK_DIRECTORIES(${CMAKE_BINARY_DIR}/src)
 	SWIG_LINK_LIBRARIES(horus horus_cuda)
 ENDIF ()
