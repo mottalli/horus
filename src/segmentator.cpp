@@ -25,8 +25,6 @@ SegmentationResult Segmentator::segmentImage(const Mat& image) {
 		cvtColor(image, this->workingImage, CV_BGR2GRAY);
 		imageToSegment = this->workingImage;
 	}
-	
-	cout << "4" << endl;
 
 	ContourAndCloseCircle pupilResult = this->pupilSegmentator.segmentPupil(imageToSegment);
 	ContourAndCloseCircle irisResult = this->irisSegmentator.segmentIris(imageToSegment, pupilResult);

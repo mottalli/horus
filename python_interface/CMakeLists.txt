@@ -1,24 +1,35 @@
-#CONFIGURE_FILE(setup.py.in setup.py)
 FIND_PACKAGE(SWIG REQUIRED)
 INCLUDE(${SWIG_USE_FILE})
 
-FIND_PACKAGE(PythonLibs)
+FIND_PACKAGE(PythonLibs REQUIRED)
 INCLUDE_DIRECTORIES(${PYTHON_INCLUDE_PATH})
-
-# Find the site-packages dir
-EXECUTE_PROCESS(COMMAND python -c "from distutils.sysconfig import get_python_lib; print get_python_lib()" OUTPUT_VARIABLE PYTHON_SITE_PACKAGES OUTPUT_STRIP_TRAILING_WHITESPACE)
-MESSAGE("Installing python extensions to ${PYTHON_SITE_PACKAGES}")
 
 INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR}/src)
 
+# Find the site-packages dir
+EXECUTE_PROCESS(COMMAND python -c "from distutils.sysconfig import get_python_lib; print get_python_lib()" 
+	OUTPUT_VARIABLE PYTHON_SITE_PACKAGES OUTPUT_STRIP_TRAILING_WHITESPACE)
+MESSAGE("Installing python extensions to ${PYTHON_SITE_PACKAGES}")
+
 SET_SOURCE_FILES_PROPERTIES(horus.i PROPERTIES CPLUSPLUS ON)
 
-IF (CUDA_FOUND)
+IF (USE_CUDA)
 	SET(CMAKE_SWIG_FLAGS "-DUSE_CUDA")
 ENDIF ()
 
-SWIG_ADD_MODULE(horus python horus.i)
+SET(SOURCES ../src/clock.cpp ../src/decorator.cpp ../src/eyelidsegmentator.cpp ../src/irisdatabase.cpp ../src/irisencoder.cpp
+	../src/irissegmentator.cpp ../src/iristemplate.cpp ../src/loggaborencoder.cpp ../src/parameters.cpp ../src/pupilsegmentator.cpp ../src/qualitychecker.cpp ../src/segmentationresult.cpp
+	../src/segmentator.cpp ../src/serializer.cpp ../src/templatecomparator.cpp ../src/tools.cpp ../src/videoprocessor.cpp ../src/gaborencoder.cpp)
 
-SWIG_LINK_LIBRARIES(horus ${PYTHON_LIBRARIES} horus)
+SET(HEADERS ../src/clock.h ../src/decorator.h ../src/eyelidsegmentator.h ../src/irisdatabase.h ../src/irisencoder.h
+	../src/irissegmentator.h ../src/iristemplate.h ../src/loggaborencoder.h ../src/parameters.h ../src/pupilsegmentator.h ../src/qualitychecker.h ../src/segmentationresult.h
+	../src/segmentator.h ../src/serializer.h ../src/templatecomparator.h ../src/tools.h ../src/videoprocessor.h ../src/gaborencoder.h)
 
-INSTALL(FILES ${CMAKE_CURRENT_BINARY_DIR}/_horus.so ${CMAKE_CURRENT_BINARY_DIR}/horus.py DESTINATION ${PYTHON_SITE_PACKAGES})
+	
+SWIG_ADD_MODULE(horus python horus.i ${SOURCES} ${HEADERS})
+SWIG_LINK_LIBRARIES(horus ${PYTHON_LIBRARIES} ${OpenCV_LIBS})
+
+IF (MSVC)
+	INSTALL(FILES ${CMAKE_CURRENT_BINARY_DIR}/horus.py ${CMAKE_CURRENT_BINARY_DIR}/Release/_horus.pyd
+		DESTINATION ${PYTHON_SITE_PACKAGES})
+ENDIF ()

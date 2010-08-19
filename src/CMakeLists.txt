@@ -1,9 +1,6 @@
-FIND_PACKAGE(PkgConfig)
-PKG_CHECK_MODULES(OPENCV opencv)
-
 SET(SOURCES clock.cpp decorator.cpp eyelidsegmentator.cpp irisdatabase.cpp irisencoder.cpp
 	irissegmentator.cpp iristemplate.cpp loggaborencoder.cpp parameters.cpp pupilsegmentator.cpp qualitychecker.cpp segmentationresult.cpp
-	segmentator.cpp serializer.cpp templatecomparator.cpp tools.cpp videoprocessor.cpp gaborencoder.cpp
+	segmentator.cpp serializer.cpp templatecomparator.cpp tools.cpp videoprocessor.cpp gaborencoder.cpp main.cpp
 )
 
 SET(HEADERS clock.h common.h decorator.h eyelidsegmentator.h irisdatabase.h irisencoder.h
@@ -21,12 +18,9 @@ IF (CUDA_FOUND)
 	CUDA_ADD_LIBRARY(horus_cuda ${CUDA_SOURCES})
 ENDIF (CUDA_FOUND)
 
-ADD_LIBRARY(horus SHARED ${SOURCES} ${HEADERS})
-INSTALL(TARGETS horus LIBRARY DESTINATION lib)
-
-TARGET_LINK_LIBRARIES(horus ${OPENCV_LIBRARIES})
-#ADD_DEFINITIONS("-Wall -O3")
+ADD_EXECUTABLE(horus_bin ${SOURCES} ${HEADERS})
+TARGET_LINK_LIBRARIES(horus_bin ${OpenCV_LIBS})
 
 IF (CUDA_FOUND)
-	TARGET_LINK_LIBRARIES(horus horus_cuda)
+	TARGET_LINK_LIBRARIES(horus_bin horus_cuda)
 ENDIF (CUDA_FOUND)

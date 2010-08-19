@@ -1,8 +1,8 @@
 # -*- coding: UTF8 -*-
 
 from PyQt4.QtCore import QObject, QThread, SIGNAL
-from opencv import cvGet2D, cvGetSubRect, cvRect
-from opencv import highgui
+from cv import cvGet2D, cvGetSubRect, cvRect
+import highgui
 import os
 
 sigAvailableFrame = SIGNAL("availableFrame(PyQt_PyObject)")
@@ -17,14 +17,16 @@ class VideoThreadCamera(VideoThread):
 		self.cameraNumber = cameraNumber
 		self.isWindows = (os.name == 'nt')
 		self.finish = False
+		self.cap = None
 		
 	def run(self):
-		cap = highgui.cvCreateCameraCapture(self.cameraNumber)
-		if not cap:
+		if not self.cap:
+			self.cap = highgui.cvCreateCameraCapture(self.cameraNumber)
+		if not self.cap:
 			raise IOError("Unable to initialize capture")
 			
 		while True:
-			frame = highgui.cvQueryFrame(cap)
+			frame = highgui.cvQueryFrame(self.cap)
 			if not frame:
 				raise IOError("Error capturing frame")
 			
@@ -33,7 +35,7 @@ class VideoThreadCamera(VideoThread):
 			if self.isWindows:
 				value = cvGet2D(frame, 10, 10)
 				if int(value[0]) == 5: continue
-				cvFlip(frame, frame)
+				#cvFlip(frame, frame)
 				if frame.width == 720 and frame.height == 480:
 					captured = cvGetSubRect(frame, cvRect(30, 0, 640, 480))
 			

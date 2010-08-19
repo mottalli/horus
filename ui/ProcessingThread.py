@@ -2,7 +2,7 @@
 
 import VideoThread
 from PyQt4 import QtCore
-from opencv import cvGetSize, cvCvtColor, cvCreateImage, cvReleaseImage, IPL_DEPTH_8U, CV_BGR2GRAY
+from cv import cvGetSize, cvCvtColor, cvCreateImage, cvReleaseImage, IPL_DEPTH_8U, CV_BGR2GRAY
 import horus
 
 sigProcessedFrame = QtCore.SIGNAL("processedFrame(PyQt_PyObject, PyQt_PyObject)")
