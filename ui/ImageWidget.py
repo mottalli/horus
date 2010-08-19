@@ -1,7 +1,7 @@
 # -*- coding: UTF8 -*-
 
-import opencv
-from opencv import highgui
+import cv as opencv
+import highgui
 from PyQt4 import QtCore, QtGui
 
 class ImageWidget(QtGui.QWidget):

@@ -1,6 +1,10 @@
 #pragma once
 
+#if defined(_MSC_VER)
+#include <time.h>
+#else
 #include <sys/time.h>
+#endif
 
 class Clock {
 public:
@@ -12,7 +16,9 @@ public:
 	inline double time() const { return _time; };
 private:
     double _time;
-	struct timeval _tic, _toc;
+#if !defined(_MSC_VER)
+	timeval _tic, _toc;
+#endif
 
 };
 

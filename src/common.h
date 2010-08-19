@@ -4,7 +4,12 @@
 #include <opencv/cvaux.h>
 #include <opencv/cxcore.h>
 #include <opencv/highgui.h>
+#if defined(_MSC_VER)
+#define _USE_MATH_DEFINES 1
+#include <math.h>
+#else
 #include <cmath>
+#endif
 #include <iostream>
 #include <vector>
 #include <limits.h>
