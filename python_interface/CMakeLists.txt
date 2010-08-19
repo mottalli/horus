@@ -13,10 +13,6 @@ MESSAGE("Installing python extensions to ${PYTHON_SITE_PACKAGES}")
 
 SET_SOURCE_FILES_PROPERTIES(horus.i PROPERTIES CPLUSPLUS ON)
 
-IF (USE_CUDA)
-	SET(CMAKE_SWIG_FLAGS "-DUSE_CUDA")
-ENDIF ()
-
 SET(SOURCES ../src/clock.cpp ../src/decorator.cpp ../src/eyelidsegmentator.cpp ../src/irisdatabase.cpp ../src/irisencoder.cpp
 	../src/irissegmentator.cpp ../src/iristemplate.cpp ../src/loggaborencoder.cpp ../src/parameters.cpp ../src/pupilsegmentator.cpp ../src/qualitychecker.cpp ../src/segmentationresult.cpp
 	../src/segmentator.cpp ../src/serializer.cpp ../src/templatecomparator.cpp ../src/tools.cpp ../src/videoprocessor.cpp ../src/gaborencoder.cpp)
@@ -28,8 +24,16 @@ SET(HEADERS ../src/clock.h ../src/decorator.h ../src/eyelidsegmentator.h ../src/
 	
 SWIG_ADD_MODULE(horus python horus.i ${SOURCES} ${HEADERS})
 SWIG_LINK_LIBRARIES(horus ${PYTHON_LIBRARIES} ${OpenCV_LIBS})
+IF (USE_CUDA)
+	SET(CMAKE_SWIG_FLAGS "-DUSE_CUDA")
+	LINK_DIRECTORIES(${CMAKE_BINARY_DIR}/src)
+	SWIG_LINK_LIBRARIES(horus horus_cuda)
+ENDIF ()
 
 IF (MSVC)
 	INSTALL(FILES ${CMAKE_CURRENT_BINARY_DIR}/horus.py ${CMAKE_CURRENT_BINARY_DIR}/Release/_horus.pyd
+		DESTINATION ${PYTHON_SITE_PACKAGES})
+ELSE ()
+	INSTALL(FILES ${CMAKE_CURRENT_BINARY_DIR}/horus.py ${CMAKE_CURRENT_BINARY_DIR}/_horus.so
 		DESTINATION ${PYTHON_SITE_PACKAGES})
 ENDIF ()
