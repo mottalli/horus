@@ -14,6 +14,9 @@ Parameters::Parameters() {
 	muPupil = 5.0;
 	sigmaPupil = 5.0;
 
+	minimumPupilRadius = 7;
+	maximumPupilRadius = 80;
+
 	pupilAdjustmentRingWidth = 256;
 	pupilAdjustmentRingHeight = 100;
 

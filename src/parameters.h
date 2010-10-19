@@ -19,6 +19,7 @@ public:
 	unsigned bufferWidth;
 	double muPupil;
 	double sigmaPupil;
+	int minimumPupilRadius, maximumPupilRadius;
 
 	int pupilAdjustmentRingWidth, pupilAdjustmentRingHeight;
 	int irisAdjustmentRingWidth, irisAdjustmentRingHeight;

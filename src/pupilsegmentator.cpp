@@ -66,11 +66,10 @@ Circle PupilSegmentator::approximatePupil(const Mat_<uint8_t>& image)
 
 	// Then apply the similarity transformation
 	this->similarityTransform();
-	blur(this->similarityImage, this->similarityImage, Size(13, 13));
+	blur(this->similarityImage, this->similarityImage, Size(3, 3));
 
 	// Now perform the cascaded integro-differential operator
 	return this->cascadedIntegroDifferentialOperator(this->similarityImage);
-
 }
 
 Contour PupilSegmentator::adjustPupilContour(const Mat_<uint8_t>& image, const Circle& approximateCircle)
@@ -163,11 +162,17 @@ Contour PupilSegmentator::adjustPupilContour(const Mat_<uint8_t>& image, const C
 
 Circle PupilSegmentator::cascadedIntegroDifferentialOperator(const Mat_<uint8_t>& image)
 {
-	int minrad = 10, minradabs = 10;
+	const Parameters* parameters = Parameters::getParameters();
+
+	int minradabs = parameters->minimumPupilRadius;
+	int minrad = minradabs;
 	int maxrad = 80;
-	int minx = 10, miny = 10;
-	int maxx = image.cols - 10, maxy = image.rows - 10;
-	int x, y, radius = 0;
+
+	int dx = image.cols*0.2, dy = image.rows*0.2;			// Exclude the image borders
+
+	int minx = dx, miny = dy;
+	int maxx = image.cols - dx, maxy = image.rows - dy;
+	int x, y;
 	//int maxStep = INT_MIN;
 	int bestX = 0, bestY = 0, bestRadius = 0;
 

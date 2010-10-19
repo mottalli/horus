@@ -7,6 +7,7 @@
 
 #include <iostream>
 #include <stdio.h>
+#include <sstream>
 
 #include "common.h"
 #include "segmentator.h"
@@ -27,6 +28,7 @@ using namespace std;
 double correlation(IplImage* X, IplImage* Y);
 void processImage(IplImage* image);
 void captured();
+string statusToString(VideoProcessor::VideoStatus status);
 
 Segmentator segmentator;
 Decorator decorator;
@@ -86,16 +88,79 @@ int main(int argc, char** argv) {
 	char k;
 
 	namedWindow("video", 1);
+	namedWindow("debug1", 1);
+	namedWindow("debug2", 1);
 
 	while (true) {
 		capture >> frame;
 
+		const int dx= 60, dy=20;
+		frame = frame(Rect(dx, dy, frame.cols-dx, frame.rows-dy));
+
 		VideoProcessor::VideoStatus status = videoProcessor.processFrame(frame);
+
+		Mat frameOriginal = frame.clone();
+
+		std::stringstream strStatus;
+
+		strStatus << statusToString(status) << " ";
+		strStatus << "Foco: " << videoProcessor.lastFocusScore;
+		putText(frame, strStatus.str(), Point(20, 20), FONT_HERSHEY_PLAIN, 1.0, CV_RGB(255,255,255), 2);
+
 		decorator.drawSegmentationResult(frame, videoProcessor.lastSegmentationResult);
 		imshow("video", frame);
 
-		if ('q' == (k = waitKey(20)) ) {
+		//imshow("debug1", videoProcessor.segmentator.pupilSegmentator.similarityImage);
+		//imshow("debug2", videoProcessor.segmentator.pupilSegmentator.equalizedImage);
+
+		k = waitKey(20);
+
+		if (k == 'q') {
 			break;
+		} else if (k == 's') {
+			imwrite("/home/marcelo/Desktop/iris_capturado.jpg", frameOriginal);
 		}
 	}
+}
+
+int main3(int argc, char** argv) {
+	Mat imagen = imread("/home/marcelo/Desktop/iris_capturado.jpg");
+
+	//VideoProcessor::VideoStatus status = videoProcessor.processFrame(frame);
+}
+
+string statusToString(VideoProcessor::VideoStatus status)
+{
+	string strStatus;
+	switch (status) {
+	case VideoProcessor::UNPROCESSED:
+		strStatus = "UNPROCESSED";
+		break;
+	case VideoProcessor::DEFOCUSED:
+		strStatus = "DEFOCUSED";
+		break;
+	case VideoProcessor::INTERLACED:
+		strStatus = "INTERLACED";
+		break;
+	case VideoProcessor::FOCUSED_NO_IRIS:
+		strStatus = "FOCUSED_NO_IRIS";
+		break;
+	case VideoProcessor::IRIS_LOW_QUALITY:
+		strStatus = "IRIS_LOW_QUALITY";
+		break;
+	case VideoProcessor::IRIS_TOO_CLOSE:
+		strStatus = "IRIS_TOO_CLOSE";
+		break;
+	case VideoProcessor::IRIS_TOO_FAR:
+		strStatus = "IRIS_TOO_FAR";
+		break;
+	case VideoProcessor::FOCUSED_IRIS:
+		strStatus = "FOCUSED_IRIS";
+		break;
+	case VideoProcessor::GOT_TEMPLATE:
+		strStatus = "GOT_TEMPLATE";
+		break;
+	}
+
+	return strStatus;
 }
