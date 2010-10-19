@@ -166,7 +166,7 @@ Circle PupilSegmentator::cascadedIntegroDifferentialOperator(const Mat_<uint8_t>
 
 	int minradabs = parameters->minimumPupilRadius;
 	int minrad = minradabs;
-	int maxrad = 80;
+	int maxrad = parameters->maximumPupilRadius;
 
 	int dx = image.cols*0.2, dy = image.rows*0.2;			// Exclude the image borders
 

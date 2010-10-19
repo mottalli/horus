@@ -83,6 +83,7 @@ int main1(int argc, char** argv) {
 
 int main(int argc, char** argv) {
 	VideoCapture capture(0);
+	parameters->bestFrameWaitCount = 0;
 
 	Mat frame;
 	char k;
@@ -90,6 +91,8 @@ int main(int argc, char** argv) {
 	namedWindow("video", 1);
 	namedWindow("debug1", 1);
 	namedWindow("debug2", 1);
+
+	videoProcessor.setWaitingFrames(0);
 
 	while (true) {
 		capture >> frame;
@@ -104,10 +107,19 @@ int main(int argc, char** argv) {
 		std::stringstream strStatus;
 
 		strStatus << statusToString(status) << " ";
-		strStatus << "Foco: " << videoProcessor.lastFocusScore;
-		putText(frame, strStatus.str(), Point(20, 20), FONT_HERSHEY_PLAIN, 1.0, CV_RGB(255,255,255), 2);
+		strStatus << "Foco: " << videoProcessor.lastFocusScore << " ";
+		strStatus << "Cal. iris: " << videoProcessor.lastIrisQuality << " ";
+		putText(frame, strStatus.str(), Point(20, frame.rows-40), FONT_HERSHEY_PLAIN, 1.0, CV_RGB(255,255,255), 2);
 
-		decorator.drawSegmentationResult(frame, videoProcessor.lastSegmentationResult);
+		if (status >= VideoProcessor::FOCUSED_NO_IRIS) {
+			decorator.drawSegmentationResult(frame, videoProcessor.lastSegmentationResult);
+		}
+
+		if (status == VideoProcessor::GOT_TEMPLATE) {
+			IrisTemplate irisTemplate = logGaborEncoder.generateTemplate(frame, videoProcessor.lastSegmentationResult);
+			decorator.drawTemplate(frame, irisTemplate);
+		}
+
 		imshow("video", frame);
 
 		//imshow("debug1", videoProcessor.segmentator.pupilSegmentator.similarityImage);

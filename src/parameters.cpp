@@ -23,7 +23,7 @@ Parameters::Parameters() {
 	irisAdjustmentRingWidth = 512;
 	irisAdjustmentRingHeight = 90;
 
-	segmentEyelids = true;
+	segmentEyelids = false;
 
 	infraredThreshold = 200;
 
@@ -42,6 +42,7 @@ Parameters::Parameters() {
 	expectedIrisDiameter = 250;
 	segmentationScoreThreshold = 1.7;
 	minimumContourQuality = 60;
+	bestFrameWaitCount = 5;
 	
 	pupilIrisGrayDiff = 20;
 	pupilIrisZScore = 3;

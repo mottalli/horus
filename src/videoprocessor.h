@@ -10,8 +10,6 @@ public:
 	VideoProcessor();
 	virtual ~VideoProcessor();
 	
-	static const unsigned int BEST_FRAME_WAIT_COUNT = 5;
-
 	typedef enum {
 		UNPROCESSED,
 		DEFOCUSED,
@@ -25,6 +23,8 @@ public:
 	} VideoStatus;
 
 	VideoStatus processFrame(const Mat& frame);
+
+	void setWaitingFrames(int frames) { this->waitingFrames = frames; };
 
 	QualityChecker qualityChecker;
 	Segmentator segmentator;
@@ -41,6 +41,8 @@ public:
 
 private:
 	Mat lastFrame;
+
+	unsigned int waitingFrames;
 
 	VideoStatus doProcess(const Mat& frame);
 	

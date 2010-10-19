@@ -18,6 +18,7 @@ VideoProcessor::VideoProcessor()
 	this->templateWaitCount = 0;
 	this->templateIrisQuality = 0.0;
 	this->waitingBestTemplate = false;
+	this->waitingFrames = 10;
 	this->framesToSkip = 0;
 }
 
@@ -27,6 +28,8 @@ VideoProcessor::~VideoProcessor()
 
 VideoProcessor::VideoStatus VideoProcessor::processFrame(const Mat& frame)
 {
+	Parameters* parameters = Parameters::getParameters();
+
 	if (this->framesToSkip > 0) {
 		this->framesToSkip--;
 		this->lastStatus = UNPROCESSED;
@@ -49,15 +52,15 @@ VideoProcessor::VideoStatus VideoProcessor::processFrame(const Mat& frame)
 		}
 		
 		this->templateWaitCount++;
-		if (this->templateWaitCount == BEST_FRAME_WAIT_COUNT) {
-			// Got the iris template
+		if (this->templateWaitCount >= parameters->bestFrameWaitCount) {
+			// Got the iris template with the best quality
 			this->lastStatus = GOT_TEMPLATE;
 			this->templateWaitCount = 0;
 			this->waitingBestTemplate = false;
 			this->templateIrisQuality = 0;
 			
 			// Wait before processing more images
-			this->framesToSkip = 10;
+			this->framesToSkip = this->waitingFrames;
 		}
 	}
 	

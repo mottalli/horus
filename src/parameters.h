@@ -39,6 +39,7 @@ public:
 	int minimumContourQuality;
 	int pupilIrisGrayDiff;
 	int pupilIrisZScore;
+	int bestFrameWaitCount;
 
 	// Template generation parameters
 	int normalizationWidth;
