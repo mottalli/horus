@@ -1,8 +1,8 @@
 # -*- coding: UTF8 -*-
 from PyQt4 import uic
 from PyQt4 import QtGui, QtCore
-import cv as opencv
-import highgui
+import opencv
+import opencv.highgui
 import os.path
 
 import VideoThread, ProcessingThread

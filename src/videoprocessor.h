@@ -31,6 +31,7 @@ public:
 	LogGaborEncoder irisEncoder;
 
 	double lastFocusScore;
+	QualityChecker::ValidationHeuristics lastIrisHeuristics;
 	VideoStatus lastStatus;
 	SegmentationResult lastSegmentationResult;
 	double lastIrisQuality;

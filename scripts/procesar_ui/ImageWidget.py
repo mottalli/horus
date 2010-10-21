@@ -1,7 +1,6 @@
 # -*- coding: UTF8 -*-
-
 import opencv
-import opencv.highgui
+from opencv import highgui
 from PyQt4 import QtCore, QtGui
 
 class ImageWidget(QtGui.QWidget):
@@ -61,7 +60,7 @@ class ImageWidget(QtGui.QWidget):
 			opencv.cvMerge(None, None, self.bufferR, None, self.buffer)
 		else:
 			raise Exception('Unsupported type')
-
+		
 		del self.image
 		self.__data = self.buffer.imageData
 		self.image = QtGui.QImage(self.__data, size.width, size.height, QtGui.QImage.Format_RGB32)

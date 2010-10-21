@@ -96,7 +96,8 @@ VideoProcessor::VideoStatus VideoProcessor::doProcess(const Mat& frame)
 		segmentator.segmentEyelids(image, this->lastSegmentationResult);
 	}
 
-	if (!qualityChecker.validateIris(image, this->lastSegmentationResult)) {
+	this->lastIrisHeuristics = qualityChecker.validateIris(image, this->lastSegmentationResult);
+	if (this->lastIrisHeuristics != QualityChecker::HAS_IRIS) {
 		// No iris found on the image, or the segmentation is incorrect
 		return FOCUSED_NO_IRIS;
 	}

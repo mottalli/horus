@@ -29,6 +29,8 @@ double correlation(IplImage* X, IplImage* Y);
 void processImage(IplImage* image);
 void captured();
 string statusToString(VideoProcessor::VideoStatus status);
+Mat_<uint8_t> normalizarImagen(const Mat& imagen);
+
 
 Segmentator segmentator;
 Decorator decorator;
@@ -136,9 +138,53 @@ int main(int argc, char** argv) {
 }
 
 int main3(int argc, char** argv) {
-	Mat imagen = imread("/home/marcelo/Desktop/iris_capturado.jpg");
+	Mat imagen = imread("/home/marcelo/Desktop/iris_capturado.jpg", 1);
+	Mat imagenBW;
 
-	//VideoProcessor::VideoStatus status = videoProcessor.processFrame(frame);
+	cvtColor(imagen, imagenBW, CV_BGR2GRAY);
+
+	SegmentationResult sr = segmentator.segmentImage(imagenBW);
+
+	Mat tmp;
+
+	// -- Imagen c/similaridad --
+	namedWindow("similaridad", 1);
+	imshow("similaridad", segmentator.pupilSegmentator.similarityImage);
+
+	// -- Anillo de ajuste --
+	namedWindow("ajuste", 1);
+	const Mat_<float>& snake = segmentator.pupilSegmentator.adjustmentSnake;
+	cvtColor(segmentator.pupilSegmentator.adjustmentRing, tmp, CV_GRAY2BGR);
+	for (int x = 0; x < snake.cols; x++) {
+		circle(tmp, Point(x, snake(0, x)), 1, CV_RGB(255,0,0));
+	}
+	imshow("ajuste", tmp);
+
+	// -- Gradiente anillo de ajuste --
+	namedWindow("gradiente", 1);
+	imshow("gradiente", normalizarImagen(segmentator.pupilSegmentator.adjustmentRingGradient));
+
+
+	// -- Imagen segmentada --
+	decorator.drawSegmentationResult(imagen, sr);
+	namedWindow("decorada", 1);
+	imshow("decorada", imagen);
+
+	for (;;) {
+		char k = waitKey(0);
+		if (k == 'q') {
+			break;
+		}
+	}
+}
+
+Mat_<uint8_t> normalizarImagen(const Mat& imagen)
+{
+	Mat_<uint8_t> res;
+	res.create(imagen.size());
+	normalize(imagen, res, 0, 255, CV_MINMAX);
+
+	return res;
 }
 
 string statusToString(VideoProcessor::VideoStatus status)

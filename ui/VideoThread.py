@@ -1,8 +1,8 @@
 # -*- coding: UTF8 -*-
 
 from PyQt4.QtCore import QObject, QThread, SIGNAL
-from cv import cvGet2D, cvGetSubRect, cvRect
-import highgui
+from opencv import cvGet2D, cvGetSubRect, cvRect
+from opencv import highgui
 import os
 
 sigAvailableFrame = SIGNAL("availableFrame(PyQt_PyObject)")

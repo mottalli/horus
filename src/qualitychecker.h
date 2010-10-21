@@ -10,8 +10,17 @@ public:
 
 	double interlacedCorrelation(const Mat& image);
 	double checkFocus(const Mat& image);
-	bool validateIris(const Mat& image, const SegmentationResult& segmentationResult);
 	double getIrisQuality(const Mat& image, const SegmentationResult& segmentationResult);
+
+
+	typedef enum {
+		NO_COUNT,
+		LOW_CONTRAST,
+		LOW_ZSCORE,
+		HAS_IRIS
+	} ValidationHeuristics;
+	ValidationHeuristics validateIris(const Mat& image, const SegmentationResult& segmentationResult);
+
 
 //private:
 	Mat evenFrame, oddFrame;

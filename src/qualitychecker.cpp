@@ -56,7 +56,7 @@ double QualityChecker::checkFocus(const Mat& image)
 /**
  * Checks if there is an iris on the image and/or if the segmentation is correct (heuristics - not 100% reliable)
  */
-bool QualityChecker::validateIris(const Mat& image, const SegmentationResult& sr)
+QualityChecker::ValidationHeuristics QualityChecker::validateIris(const Mat& image, const SegmentationResult& sr)
 {
 	Parameters* parameters = Parameters::getParameters();
 
@@ -106,7 +106,7 @@ bool QualityChecker::validateIris(const Mat& image, const SegmentationResult& sr
 	}
 
 	if (pupilCount == 0 || irisCount == 0) {
-		return false;
+		return NO_COUNT;
 	}
 
 	double meanPupil = pupilSum/double(pupilCount);
@@ -114,7 +114,7 @@ bool QualityChecker::validateIris(const Mat& image, const SegmentationResult& sr
 	
 	if (meanIris-meanPupil < parameters->pupilIrisGrayDiff) {
 		// not enough contrast between pupil and iris
-		return false;
+		return LOW_CONTRAST;
 	}
 
 	// Computes the deviation
@@ -149,10 +149,10 @@ bool QualityChecker::validateIris(const Mat& image, const SegmentationResult& sr
 
 	double zScorePupilIris = abs(meanPupil-meanIris) / sqrt((varPupil+varIris)/2.0);
 	if (zScorePupilIris < parameters->pupilIrisZScore) {
-		return false;
+		//return LOW_ZSCORE;
 	}
 	
-	return true;
+	return HAS_IRIS;
 }
 
 /**

@@ -7,7 +7,7 @@ import MainForm
 import VideoThread
 import ProcessingThread
 import horus
-import highgui
+from opencv import highgui
 
 app = QtGui.QApplication(sys.argv)
 

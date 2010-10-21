@@ -25,6 +25,7 @@ public:
 	Mat_<int16_t> adjustmentRingGradient;
 	Mat_<uint8_t> workingImage;
 	Mat_<float> adjustmentSnake;
+	Mat_<float> originalAdjustmentSnake;
 	Mat_<uint8_t> _LUT;
 	double resizeFactor;
 
