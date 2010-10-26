@@ -443,7 +443,7 @@ int PupilSegmentator::calculatePupilContourQuality(const Mat_<uint8_t>& region, 
 	}
 
 	assert(sum2 < norm2);
-	assert(norm2 > 0 && sum2 > 0);
+	assert(norm2 > 0);
 
 	return int((100.0*sum2)/norm2);
 }

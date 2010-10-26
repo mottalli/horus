@@ -83,7 +83,7 @@ int main1(int argc, char** argv) {
 	return 0;
 }
 
-int main(int argc, char** argv) {
+int main2(int argc, char** argv) {
 	VideoCapture capture(0);
 	parameters->bestFrameWaitCount = 0;
 
@@ -178,11 +178,61 @@ int main3(int argc, char** argv) {
 	}
 }
 
+int main(int argc, char** argv) {
+	VideoCapture capture(0);
+	parameters->bestFrameWaitCount = 0;
+
+	Mat imagen, imagenBW, tmp;
+	char k;
+
+	while (true) {
+		capture >> imagen;
+
+		const int dx= 60, dy=20;
+		imagen= imagen(Rect(dx, dy, imagen.cols-dx, imagen.rows-dy));
+
+		cvtColor(imagen, imagenBW, CV_BGR2GRAY);
+
+		SegmentationResult sr = segmentator.segmentImage(imagenBW);
+
+		// -- Imagen c/similaridad --
+		namedWindow("similaridad", 1);
+		imshow("similaridad", segmentator.pupilSegmentator.similarityImage);
+
+		// -- Anillo de ajuste --
+		namedWindow("ajuste", 1);
+		const Mat_<float>& snake = segmentator.pupilSegmentator.adjustmentSnake;
+		cvtColor(segmentator.pupilSegmentator.adjustmentRing, tmp, CV_GRAY2BGR);
+		for (int x = 0; x < snake.cols; x++) {
+			circle(tmp, Point(x, snake(0, x)), 1, CV_RGB(255,0,0));
+		}
+		imshow("ajuste", tmp);
+
+		// -- Gradiente anillo de ajuste --
+		namedWindow("gradiente", 1);
+		imshow("gradiente", normalizarImagen(segmentator.pupilSegmentator.adjustmentRingGradient));
+
+
+		// -- Imagen segmentada --
+		decorator.drawSegmentationResult(imagen, sr);
+		namedWindow("decorada", 1);
+		imshow("decorada", imagen);
+
+		k = waitKey(30);
+		if (k == 'q') {
+			break;
+		}
+	}
+
+}
+
+
+
+
 Mat_<uint8_t> normalizarImagen(const Mat& imagen)
 {
-	Mat_<uint8_t> res;
-	res.create(imagen.size());
-	normalize(imagen, res, 0, 255, CV_MINMAX);
+	Mat res;
+	normalize(imagen, res, 0, 255, NORM_MINMAX);
 
 	return res;
 }

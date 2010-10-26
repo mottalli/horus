@@ -9,8 +9,8 @@ from opencv import cvCloneImage
 paths = sys.argv[1:]
 segmentator = horus.Segmentator()
 decorator = horus.Decorator()
-#encoder = horus.LogGaborEncoder()
-encoder = horus.GaborEncoder()
+encoder = horus.LogGaborEncoder()
+#encoder = horus.GaborEncoder()
 
 p = horus.Parameters.getParameters()
 

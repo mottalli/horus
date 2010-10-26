@@ -1,7 +1,7 @@
 # -*- coding: UTF8 -*-
 
 from PyQt4.QtCore import QObject, QThread, SIGNAL
-from opencv import cvGet2D, cvGetSubRect, cvRect
+from opencv import cvGet2D, cvGetSubRect, cvRect, cvFlip
 from opencv import highgui
 import os
 
@@ -35,14 +35,14 @@ class VideoThreadCamera(VideoThread):
 			if self.isWindows:
 				value = cvGet2D(frame, 10, 10)
 				if int(value[0]) == 5: continue
-				#cvFlip(frame, frame)
 				if frame.width == 720 and frame.height == 480:
 					captured = cvGetSubRect(frame, cvRect(30, 0, 640, 480))
 			
 			# Extract the borders (they usually come with black bands)
 			delta = 10
 			#subwindow = cvRect(delta, 0, frame.width-2*delta, frame.height)
-			subwindow = cvRect(60, 40, frame.width-70, frame.height-40)
+			cvFlip(frame, frame, 1)
+			subwindow = cvRect(10, 40, frame.width-80, frame.height-40)
 			portion = cvGetSubRect(captured, subwindow)
 			self.emit(sigAvailableFrame, portion)
 	

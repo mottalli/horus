@@ -2,7 +2,7 @@
 import sqlite3
 import os.path
 import horus
-import opencv.highgui
+from opencv import highgui
 
 class Database:
 	def __init__(self, basePath='_base'):
