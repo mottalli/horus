@@ -41,7 +41,7 @@ GaborEncoder gaborEncoder;
 VideoProcessor videoProcessor;
 
 
-int main1(int argc, char** argv) {
+int main1(int, char**) {
 	const char* imagePath1 = "/home/marcelo/iris/BBDD/UBA/marcelo_der_1.bmp";
 	const char* imagePath2 = "/home/marcelo/iris/BBDD/UBA/marcelo_der_2.bmp";
 	Mat image1 = imread(imagePath1);
@@ -83,7 +83,7 @@ int main1(int argc, char** argv) {
 	return 0;
 }
 
-int main2(int argc, char** argv) {
+int main2(int, char**) {
 	VideoCapture capture(0);
 	parameters->bestFrameWaitCount = 0;
 
@@ -127,7 +127,7 @@ int main2(int argc, char** argv) {
 		//imshow("debug1", videoProcessor.segmentator.pupilSegmentator.similarityImage);
 		//imshow("debug2", videoProcessor.segmentator.pupilSegmentator.equalizedImage);
 
-		k = waitKey(20);
+		k = waitKey(10);
 
 		if (k == 'q') {
 			break;
@@ -135,10 +135,12 @@ int main2(int argc, char** argv) {
 			imwrite("/home/marcelo/Desktop/iris_capturado.jpg", frameOriginal);
 		}
 	}
+
+	return 0;
 }
 
-int main3(int argc, char** argv) {
-	Mat imagen = imread("/home/marcelo/Desktop/iris_capturado.jpg", 1);
+int main3(int, char**) {
+	Mat imagen = imread("/home/marcelo/iris/horus/ui/_base/984.jpg", 1);
 	Mat imagenBW;
 
 	cvtColor(imagen, imagenBW, CV_BGR2GRAY);
@@ -176,9 +178,11 @@ int main3(int argc, char** argv) {
 			break;
 		}
 	}
+
+	return 0;
 }
 
-int main(int argc, char** argv) {
+int main4(int, char**) {
 	VideoCapture capture(0);
 	parameters->bestFrameWaitCount = 0;
 
@@ -218,13 +222,76 @@ int main(int argc, char** argv) {
 		namedWindow("decorada", 1);
 		imshow("decorada", imagen);
 
-		k = waitKey(30);
+		k = waitKey(10);
 		if (k == 'q') {
 			break;
 		}
 	}
 
+	return 0;
+
 }
+
+int main(int, char**)
+{
+	//Mat_<uint8_t> imagen = imread("/home/marcelo/iris/horus/ui/_base/982.jpg", 0);
+	Mat frame;
+	Mat_<uint8_t> imagen;
+
+	VideoCapture capture(0);
+
+	int x0, x1, y0, y1, x, y;
+	unsigned int mean;
+
+	while (true) {
+		capture >> frame;
+
+		cvtColor(frame, imagen, CV_BGR2GRAY);
+
+		for (x0 = 0, mean = 0; mean < 100 && x0 < imagen.cols; x0++) {
+			for (y = 0; y < imagen.rows; y++) {
+				mean += int(imagen(y, x0));
+			}
+			mean = mean/imagen.rows;
+		}
+
+		for (x1 = x0+1; mean >= 100 && x1 < imagen.cols; x1++) {
+			for (y = 0; y < imagen.rows; y++) {
+				mean += int(imagen(y, x1));
+			}
+			mean = mean/imagen.rows;
+		}
+
+		for (y0 = 0, mean = 0; mean < 100 && y0 < imagen.rows; y0++) {
+			for (x = 0; x < imagen.cols; x++) {
+				mean += int(imagen(y0, x));
+			}
+			mean = mean/imagen.cols;
+		}
+
+		for (y1 = y0+1; mean >= 100 && y1 < imagen.rows; y1++) {
+			for (x = 0; x < imagen.cols; x++) {
+				mean += int(imagen(y1, x));
+			}
+			mean = mean/imagen.cols;
+		}
+
+		line(imagen, Point(x0, 0), Point(x0, imagen.rows-1), CV_RGB(255,255,255), 1);
+		line(imagen, Point(x1, 0), Point(x1, imagen.rows-1), CV_RGB(255,255,255), 1);
+		line(imagen, Point(0, y0), Point(imagen.cols-1, y0), CV_RGB(255,255,255), 1);
+		line(imagen, Point(0, y1), Point(imagen.cols-1, y1), CV_RGB(255,255,255), 1);
+
+
+		namedWindow("imagen", 1);
+		imshow("imagen", imagen);
+
+		if (waitKey(10) == 'q') {
+			break;
+		}
+	}
+
+}
+
 
 
 
