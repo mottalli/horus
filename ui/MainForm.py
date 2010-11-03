@@ -105,8 +105,12 @@ class MainForm(QtGui.QMainWindow, Ui_MainForm):
 		self.templateFrameSegmentation = videoProcessor.getTemplateSegmentation()
 		self.mostrarThumbnail(self.templateFrame, self.templateFrameSegmentation, self.lastTemplate)
 
-		if self.chkIdentificacionAutomatica.checkState() == QtCore.Qt.Checked:
+		if self.radioIdentificar.isChecked():
 			self.identificarTemplate(self.lastTemplate, self.templateFrame, self.templateFrameSegmentation)
+		elif self.radioRegistrar.isChecked():
+			pass
+		elif self.radioCapturar.isChecked():
+			pass
 		
 		self.lastCapture = opencv.cvClone(self.templateFrame)
 	
@@ -118,8 +122,8 @@ class MainForm(QtGui.QMainWindow, Ui_MainForm):
 		
 		opencv.cvCvtColor(imagen, self.thumbnailColorTmp, opencv.CV_GRAY2BGR)
 		if segmentacion:
-			self.decorator.pupilColor = opencv.CV_RGB(0,255,0)
-			self.decorator.irisColor = opencv.CV_RGB(255,0,0)
+			self.decorator.irisColor = opencv.CV_RGB(0,255,0)
+			self.decorator.pupilColor = opencv.CV_RGB(255,0,0)
 			self.decorator.drawSegmentationResult(self.thumbnailColorTmp, segmentacion)
 		opencv.cvResize(self.thumbnailColorTmp, self.thumbnail, opencv.CV_INTER_CUBIC)
 		
@@ -170,4 +174,4 @@ class MainForm(QtGui.QMainWindow, Ui_MainForm):
 	
 	def capturar(self, frame):
 		nombreArchivo = QtGui.QFileDialog.getSaveFileName(self, "Guardar archivo...")
-		opencv.cvSaveImage(str(nombreArchivo), frame)
+		opencv.highgui.cvSaveImage(str(nombreArchivo), frame)
