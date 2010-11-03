@@ -4,7 +4,7 @@
 import horus
 import sys
 from opencv.highgui import *
-from opencv import cvCloneImage
+from opencv import cvCloneImage, cvCreateImage, cvGetSize, IPL_DEPTH_8U, cvCvtColor, CV_GRAY2BGR
 
 paths = sys.argv[1:]
 segmentator = horus.Segmentator()
@@ -29,7 +29,9 @@ while True:
 		rs = segmentator.segmentImage(imagenes[i])
 		templates.append(encoder.generateTemplate(imagenes[i], rs))
 	
-		decorada = cvCloneImage(imagenes[i])
+		#decorada = cvCloneImage(imagenes[i])
+		decorada = cvCreateImage(cvGetSize(imagenes[i]), IPL_DEPTH_8U, 3)
+		cvCvtColor(imagenes[i], decorada, CV_GRAY2BGR)
 		decorator.drawSegmentationResult(decorada, rs)
 		decorator.drawTemplate(decorada, templates[i])
 		decorator.drawEncodingZone(decorada, rs)
