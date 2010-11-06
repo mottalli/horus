@@ -56,16 +56,17 @@ class Database:
 		return self.irisDatabase.getMinNFA()
 	
 	def informacionUsuario(self, id_usuario):
-		row = self.conn.execute('SELECT nombre, imagen, segmentacion, codigo_gabor FROM base_iris WHERE id_imagen=?', [id_usuario]).fetchone()
+		row = self.conn.execute('SELECT id_imagen, nombre, imagen, segmentacion, codigo_gabor FROM base_iris WHERE id_imagen=?', [id_usuario]).fetchone()
 		if not row:
 			return None
 		
-		usuario = str(row[0])
-		pathImagen = os.path.join(self.basePath, str(row[1]))
-		segmentacion = horus.unserializeSegmentationResult(str(row[2]))
-		template = horus.unserializeIrisTemplate(str(row[3]))
+		idImagen = int(str(row[0]))
+		usuario = str(row[1])
+		pathImagen = os.path.join(self.basePath, str(row[2]))
+		segmentacion = horus.unserializeSegmentationResult(str(row[3]))
+		template = horus.unserializeIrisTemplate(str(row[4]))
 		
-		return { 'usuario': usuario, 'pathImagen': pathImagen, 'segmentacion': segmentacion, 'template': template }
+		return { 'id': idImagen, 'usuario': usuario, 'pathImagen': pathImagen, 'segmentacion': segmentacion, 'template': template }
 	
 	def agregarTemplate(self, nombre, imagen, template, segmentacion):
 		if not nombre:
@@ -89,7 +90,7 @@ class Database:
 		
 		# Guarda la imagen
 		nombreImagen = '%i.jpg' % (id)
-		pathImagen ='%i' % (id)
+		pathImagen = '%i' % (id)
 		pathRelativoImagen = str(os.path.join(pathImagen, nombreImagen))
 		fullPathImagen = os.path.join(self.basePath, pathRelativoImagen)
 		highgui.cvSaveImage(fullPathImagen, imagen)
@@ -98,6 +99,21 @@ class Database:
 		self.conn.commit()
 		
 		self.irisDatabase.addTemplate(id, template)
+	
+	def agregarImagen(self, id, imagen, template=None, segmentacion=None):
+		pathImagen = '%i' % (id)
+		
+		i = 1
+		while True:
+			nombreImagen = '%i_%i.jpg' % (id, i)
+			pathRelativoImagen = str(os.path.join(pathImagen, nombreImagen))
+			fullPathImagen = os.path.join(self.basePath, pathRelativoImagen)
+			
+			if not os.path.exists(fullPathImagen): break
+			
+			i = i+1
+		
+		highgui.cvSaveImage(fullPathImagen, imagen)
 	
 	def databaseSize(self):
 		return self.irisDatabase.databaseSize()

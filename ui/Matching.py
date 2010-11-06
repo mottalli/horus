@@ -1,16 +1,43 @@
 # -*- coding: UTF8 -*-
-from PyQt4 import uic
+from PyQt4 import uic, QtGui, QtCore
 from horus import Decorator
 import opencv
 from opencv import highgui
 import Utils
 
 decorator = Decorator()
-form = uic.loadUi('forms/Matching.ui')
+(Ui_Matching, Base) = uic.loadUiType('forms/Matching.ui')
+
+class MatchingForm(QtGui.QDialog, Ui_Matching):
+	database = None
+	informacionUsuario = None
+	imagen = None
+
+	def __init__(self):
+		QtGui.QMainWindow.__init__(self)
+		self.setupUi(self)
+		
+	@QtCore.pyqtSignature("")
+	def on_btnConfirmarIdentificacion_clicked(self):
+		if self.database is None:
+			return
+			
+		agregar = QtGui.QMessageBox.question(self, 'Agregar imagen', 'Agregar imagen a la base de datos?', QtGui.QMessageBox.Yes, QtGui.QMessageBox.No)
+		
+		if agregar == QtGui.QMessageBox.Yes:	
+			self.database.agregarImagen(self.informacionUsuario['id'], self.imagen)
+		
+		self.accept()
+		
+
+
+form = MatchingForm()
 
 def doMatch(irisDatabase, template, imagen=None, segmentacion=None):
 	if form.isVisible():
 		return
+	
+	imagen = opencv.cvCloneImage(imagen)
 
 	irisDatabase.doMatch(template, None)
 	tiempoHamming = irisDatabase.getMatchingTime()
@@ -57,5 +84,9 @@ def doMatch(irisDatabase, template, imagen=None, segmentacion=None):
 	if imagen:
 		form.imagenCapturada.showImage(imagenRes)
 
+	form.database = irisDatabase
+	form.imagen = imagen
+	form.informacionUsuario = informacionUsuario
+	
 	form.show()
 	
