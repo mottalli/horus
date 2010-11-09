@@ -41,6 +41,9 @@ GaborEncoder gaborEncoder;
 VideoProcessor videoProcessor;
 
 
+/**
+ * PROCESAR DOS IMÁGENES
+ */
 int main1(int, char**) {
 	const char* imagePath1 = "/home/marcelo/iris/BBDD/UBA/marcelo_der_1.bmp";
 	const char* imagePath2 = "/home/marcelo/iris/BBDD/UBA/marcelo_der_2.bmp";
@@ -83,6 +86,9 @@ int main1(int, char**) {
 	return 0;
 }
 
+/**
+ * ANÁLISIS DE FOCO Y CALIDAD
+ */
 int main2(int, char**) {
 	VideoCapture capture(0);
 	parameters->bestFrameWaitCount = 0;
@@ -103,6 +109,8 @@ int main2(int, char**) {
 		frame = frame(Rect(dx, dy, frame.cols-dx, frame.rows-dy));
 
 		VideoProcessor::VideoStatus status = videoProcessor.processFrame(frame);
+
+		cout << "Tiempo de segmentacion: " << videoProcessor.segmentator.segmentationTime << endl;
 
 		Mat frameOriginal = frame.clone();
 
@@ -182,7 +190,7 @@ int main3(int, char**) {
 	return 0;
 }
 
-int main4(int, char**) {
+int main(int, char**) {
 	VideoCapture capture(0);
 	parameters->bestFrameWaitCount = 0;
 
@@ -222,7 +230,7 @@ int main4(int, char**) {
 		namedWindow("decorada", 1);
 		imshow("decorada", imagen);
 
-		k = waitKey(10);
+		k = waitKey(30);
 		if (k == 'q') {
 			break;
 		}
@@ -232,7 +240,7 @@ int main4(int, char**) {
 
 }
 
-int main(int, char**)
+int main5(int, char**)
 {
 	//Mat_<uint8_t> imagen = imread("/home/marcelo/iris/horus/ui/_base/982.jpg", 0);
 	Mat frame;
@@ -243,38 +251,49 @@ int main(int, char**)
 	int x0, x1, y0, y1, x, y;
 	unsigned int mean;
 
+	const int THRESH = 60;
+
 	while (true) {
 		capture >> frame;
 
 		cvtColor(frame, imagen, CV_BGR2GRAY);
+		GaussianBlur(imagen, imagen, Size(7,7), 0);
 
-		for (x0 = 0, mean = 0; mean < 100 && x0 < imagen.cols; x0++) {
+		for (x0 = 0, mean = 0; mean < THRESH && x0 < imagen.cols; x0++) {
 			for (y = 0; y < imagen.rows; y++) {
 				mean += int(imagen(y, x0));
 			}
 			mean = mean/imagen.rows;
 		}
 
-		for (x1 = x0+1; mean >= 100 && x1 < imagen.cols; x1++) {
+		cout << "x0 " << mean << endl;
+
+		for (x1 = imagen.cols, mean=0; mean < THRESH && x1 > x0+1; x1--) {
 			for (y = 0; y < imagen.rows; y++) {
 				mean += int(imagen(y, x1));
 			}
 			mean = mean/imagen.rows;
 		}
 
-		for (y0 = 0, mean = 0; mean < 100 && y0 < imagen.rows; y0++) {
+		cout << "x1 " << mean << endl;
+
+		for (y0 = 0, mean = 0; mean < THRESH && y0 < imagen.rows; y0++) {
 			for (x = 0; x < imagen.cols; x++) {
 				mean += int(imagen(y0, x));
 			}
 			mean = mean/imagen.cols;
 		}
 
-		for (y1 = y0+1; mean >= 100 && y1 < imagen.rows; y1++) {
+		cout << "y0 " << mean << endl;
+
+		for (y1 = imagen.rows, mean=0; mean < THRESH && y1 > y0+1; y1--) {
 			for (x = 0; x < imagen.cols; x++) {
 				mean += int(imagen(y1, x));
 			}
 			mean = mean/imagen.cols;
 		}
+
+		cout << "y1 " << mean << endl;
 
 		line(imagen, Point(x0, 0), Point(x0, imagen.rows-1), CV_RGB(255,255,255), 1);
 		line(imagen, Point(x1, 0), Point(x1, imagen.rows-1), CV_RGB(255,255,255), 1);
@@ -285,11 +304,12 @@ int main(int, char**)
 		namedWindow("imagen", 1);
 		imshow("imagen", imagen);
 
-		if (waitKey(10) == 'q') {
+		if (char(waitKey(30)) == 'q') {
 			break;
 		}
 	}
 
+	return 0;
 }
 
 

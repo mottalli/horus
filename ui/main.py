@@ -24,6 +24,8 @@ VideoThread.videoThread.start()
 mainForm = MainForm.MainForm()
 mainForm.show()
 
+horus.Parameters.getParameters().focusThreshold = 30
+
 
 res = app.exec_()
 sys.exit(res)

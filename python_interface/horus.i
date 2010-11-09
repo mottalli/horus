@@ -90,6 +90,7 @@ namespace std
 	SWIG_ConvertPtr($input, (void**)&arg, SWIGTYPE_p_Mat, 0);
 	$1 = reinterpret_cast<Mat*>(arg);
 }
+
 %newobject pyutilCloneImage;
 %inline %{
 	CvMat* pyutilCloneFromHorus(Mat* matin) {

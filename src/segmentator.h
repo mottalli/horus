@@ -32,6 +32,10 @@ private:
 	Mat workingImage;
 	float resizeFactor;
 	Clock clock;
+	Rect ROI;
+
+	Rect calculateROI(const Mat_<uint8_t>& image);
+	Mat_<uint8_t> blurredImage;			// Used as a buffer to calculate the ROI
 };
 
 

@@ -54,6 +54,13 @@ void PupilSegmentator::setupBuffers(const Mat& image)
 		this->workingImage = image;
 	}
 
+	if (!this->ROI.width || !this->ROI.height) {
+		this->workingROI = Rect(0, 0, this->workingImage.cols, this->workingImage.rows);
+	} else {
+		this->workingROI = Rect(this->ROI.x*this->resizeFactor, this->ROI.y*this->resizeFactor, this->ROI.width*this->resizeFactor, this->ROI.height*this->resizeFactor);
+	}
+
+
 	this->adjustmentRing.create(Size(parameters->pupilAdjustmentRingWidth, parameters->pupilAdjustmentRingHeight));
 	this->adjustmentRingGradient.create(Size(parameters->pupilAdjustmentRingWidth, parameters->pupilAdjustmentRingHeight));
 	this->adjustmentSnake.create(Size(parameters->pupilAdjustmentRingWidth, 1));
@@ -69,7 +76,8 @@ Circle PupilSegmentator::approximatePupil(const Mat_<uint8_t>& image)
 	blur(this->similarityImage, this->similarityImage, Size(3, 3));
 
 	// Now perform the cascaded integro-differential operator
-	return this->cascadedIntegroDifferentialOperator(this->similarityImage);
+	Circle res = this->cascadedIntegroDifferentialOperator(this->similarityImage);
+	return res;
 }
 
 Contour PupilSegmentator::adjustPupilContour(const Mat_<uint8_t>& image, const Circle& approximateCircle)
@@ -80,6 +88,27 @@ Contour PupilSegmentator::adjustPupilContour(const Mat_<uint8_t>& image, const C
 			approximateCircle.xc, approximateCircle.yc, radiusMin, radiusMax);
 
 	int infraredThreshold = Parameters::getParameters()->infraredThreshold;
+
+
+	// Try to find the region where the infrarred light is
+	int x0=INT_MAX, x1=INT_MIN;									// Right / left limit for the infrarred light
+	for (int y = 0; y < this->adjustmentRing.rows; y++) {
+		const uint8_t* ptr = this->adjustmentRing.ptr(y);
+		for (int x = 0; x < this->adjustmentRing.cols/2; x++) {
+			if (ptr[x] > infraredThreshold) {
+				x0 = min(x0, x);
+			}
+			if (ptr[this->adjustmentRing.cols/2-x] > infraredThreshold) {
+				x1 = max(x1, this->adjustmentRing.cols/2-x);
+			}
+		}
+	}
+
+	if (x0 > INT_MIN && x1 < INT_MAX) {
+		x0 = max(1, x0-int(this->adjustmentRing.cols*0.1));
+		x1 = min(this->adjustmentRing.cols-2, x1+int(this->adjustmentRing.cols*0.1));
+	}
+
 
 	// Calculate the vertical gradient
 	Sobel(this->adjustmentRing, this->adjustmentRingGradient, this->adjustmentRingGradient.type(), 0, 1, 3);
@@ -100,7 +129,7 @@ Contour PupilSegmentator::adjustPupilContour(const Mat_<uint8_t>& image, const C
 				bestY = y;
 			}
 
-			// A maximum in the gradient may have been caused by the reflections
+			/*// A maximum in the gradient may have been caused by the reflections
 			// of the infrared LEDs. In this case, default to the original circle
 			bool hasInfraredLed = false;
 			hasInfraredLed = hasInfraredLed || (this->adjustmentRing(bestY, x) > infraredThreshold);
@@ -109,14 +138,22 @@ Contour PupilSegmentator::adjustPupilContour(const Mat_<uint8_t>& image, const C
 			if (hasInfraredLed) {
 				// The middle point is where the original circular contour passes through
 				bestY = gradient.rows/2;
-			}
+			}*/
 		}
 
 		snake(0, x) = bestY;
 	}
 
+	if (x0 > INT_MIN && x1 < INT_MAX) {
+		for (int x = x0; x <= x1; x++) {
+			snake(0, x) = snake(0, x0-1) + (x-x0)*((snake(0, x1+1)-snake(0, x0-1)) / (x1-x0));
+		}
+	}
+
 	// Smooth the snake
-	Tools::smoothSnakeFourier(snake, 3);
+	Tools::smoothSnakeFourier(snake, 5);
+
+	/*Tools::smoothSnakeFourier(snake, 3);
 	int delta = gradient.rows * 0.1;
 
 	// Improve the estimation
@@ -137,7 +174,7 @@ Contour PupilSegmentator::adjustPupilContour(const Mat_<uint8_t>& image, const C
 		snake(0, x) = bestY;
 	}
 
-	Tools::smoothSnakeFourier(snake, 5);
+	Tools::smoothSnakeFourier(snake, 5);*/
 
 	// Use the snake to calculate the quality of the pupil border
 	this->pupilContourQuality = this->calculatePupilContourQuality(this->adjustmentRing, this->adjustmentRingGradient, snake);
@@ -149,7 +186,7 @@ Contour PupilSegmentator::adjustPupilContour(const Mat_<uint8_t>& image, const C
 		double theta = (double(x) / double(snake.cols)) * 2.0 * M_PI;
 		double radius = (double(y) / double(gradient.rows - 1))
 				* double(radiusMax - radiusMin) + double(radiusMin);
-		radius += 2;
+		radius += 1;
 
 		int ximag = int(double(approximateCircle.xc) + cos(theta) * radius);
 		int yimag = int(double(approximateCircle.yc) + sin(theta) * radius);
@@ -170,8 +207,10 @@ Circle PupilSegmentator::cascadedIntegroDifferentialOperator(const Mat_<uint8_t>
 
 	int dx = image.cols*0.2, dy = image.rows*0.2;			// Exclude the image borders
 
-	int minx = dx, miny = dy;
-	int maxx = image.cols - dx, maxy = image.rows - dy;
+	/*int minx = dx, miny = dy;
+	int maxx = image.cols - dx, maxy = image.rows - dy;*/
+	int minx = this->workingROI.x+dx, miny = this->workingROI.y+dy;			// Detect the circle ONLY inside the ROI
+	int maxx = this->workingROI.x+this->workingROI.width-dx, maxy = this->workingROI.y+this->workingROI.height-dy;
 	int x, y;
 	//int maxStep = INT_MIN;
 	int bestX = 0, bestY = 0, bestRadius = 0;

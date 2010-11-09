@@ -11,7 +11,7 @@ Parameters* Parameters::instance = (Parameters*)0;
 
 Parameters::Parameters() {
 	bufferWidth = 320;
-	muPupil = 5.0;
+	muPupil = 0.0;
 	sigmaPupil = 5.0;
 
 	minimumPupilRadius = 7;
@@ -42,7 +42,7 @@ Parameters::Parameters() {
 	expectedIrisDiameter = 250;
 	segmentationScoreThreshold = 1.7;
 	minimumContourQuality = 60;
-	bestFrameWaitCount = 5;
+	bestFrameWaitCount = 20;
 	
 	pupilIrisGrayDiff = 20;
 	pupilIrisZScore = 3;

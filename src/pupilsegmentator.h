@@ -18,6 +18,8 @@ public:
 	ContourAndCloseCircle segmentPupil(const Mat& image);
 	inline int getPupilContourQuality() const { return this->pupilContourQuality; }
 
+	inline void setROI(Rect ROI) { this->ROI = ROI; };
+
 	// Internal buffers
 	Mat_<uint8_t> similarityImage;
 	Mat_<uint8_t> equalizedImage;
@@ -48,6 +50,8 @@ private:
 	Contour adjustPupilContour(const Mat_<uint8_t>& image, const Circle& approximateCircle);
 
 	double _lastSigma, _lastMu;
+
+	Rect ROI, workingROI;
 };
 
 

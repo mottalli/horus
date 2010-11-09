@@ -18,7 +18,7 @@ VideoProcessor::VideoProcessor()
 	this->templateWaitCount = 0;
 	this->templateIrisQuality = 0.0;
 	this->waitingBestTemplate = false;
-	this->waitingFrames = 10;
+	this->waitingFrames = 40;
 	this->framesToSkip = 0;
 }
 
