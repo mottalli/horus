@@ -104,7 +104,9 @@ Contour PupilSegmentator::adjustPupilContour(const Mat_<uint8_t>& image, const C
 		}
 	}
 
-	if (x0 > INT_MIN && x1 < INT_MAX) {
+	bool hasInfrarred = (x0 < INT_MAX && x1 > INT_MIN);
+
+	if (hasInfrarred) {
 		x0 = max(1, x0-int(this->adjustmentRing.cols*0.1));
 		x1 = min(this->adjustmentRing.cols-2, x1+int(this->adjustmentRing.cols*0.1));
 	}
@@ -144,9 +146,22 @@ Contour PupilSegmentator::adjustPupilContour(const Mat_<uint8_t>& image, const C
 		snake(0, x) = bestY;
 	}
 
-	if (x0 > INT_MIN && x1 < INT_MAX) {
+	if (hasInfrarred) {
+		int m0=0, m1=0, s0=1, s1=1;
+		for (int x = 0; x < x0; x++) {
+			m0 += snake(0, x);
+			s0++;
+		}
+		for (int x = x1+1; x < snake.cols; x++) {
+			m1 += snake(0, x);
+			s1++;
+		}
+
+		m0 = m0/s0;
+		m1 = m1/s1;
+
 		for (int x = x0; x <= x1; x++) {
-			snake(0, x) = snake(0, x0-1) + (x-x0)*((snake(0, x1+1)-snake(0, x0-1)) / (x1-x0));
+			snake(0, x) = m0 + (x-x0)*(m1-m0)/(x1-x0);			// Linear interpolation
 		}
 	}
 
