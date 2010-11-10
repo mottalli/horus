@@ -21,6 +21,7 @@ class MainForm(QtGui.QMainWindow, Ui_MainForm):
 		self.decorator = horus.Decorator()
 		self.focusedIris = False
 		self.forzarIdentificacionProxima = False
+		self.forzarRegistracionProxima = False
 		self.capturarProxima = False
 		self.frameDecorado = None
 		self.thumbnailColorTmp = None
@@ -53,6 +54,10 @@ class MainForm(QtGui.QMainWindow, Ui_MainForm):
 		if self.forzarIdentificacionProxima:
 			self.forzarIdentificacionProxima = False
 			self.forzarIdentificacion(frame)
+
+		if self.forzarRegistracionProxima:
+			self.forzarRegistracionProxima = False
+			self.forzarRegistracion(frame)
 		
 		if self.capturarProxima:
 			self.capturarProxima = False
@@ -141,6 +146,10 @@ class MainForm(QtGui.QMainWindow, Ui_MainForm):
 	@QtCore.pyqtSignature("")
 	def on_btnForzarIdentificacion_clicked(self):
 		self.forzarIdentificacionProxima = True
+
+	@QtCore.pyqtSignature("")
+	def on_btnForzarRegistracion_clicked(self):
+		self.forzarRegistracionProxima = True
 	
 	@QtCore.pyqtSignature("")
 	def on_btnIdentificar_clicked(self):
@@ -170,6 +179,13 @@ class MainForm(QtGui.QMainWindow, Ui_MainForm):
 		template = self.encoder.generateTemplate(imagen, segmentacion)
 		self.mostrarThumbnail(imagen, segmentacion, template)
 		self.identificarTemplate(template, imagen, segmentacion)
+		
+	def forzarRegistracion(self, imagen):
+		imagen = Utils.aBlancoYNegro(imagen)
+		segmentacion = self.segmentator.segmentImage(imagen)
+		template = self.encoder.generateTemplate(imagen, segmentacion)
+		self.mostrarThumbnail(imagen, segmentacion, template)
+		self.registrarTemplate(template, imagen, segmentacion)
 
 	def identificarTemplate(self, template, imagen=None, segmentacion=None):
 		import Matching

@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>716</width>
+    <width>787</width>
     <height>521</height>
    </rect>
   </property>
@@ -27,6 +27,13 @@
           <widget class="QPushButton" name="btnCapturar">
            <property name="text">
             <string>Capturar</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="btnForzarRegistracion">
+           <property name="text">
+            <string>Forzar registración</string>
            </property>
           </widget>
          </item>
@@ -103,8 +110,6 @@
            </layout>
           </item>
          </layout>
-         <zorder>radioIdentificar</zorder>
-         <zorder>radioRegistrar</zorder>
          <zorder></zorder>
         </widget>
        </item>
@@ -199,7 +204,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>716</width>
+     <width>787</width>
      <height>23</height>
     </rect>
    </property>
