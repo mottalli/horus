@@ -12,6 +12,7 @@ PATHS_BASES = {
 		'casia3p': str(os.path.join(PATH_BASE, 'CASIA3-Preprocesada')),
 		'mmu': str(os.path.join(PATH_BASE, 'MMU')),
 		'bath': str(os.path.join(PATH_BASE, 'Bath')),
+		'uba': '/home/marcelo/iris/horus/ui/_base'
 	}
 
 class IrisDatabase:
