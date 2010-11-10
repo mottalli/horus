@@ -19,16 +19,16 @@ class Database:
 
 		self.conn = sqlite3.connect(self.baseFile)
 		
-		rows = self.conn.execute('SELECT id_imagen,codigo_gabor FROM base_iris')
+		rows = self.conn.execute('SELECT id_usuario,codigo_gabor FROM usuarios')
 		for row in rows:
-			idImagen = int(row[0])
+			idUsuario = int(row[0])
 			templateSerializado = str(row[1])
 			
 			if not len(templateSerializado):
-				raise Exception('La imagen %i no está codificada!' % (idImagen))
+				raise Exception('La imagen %i no está codificada!' % (idUsuario))
 			
 			template = horus.unserializeIrisTemplate(templateSerializado)
-			self.irisDatabase.addTemplate(idImagen, template)
+			self.irisDatabase.addTemplate(idUsuario, template)
 	
 	#def callback(self):
 	#	print '.'
@@ -56,23 +56,23 @@ class Database:
 		return self.irisDatabase.getMinNFA()
 	
 	def informacionUsuario(self, id_usuario):
-		row = self.conn.execute('SELECT id_imagen, nombre, imagen, segmentacion, codigo_gabor FROM base_iris WHERE id_imagen=?', [id_usuario]).fetchone()
+		row = self.conn.execute('SELECT id_usuario, nombre, imagen, segmentacion, codigo_gabor FROM usuarios WHERE id_usuario=?', [id_usuario]).fetchone()
 		if not row:
 			return None
 		
-		idImagen = int(str(row[0]))
+		idUsuario = int(str(row[0]))
 		usuario = str(row[1])
 		pathImagen = os.path.join(self.basePath, str(row[2]))
 		segmentacion = horus.unserializeSegmentationResult(str(row[3]))
 		template = horus.unserializeIrisTemplate(str(row[4]))
 		
-		return { 'id': idImagen, 'usuario': usuario, 'pathImagen': pathImagen, 'segmentacion': segmentacion, 'template': template }
+		return { 'id': idUsuario, 'usuario': usuario, 'pathImagen': pathImagen, 'segmentacion': segmentacion, 'template': template }
 	
 	def agregarTemplate(self, nombre, imagen, template, segmentacion):
 		if not nombre:
 			raise Exception('El nombre no puede estar vacio')
 			
-		existe = self.conn.execute('SELECT id_imagen FROM base_iris WHERE LOWER(nombre)=LOWER(?)', [str(nombre)]).fetchone()
+		existe = self.conn.execute('SELECT id_usuario FROM usuarios WHERE LOWER(nombre)=LOWER(?)', [str(nombre)]).fetchone()
 		if existe:
 			raise Exception('Ya existe el nombre de usuario ' + nombre)
 		
@@ -84,7 +84,7 @@ class Database:
 		
 		fullPathImagen = '-xxxxx-'		# Valor temporario
 		
-		self.conn.execute('INSERT INTO base_iris(nombre, imagen, segmentacion, codigo_gabor) VALUES (?,?,?,?)', [str(nombre), fullPathImagen, segmentacionSerializada, templateSerializado])
+		self.conn.execute('INSERT INTO usuarios(nombre, imagen, segmentacion, codigo_gabor) VALUES (?,?,?,?)', [str(nombre), fullPathImagen, segmentacionSerializada, templateSerializado])
 		id = self.conn.execute('SELECT LAST_INSERT_ROWID() AS ri').fetchone()
 		id = id[0]
 		
@@ -98,7 +98,7 @@ class Database:
 		
 		os.mkdir(pathFullImagen)
 		highgui.cvSaveImage(nombreFullImagen, imagen)
-		self.conn.execute('UPDATE base_iris SET imagen=? WHERE id_imagen=?', [nombreRelativoImagen, id])
+		self.conn.execute('UPDATE usuarios SET imagen=? WHERE id_usuario=?', [nombreRelativoImagen, id])
 		
 		self.conn.commit()
 		

@@ -32,5 +32,5 @@ for fila in filas:
 	codigo_gabor = str(fila[2])
 	
 	print "Importando", imagen
-	conn.execute('INSERT INTO base_iris(nombre, imagen, segmentacion, codigo_gabor) VALUES(?, ?, ?, ?)', (nombre, imagen, segmentacion, codigo_gabor))
+	conn.execute('INSERT INTO usuarios(nombre, imagen, segmentacion, codigo_gabor) VALUES(?, ?, ?, ?)', (nombre, imagen, segmentacion, codigo_gabor))
 conn.commit()
