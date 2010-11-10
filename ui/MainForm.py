@@ -104,6 +104,8 @@ class MainForm(QtGui.QMainWindow, Ui_MainForm):
 		self.templateFrame = horus.pyutilCloneFromHorus(videoProcessor.getTemplateFrame())
 		self.templateFrameSegmentation = videoProcessor.getTemplateSegmentation()
 		self.mostrarThumbnail(self.templateFrame, self.templateFrameSegmentation, self.lastTemplate)
+		
+		QtGui.QSound.play('Ding.wav')
 
 		if self.radioIdentificar.isChecked():
 			self.identificarTemplate(self.lastTemplate, self.templateFrame, self.templateFrameSegmentation)
