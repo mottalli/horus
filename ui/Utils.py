@@ -15,3 +15,15 @@ def aColor(imagen, dest=None):
 		opencv.cvCopy(imagen, dest)
 
 	return dest
+
+def aBlancoYNegro(imagen):
+	dest = opencv.cvCreateImage(opencv.cvGetSize(imagen), opencv.IPL_DEPTH_8U, 1)
+	elemType = opencv.cvGetElemType(imagen)
+	
+	if elemType == opencv.CV_8UC1:
+		opencv.cvCopy(imagen, dest)
+	
+	elif elemType == opencv.CV_8UC3:
+		opencv.cvCvtColor(imagen, dest, opencv.CV_BGR2GRAY)
+
+	return dest

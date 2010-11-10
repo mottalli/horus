@@ -8,6 +8,7 @@ import os.path
 import VideoThread, ProcessingThread
 import horus
 import Database
+import Utils
 
 (Ui_MainForm, Base) = uic.loadUiType('forms/MainForm.ui')
 
@@ -28,6 +29,7 @@ class MainForm(QtGui.QMainWindow, Ui_MainForm):
 		self.lastCapture = None
 		self.templateFrame = None
 		self.templateFrameSegmentation = None
+		self.ding = True
 		
 		self.database = Database.database
 
@@ -95,6 +97,9 @@ class MainForm(QtGui.QMainWindow, Ui_MainForm):
 			self.statusBar.showMessage('Iris demasiado lejos')
 		elif resultado == horus.VideoProcessor.FOCUSED_IRIS:
 			self.statusBar.showMessage('Iris enfocado')
+			if self.ding:
+				QtGui.QSound.play('Ding.wav')
+				self.ding = False
 		elif resultado == horus.VideoProcessor.GOT_TEMPLATE:
 			self.statusBar.showMessage('Imagen capturada')
 			self.gotTemplate(videoProcessor)
@@ -104,8 +109,6 @@ class MainForm(QtGui.QMainWindow, Ui_MainForm):
 		self.templateFrame = horus.pyutilCloneFromHorus(videoProcessor.getTemplateFrame())
 		self.templateFrameSegmentation = videoProcessor.getTemplateSegmentation()
 		self.mostrarThumbnail(self.templateFrame, self.templateFrameSegmentation, self.lastTemplate)
-		
-		QtGui.QSound.play('Ding.wav')
 
 		if self.radioIdentificar.isChecked():
 			self.identificarTemplate(self.lastTemplate, self.templateFrame, self.templateFrameSegmentation)
@@ -115,6 +118,7 @@ class MainForm(QtGui.QMainWindow, Ui_MainForm):
 			pass
 		
 		self.lastCapture = opencv.cvClone(self.templateFrame)
+		self.ding = True		# Pone el sonido en la próxima captura
 	
 	def mostrarThumbnail(self, imagen, segmentacion=None, template=None):
 		size = opencv.cvGetSize(imagen)
@@ -161,6 +165,7 @@ class MainForm(QtGui.QMainWindow, Ui_MainForm):
 
 
 	def forzarIdentificacion(self, imagen):
+		imagen = Utils.aBlancoYNegro(imagen)
 		segmentacion = self.segmentator.segmentImage(imagen)
 		template = self.encoder.generateTemplate(imagen, segmentacion)
 		self.mostrarThumbnail(imagen, segmentacion, template)
@@ -175,5 +180,6 @@ class MainForm(QtGui.QMainWindow, Ui_MainForm):
 		Registracion.registrar(self.database, template, imagen, segmentacion)
 	
 	def capturar(self, frame):
+		frame = opencv.cvCloneImage(frame)
 		nombreArchivo = QtGui.QFileDialog.getSaveFileName(self, "Guardar archivo...")
 		opencv.highgui.cvSaveImage(str(nombreArchivo), frame)
