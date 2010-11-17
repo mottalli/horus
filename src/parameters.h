@@ -44,8 +44,8 @@ public:
 	// Template generation parameters
 	int normalizationWidth;
 	int normalizationHeight;
-	int templateWidth;
-	int templateHeight;
+	//int templateWidth;
+	//int templateHeight;
 
 private:
 	Parameters();

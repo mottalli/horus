@@ -45,6 +45,7 @@ void LogGabor1DFilter::applyFilter(const Mat_<uint8_t>& image, Mat_<float>& dest
 	// Split real and imaginary parts
 	vector< Mat_<float> > parts;
 	split(this->filterResult, parts);
+	assert(parts.size() == 2);
 	Mat_<float>& real = parts[0];
 	Mat_<float>& imag = parts[1];
 
@@ -94,33 +95,32 @@ LogGaborEncoder::~LogGaborEncoder()
 
 IrisTemplate LogGaborEncoder::encodeTexture(const Mat_<uint8_t>& texture, const Mat_<uint8_t>& mask)
 {
-	assert(texture.size() == mask.size());
-
 	Size templateSize = LogGaborEncoder::getTemplateSize();
-	Size resizedTextureSize = this->getResizedTextureSize();
-	size_t nFilters = this->filterBank.size();
+	Size textureSize = texture.size();
+
+	assert(texture.size() == mask.size());
+	assert(textureSize == templateSize);		// This precondition holds because IrisEncoder generates a texture
+												// of the size specified by the function getNormalizationSize
 
 	// A slots holds the results of all the filters for a single image pixel, distributed in
 	// the horizontal direction.
+	size_t nFilters = this->filterBank.size();
 	size_t nSlots = templateSize.width / nFilters;
 	int slotSize = nFilters;
-
-	resize(texture, this->resizedTexture, resizedTextureSize, 1, 1, CV_INTER_LINEAR);
-	resize(mask, this->resizedMask, resizedTextureSize, 1, 1, CV_INTER_NN);				// NN is needed in this case to preserve the bits
 
 	this->resultTemplate.create(templateSize);
 	this->resultMask.create(templateSize);
 
 	for (size_t f = 0; f < nFilters; f++) {
 		LogGabor1DFilter& filter = this->filterBank[f];
-		filter.applyFilter(resizedTexture, this->filteredTexture, resizedMask, this->filteredMask);
+		filter.applyFilter(texture, this->filteredTexture, mask, this->filteredMask);
 
 		for (size_t s = 0; s < nSlots; s++) {
 			int xtemplate = s*slotSize + f;
-			int xtexture = (resizedTextureSize.width/nSlots) * s;
+			int xtexture = (textureSize.width/nSlots) * s;
 			for (int ytemplate = 0; ytemplate < templateSize.height; ytemplate++) {
-				int ytexture = (resizedTextureSize.height/templateSize.height) * ytemplate;
-				assert(xtexture < resizedTextureSize.width && ytexture < resizedTextureSize.height);
+				int ytexture = (textureSize.height/templateSize.height) * ytemplate;
+				assert(xtexture < textureSize.width && ytexture < textureSize.height);
 
 				unsigned char templateBit = (this->filteredTexture(ytexture, xtexture) > 0 ? 1 : 0);
 				unsigned char maskBit1 = this->filteredMask(ytexture, xtexture);
@@ -136,9 +136,3 @@ IrisTemplate LogGaborEncoder::encodeTexture(const Mat_<uint8_t>& texture, const 
 
 	return result;
 }
-
-CvSize LogGaborEncoder::getResizedTextureSize()
-{
-	return LogGaborEncoder::getTemplateSize();
-}
-

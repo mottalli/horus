@@ -40,12 +40,13 @@ public:
 protected:
 	Mat_<float> filteredTexture;
 	Mat_<uint8_t> filteredMask;
-	Mat_<uint8_t> resizedTexture;
-	Mat_<uint8_t> resizedMask;
+	/*Mat_<uint8_t> resizedTexture;
+	Mat_<uint8_t> resizedMask;*/
 	Mat_<uint8_t> resultTemplate;
 	Mat_<uint8_t> resultMask;
 
-	static CvSize getResizedTextureSize();
 	vector<LogGabor1DFilter> filterBank;
+
 	virtual IrisTemplate encodeTexture(const Mat_<uint8_t>& texture, const Mat_<uint8_t>& mask);
+	virtual Size getNormalizationSize() { return LogGaborEncoder::getTemplateSize(); };
 };
