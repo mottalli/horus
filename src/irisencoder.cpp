@@ -34,7 +34,7 @@ IrisTemplate IrisEncoder::generateTemplate(const Mat& image, const SegmentationR
 	}
 
 	Parameters* parameters = Parameters::getParameters();
-	Size normalizedSize(parameters->normalizationWidth, parameters->normalizationHeight);
+	Size normalizedSize = this->getNormalizationSize();
 
 	this->normalizedTexture.create(normalizedSize);
 	this->normalizedNoiseMask.create(normalizedSize);
@@ -113,4 +113,11 @@ Size IrisEncoder::getOptimumTemplateSize(int width, int height)
 {
 	int optimumWidth = int(ceil(float(width)/32.0)) * 32; // Must be a multiple of 32
 	return Size(optimumWidth, height);
+}
+
+Size IrisEncoder::getNormalizationSize()
+{
+	Parameters* parameters = Parameters::getParameters();
+
+	return Size(parameters->normalizationWidth, parameters->normalizationHeight);
 }

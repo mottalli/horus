@@ -29,8 +29,8 @@ Parameters::Parameters() {
 
 	parabolicDetectorStep = 10;
 
-	templateWidth = 32*8;		// Must be a multiple of 32
-	templateHeight = 20;
+	//templateWidth = 32*8;		// Must be a multiple of 32
+	//templateHeight = 20;
 	//normalizationWidth = 2*templateWidth;
 	//normalizationHeight = 2*templateHeight;
 	normalizationWidth = 512;

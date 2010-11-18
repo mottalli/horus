@@ -39,6 +39,7 @@ LogGaborEncoder logGaborEncoder;
 Parameters* parameters = Parameters::getParameters();
 GaborEncoder gaborEncoder;
 VideoProcessor videoProcessor;
+QualityChecker qualityChecker;
 
 
 /**
@@ -147,13 +148,17 @@ int main2(int, char**) {
 	return 0;
 }
 
-int main3(int, char**) {
-	Mat imagen = imread("/home/marcelo/iris/horus/ui/_base/984.jpg", 1);
+int main(int, char**) {
+	Mat imagen = imread("/home/marcelo/iris/horus/ui/_base/984/984.jpg", 1);
 	Mat imagenBW;
 
 	cvtColor(imagen, imagenBW, CV_BGR2GRAY);
 
 	SegmentationResult sr = segmentator.segmentImage(imagenBW);
+	IrisTemplate irisTemplate = logGaborEncoder.generateTemplate(imagenBW, sr);
+
+	cout << "Foco: " << qualityChecker.checkFocus(imagenBW) << endl;
+	cout << "Calidad de iris: " << qualityChecker.getIrisQuality(imagenBW, sr) << endl;
 
 	Mat tmp;
 
@@ -177,6 +182,7 @@ int main3(int, char**) {
 
 	// -- Imagen segmentada --
 	decorator.drawSegmentationResult(imagen, sr);
+	decorator.drawTemplate(imagen, irisTemplate);
 	namedWindow("decorada", 1);
 	imshow("decorada", imagen);
 
