@@ -366,3 +366,46 @@ Circle Tools::approximateCircle(const Contour& contour)
 
 	return result;
 }
+
+void Tools::stretchHistogram(const Mat_<uint8_t>& image, Mat_<uint8_t>& dest, float marginMin, float marginMax)
+{
+	if (dest.size() != image.size()) {
+		dest.create(image.size());
+	}
+
+	// Quick & dirty way to calculate the histogram
+	unsigned int hist[256];
+	memset(hist, 0, sizeof(hist));
+
+	unsigned int total = image.rows*image.cols;
+
+	/*for (int y = 0; y < image.rows; y++) {
+		const uint8_t* ptr = image.ptr(y);
+		for (int x = 0; x < image.cols; x++) {
+		hist[ptr[x]]++;
+	}
+	}*/
+
+	for (MatConstIterator_<uint8_t> it = image.begin(); it != image.end(); it++) {
+		hist[*it]++;
+	}
+
+	unsigned int sum;
+	unsigned char x0, x1;
+	for (x0 = 0, sum=0; sum <= marginMin*float(total); x0++) {
+		sum += hist[x0];
+	}
+
+	for (x1 = 255,sum=0; sum <= marginMax*float(total); x1--) {
+		sum += hist[x1];
+	}
+
+	for (int y = 0; y < image.rows; y++) {
+		for (int x = 0; x < image.cols; x++) {
+			int q = (float(image(y, x)-x0)/float(x1-x0)) * 255;
+			q = max(min(q, 255), 0);
+			dest(y, x) = q;
+		}
+	}
+}
+

@@ -70,6 +70,7 @@ Circle PupilSegmentator::approximatePupil(const Mat_<uint8_t>& image)
 {
 	// First, equalize the image
 	equalizeHist(image, this->equalizedImage);
+	//image.copyTo(this->equalizedImage);
 
 	// Then apply the similarity transformation
 	this->similarityTransform();

@@ -41,6 +41,8 @@ GaborEncoder gaborEncoder;
 VideoProcessor videoProcessor;
 QualityChecker qualityChecker;
 
+vector<string> archivos;
+
 
 /**
  * PROCESAR DOS IMÁGENES
@@ -148,55 +150,63 @@ int main2(int, char**) {
 	return 0;
 }
 
-int main(int, char**) {
-	Mat imagen = imread("/home/marcelo/iris/horus/ui/_base/984/984.jpg", 1);
-	Mat imagenBW;
+int main3(int, char**) {
 
-	cvtColor(imagen, imagenBW, CV_BGR2GRAY);
+	vector<string> aProcesar;
 
-	SegmentationResult sr = segmentator.segmentImage(imagenBW);
-	IrisTemplate irisTemplate = logGaborEncoder.generateTemplate(imagenBW, sr);
-
-	cout << "Foco: " << qualityChecker.checkFocus(imagenBW) << endl;
-	cout << "Calidad de iris: " << qualityChecker.getIrisQuality(imagenBW, sr) << endl;
-
-	Mat tmp;
-
-	// -- Imagen c/similaridad --
-	namedWindow("similaridad", 1);
-	imshow("similaridad", segmentator.pupilSegmentator.similarityImage);
-
-	// -- Anillo de ajuste --
-	namedWindow("ajuste", 1);
-	const Mat_<float>& snake = segmentator.pupilSegmentator.adjustmentSnake;
-	cvtColor(segmentator.pupilSegmentator.adjustmentRing, tmp, CV_GRAY2BGR);
-	for (int x = 0; x < snake.cols; x++) {
-		circle(tmp, Point(x, snake(0, x)), 1, CV_RGB(255,0,0));
-	}
-	imshow("ajuste", tmp);
-
-	// -- Gradiente anillo de ajuste --
-	namedWindow("gradiente", 1);
-	imshow("gradiente", normalizarImagen(segmentator.pupilSegmentator.adjustmentRingGradient));
+	aProcesar = archivos;
+	//aProcesar.push_back("/home/marcelo/iris/horus/ui/_base/1004/1004.jpg");
+	//aProcesar.push_back("/home/marcelo/iris/horus/ui/_base/985/985.jpg");
 
 
-	// -- Imagen segmentada --
-	decorator.drawSegmentationResult(imagen, sr);
-	decorator.drawTemplate(imagen, irisTemplate);
-	namedWindow("decorada", 1);
-	imshow("decorada", imagen);
+	for (vector<string>::iterator it = aProcesar.begin(); it != aProcesar.end(); it++) {
+		cout << *it << endl;
+		Mat imagen = imread(*it, 1);
+		Mat_<uint8_t> imagenBW;
 
-	for (;;) {
-		char k = waitKey(0);
-		if (k == 'q') {
-			break;
+		cvtColor(imagen, imagenBW, CV_BGR2GRAY);
+		//Tools::stretchHistogram(imagenBW, imagenBW);
+
+		SegmentationResult sr = segmentator.segmentImage(imagenBW);
+		IrisTemplate irisTemplate = logGaborEncoder.generateTemplate(imagenBW, sr);
+
+		cout << "Foco: " << qualityChecker.checkFocus(imagenBW) << endl;
+		cout << "Calidad de iris: " << qualityChecker.getIrisQuality(imagenBW, sr) << endl;
+
+		Mat tmp;
+
+		// -- Imagen c/similaridad --
+		namedWindow("similaridad", 1);
+		imshow("similaridad", segmentator.pupilSegmentator.similarityImage);
+
+		// -- Anillo de ajuste --
+		namedWindow("ajuste", 1);
+		const Mat_<float>& snake = segmentator.pupilSegmentator.adjustmentSnake;
+		cvtColor(segmentator.pupilSegmentator.adjustmentRing, tmp, CV_GRAY2BGR);
+		for (int x = 0; x < snake.cols; x++) {
+			circle(tmp, Point(x, snake(0, x)), 1, CV_RGB(255,0,0));
 		}
+		imshow("ajuste", tmp);
+
+		// -- Gradiente anillo de ajuste --
+		namedWindow("gradiente", 1);
+		imshow("gradiente", normalizarImagen(segmentator.pupilSegmentator.adjustmentRingGradient));
+
+
+		// -- Imagen segmentada --
+		decorator.drawSegmentationResult(imagenBW, sr);
+		decorator.drawTemplate(imagenBW, irisTemplate);
+		namedWindow("decorada", 1);
+		imshow("decorada", imagenBW);
+
+		while (true) if (char(waitKey(0)) == 'q') break;
 	}
+
 
 	return 0;
 }
 
-int main(int, char**) {
+int main4(int, char**) {
 	VideoCapture capture(0);
 	parameters->bestFrameWaitCount = 0;
 
@@ -318,8 +328,110 @@ int main5(int, char**)
 	return 0;
 }
 
+int main6(int, char**)
+{
+	for (vector<string>::iterator it = archivos.begin(); it != archivos.end(); it++) {
+		string archivo = *it;
+
+		Mat imagen = imread(archivo, 1);
+		Mat_<uint8_t> imagenBW, normalizada(Size(512,40)), mascaraNormalizada(Size(512,40)), sobel;
+
+		cvtColor(imagen, imagenBW, CV_BGR2GRAY);
+
+		SegmentationResult sr = segmentator.segmentImage(imagen);
+		IrisEncoder::normalizeIris(imagenBW, normalizada, mascaraNormalizada, sr, IrisEncoder::THETA0, IrisEncoder::THETA1, IrisEncoder::RADIUS_TO_USE);
+
+		Sobel(normalizada, sobel, CV_8U, 1, 1, 7);
+
+		MatConstIterator_<uint8_t> it1, it2;
+		int total2 = 0, sobel2 = 0;
+		for (it1 = normalizada.begin(), it2=sobel.begin(); it1 != normalizada.end(); it1++, it2++) {
+			int v1 = int(*it1), v2 = int(*it2);
+
+			total2 += v1*v1;
+			sobel2 += v2*v2;
+		}
+
+		float foco = float(sobel2)/float(sobel2 + total2);
+		cout << "Foco: " << foco << endl;
 
 
+
+		decorator.drawSegmentationResult(imagen, sr);
+		decorator.drawEncodingZone(imagen, sr);
+
+		namedWindow("imagen");
+		imshow("imagen", imagen);
+
+		namedWindow("normalizada");
+		imshow("normalizada", normalizada);
+
+		namedWindow("sobel");
+		imshow("sobel", sobel);
+
+		while (true) if (char(waitKey(0)) == 'q') break;
+	}
+}
+
+int main7(int, char**)
+{
+	for (vector<string>::iterator it = archivos.begin(); it != archivos.end(); it++) {
+		cout << *it << endl;
+		string archivo = *it;
+
+		Mat imagen = imread(archivo, 1);
+		Mat_<uint8_t> imagenBW, normalizada(Size(512,40)), mascaraNormalizada(Size(512,40)), sobel;
+
+		cvtColor(imagen, imagenBW, CV_BGR2GRAY);
+
+		SegmentationResult sr = segmentator.segmentImage(imagenBW);
+		IrisEncoder::normalizeIris(imagenBW, normalizada, mascaraNormalizada, sr, IrisEncoder::THETA0, IrisEncoder::THETA1, IrisEncoder::RADIUS_TO_USE);
+
+		int x0 = sr.irisCircle.xc-sr.irisCircle.radius;
+		int y0 = sr.irisCircle.yc-sr.irisCircle.radius;
+		int x1 = x0 + 2*sr.irisCircle.radius;
+		int y1 = y0 + 2*sr.irisCircle.radius;
+
+		float delta = 0.1;
+		x0 = (1-delta)*x0;
+		y0 = (1-delta)*y0;
+		x1 = (1+delta)*x1;
+		y1 = (1+delta)*y1;
+		Rect porcion(Point(x0, y0), Point(x1, y1));
+
+		//Sobel(normalizada, sobel, CV_8U, 1, 1, 7);
+		Sobel(imagenBW(porcion), sobel, CV_8U, 1, 1, 7);
+
+		MatConstIterator_<uint8_t> it1, it2;
+		int total2 = 0, sobel2 = 0;
+		for (it1 = normalizada.begin(), it2=sobel.begin(); it1 != normalizada.end(); it1++, it2++) {
+			int v1 = int(*it1), v2 = int(*it2);
+
+			total2 += v1*v1;
+			sobel2 += v2*v2;
+		}
+
+		float foco = float(sobel2)/float(sobel2 + total2);
+		cout << "Foco: " << foco << endl;
+
+
+
+		decorator.drawSegmentationResult(imagenBW, sr);
+		decorator.drawEncodingZone(imagenBW, sr);
+		rectangle(imagenBW, porcion, CV_RGB(255,255,255));
+
+		namedWindow("imagen");
+		imshow("imagen", imagenBW);
+
+		namedWindow("normalizada");
+		imshow("normalizada", normalizada);
+
+		namedWindow("sobel");
+		imshow("sobel", sobel);
+
+		while (true) if (char(waitKey(0)) == 'q') break;
+	}
+}
 
 
 Mat_<uint8_t> normalizarImagen(const Mat& imagen)
@@ -364,4 +476,77 @@ string statusToString(VideoProcessor::VideoStatus status)
 	}
 
 	return strStatus;
+}
+
+int main(int argc, char** argv)
+{
+	archivos.push_back("/home/marcelo/iris/horus/ui/_base/977/977.jpg");
+	archivos.push_back("/home/marcelo/iris/horus/ui/_base/1002/1002_2.jpg");
+	archivos.push_back("/home/marcelo/iris/horus/ui/_base/1002/1002_1.jpg");
+	archivos.push_back("/home/marcelo/iris/horus/ui/_base/1002/1002.jpg");
+	archivos.push_back("/home/marcelo/iris/horus/ui/_base/987/987.jpg");
+	archivos.push_back("/home/marcelo/iris/horus/ui/_base/988/988.jpg");
+	archivos.push_back("/home/marcelo/iris/horus/ui/_base/997/997.jpg");
+	archivos.push_back("/home/marcelo/iris/horus/ui/_base/997/997_5.jpg");
+	archivos.push_back("/home/marcelo/iris/horus/ui/_base/997/997_1.jpg");
+	archivos.push_back("/home/marcelo/iris/horus/ui/_base/997/997_2.jpg");
+	archivos.push_back("/home/marcelo/iris/horus/ui/_base/997/997_4.jpg");
+	archivos.push_back("/home/marcelo/iris/horus/ui/_base/997/997_3.jpg");
+	archivos.push_back("/home/marcelo/iris/horus/ui/_base/1004/1004_1.jpg");
+	archivos.push_back("/home/marcelo/iris/horus/ui/_base/1004/1004_3.jpg");
+	archivos.push_back("/home/marcelo/iris/horus/ui/_base/1004/1004.jpg");
+	archivos.push_back("/home/marcelo/iris/horus/ui/_base/1004/1004_2.jpg");
+	archivos.push_back("/home/marcelo/iris/horus/ui/_base/1003/1003.jpg");
+	archivos.push_back("/home/marcelo/iris/horus/ui/_base/1003/1003_1.jpg");
+	archivos.push_back("/home/marcelo/iris/horus/ui/_base/984/984.jpg");
+	archivos.push_back("/home/marcelo/iris/horus/ui/_base/1000/1000_1.jpg");
+	archivos.push_back("/home/marcelo/iris/horus/ui/_base/1000/1000_2.jpg");
+	archivos.push_back("/home/marcelo/iris/horus/ui/_base/1000/1000.jpg");
+	archivos.push_back("/home/marcelo/iris/horus/ui/_base/981/981_1.jpg");
+	archivos.push_back("/home/marcelo/iris/horus/ui/_base/981/981_4.jpg");
+	archivos.push_back("/home/marcelo/iris/horus/ui/_base/981/981_2.jpg");
+	archivos.push_back("/home/marcelo/iris/horus/ui/_base/981/981.jpg");
+	archivos.push_back("/home/marcelo/iris/horus/ui/_base/981/981_5.jpg");
+	archivos.push_back("/home/marcelo/iris/horus/ui/_base/981/981_3.jpg");
+	archivos.push_back("/home/marcelo/iris/horus/ui/_base/989/989.jpg");
+	archivos.push_back("/home/marcelo/iris/horus/ui/_base/982/982.jpg");
+	archivos.push_back("/home/marcelo/iris/horus/ui/_base/980/980_1.jpg");
+	archivos.push_back("/home/marcelo/iris/horus/ui/_base/980/980_2.jpg");
+	archivos.push_back("/home/marcelo/iris/horus/ui/_base/980/980.jpg");
+	archivos.push_back("/home/marcelo/iris/horus/ui/_base/978/978_6.jpg");
+	archivos.push_back("/home/marcelo/iris/horus/ui/_base/978/978_3.jpg");
+	archivos.push_back("/home/marcelo/iris/horus/ui/_base/978/978_4.jpg");
+	archivos.push_back("/home/marcelo/iris/horus/ui/_base/978/978_7.jpg");
+	archivos.push_back("/home/marcelo/iris/horus/ui/_base/978/978_2.jpg");
+	archivos.push_back("/home/marcelo/iris/horus/ui/_base/978/978.jpg");
+	archivos.push_back("/home/marcelo/iris/horus/ui/_base/978/978_5.jpg");
+	archivos.push_back("/home/marcelo/iris/horus/ui/_base/978/978_1.jpg");
+	archivos.push_back("/home/marcelo/iris/horus/ui/_base/992/992.jpg");
+	archivos.push_back("/home/marcelo/iris/horus/ui/_base/998/998_3.jpg");
+	archivos.push_back("/home/marcelo/iris/horus/ui/_base/998/998_4.jpg");
+	archivos.push_back("/home/marcelo/iris/horus/ui/_base/998/998_1.jpg");
+	archivos.push_back("/home/marcelo/iris/horus/ui/_base/998/998_2.jpg");
+	archivos.push_back("/home/marcelo/iris/horus/ui/_base/998/998.jpg");
+	archivos.push_back("/home/marcelo/iris/horus/ui/_base/979/979.jpg");
+	archivos.push_back("/home/marcelo/iris/horus/ui/_base/990/990.jpg");
+	archivos.push_back("/home/marcelo/iris/horus/ui/_base/996/996_4.jpg");
+	archivos.push_back("/home/marcelo/iris/horus/ui/_base/996/996.jpg");
+	archivos.push_back("/home/marcelo/iris/horus/ui/_base/996/996_1.jpg");
+	archivos.push_back("/home/marcelo/iris/horus/ui/_base/996/996_3.jpg");
+	archivos.push_back("/home/marcelo/iris/horus/ui/_base/996/996_5.jpg");
+	archivos.push_back("/home/marcelo/iris/horus/ui/_base/996/996_2.jpg");
+	archivos.push_back("/home/marcelo/iris/horus/ui/_base/985/985.jpg");
+	archivos.push_back("/home/marcelo/iris/horus/ui/_base/1001/1001.jpg");
+	archivos.push_back("/home/marcelo/iris/horus/ui/_base/1001/1001_1.jpg");
+	archivos.push_back("/home/marcelo/iris/horus/ui/_base/983/983.jpg");
+	archivos.push_back("/home/marcelo/iris/horus/ui/_base/993/993.jpg");
+	archivos.push_back("/home/marcelo/iris/horus/ui/_base/999/999_3.jpg");
+	archivos.push_back("/home/marcelo/iris/horus/ui/_base/999/999_4.jpg");
+	archivos.push_back("/home/marcelo/iris/horus/ui/_base/999/999_1.jpg");
+	archivos.push_back("/home/marcelo/iris/horus/ui/_base/999/999.jpg");
+	archivos.push_back("/home/marcelo/iris/horus/ui/_base/999/999_2.jpg");
+	archivos.push_back("/home/marcelo/iris/horus/ui/_base/986/986.jpg");
+
+	// CAMBIAR ESTA LLAMADA
+	return main7(argc, argv);
 }

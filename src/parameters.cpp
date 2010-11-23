@@ -11,7 +11,7 @@ Parameters* Parameters::instance = (Parameters*)0;
 
 Parameters::Parameters() {
 	bufferWidth = 320;
-	muPupil = 0.0;
+	muPupil = 2.0;
 	sigmaPupil = 5.0;
 
 	minimumPupilRadius = 7;
