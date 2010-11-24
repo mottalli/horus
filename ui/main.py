@@ -12,7 +12,10 @@ from opencv import highgui
 app = QtGui.QApplication(sys.argv)
 
 parameters = horus.Parameters.getParameters()
+
+# PARAMETROS
 parameters.segmentEyelids = False
+parameters.focusThreshold = 35
 
 cap = highgui.cvCreateCameraCapture(0)
 if not cap:
