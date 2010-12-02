@@ -154,9 +154,8 @@ int main3(int, char**) {
 
 	vector<string> aProcesar;
 
-	aProcesar = archivos;
-	//aProcesar.push_back("/home/marcelo/iris/horus/ui/_base/1004/1004.jpg");
-	//aProcesar.push_back("/home/marcelo/iris/horus/ui/_base/985/985.jpg");
+	//aProcesar = archivos;
+	aProcesar.push_back("/home/marcelo/iris/horus/ui/_base/999/999_3.jpg");
 
 
 	for (vector<string>::iterator it = aProcesar.begin(); it != aProcesar.end(); it++) {
@@ -548,5 +547,5 @@ int main(int argc, char** argv)
 	archivos.push_back("/home/marcelo/iris/horus/ui/_base/986/986.jpg");
 
 	// CAMBIAR ESTA LLAMADA
-	return main7(argc, argv);
+	return main3(argc, argv);
 }

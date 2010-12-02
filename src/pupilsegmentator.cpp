@@ -148,15 +148,21 @@ Contour PupilSegmentator::adjustPupilContour(const Mat_<uint8_t>& image, const C
 	}
 
 	if (hasInfrarred) {
-		int m0=0, m1=0, s0=1, s1=1;
-		for (int x = 0; x < x0; x++) {
+		int m0=0, m1=0, s0=0, s1=0;
+		//int xinf = 0, xsup = snake.cols;
+		int xinf = x0-3, xsup = x1+4;
+
+		for (int x = xinf; x < x0; x++) {
 			m0 += snake(0, x);
 			s0++;
 		}
-		for (int x = x1+1; x < snake.cols; x++) {
+		for (int x = x1+1; x < xsup; x++) {
 			m1 += snake(0, x);
 			s1++;
 		}
+
+		if (s0 == 0) s0 = 1;
+		if (s1 == 0) s1 = 1;
 
 		m0 = m0/s0;
 		m1 = m1/s1;
