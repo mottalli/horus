@@ -1,9 +1,11 @@
 #include "irissegmentator.h"
-#include "parameters.h"
 #include "tools.h"
 #include <cmath>
 
-IrisSegmentator::IrisSegmentator() {
+IrisSegmentator::IrisSegmentator()
+{
+	this->parameters.irisAdjustmentRingWidth = 512;
+	this->parameters.irisAdjustmentRingHeight = 90;
 }
 
 
@@ -148,9 +150,8 @@ ContourAndCloseCircle IrisSegmentator::segmentIrisRecursive(const Mat_<uint8_t>&
     return result;
 }
 
-void IrisSegmentator::setupBuffers(const Mat_<uint8_t>& image)
+void IrisSegmentator::setupBuffers(const Mat_<uint8_t>&)
 {
-	Parameters* parameters = Parameters::getParameters();
-	this->adjustmentSnake.create(1, parameters->irisAdjustmentRingWidth);
-	this->adjustmentRing.create(Size(parameters->irisAdjustmentRingWidth, parameters->irisAdjustmentRingHeight));
+	this->adjustmentSnake.create(1, this->parameters.irisAdjustmentRingWidth);
+	this->adjustmentRing.create(Size(this->parameters.irisAdjustmentRingWidth, this->parameters.irisAdjustmentRingHeight));
 }

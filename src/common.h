@@ -24,7 +24,6 @@ using namespace cv;
 
 
 #include "types.h"
-#include "parameters.h"
 
 #define SAME_SIZE(im1, im2) (im1->width==im2->width && im1->height == im2->height)
 

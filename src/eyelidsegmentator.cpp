@@ -1,9 +1,8 @@
 #include "eyelidsegmentator.h"
-#include "parameters.h"
 
 EyelidSegmentator::EyelidSegmentator()
 {
-
+	this->parameters.parabolicDetectorStep = 10;
 }
 
 EyelidSegmentator::~EyelidSegmentator()
@@ -33,7 +32,7 @@ std::pair<Parabola, Parabola> EyelidSegmentator::segmentEyelids(const Mat& image
 	return result;
 }
 
-Parabola EyelidSegmentator::segmentUpper(const Mat_<uint8_t>& image, const Mat_<float>& gradient, int x0, int y0, int x1, int y1, const Circle& pupilCircle, const Circle& irisCircle)
+Parabola EyelidSegmentator::segmentUpper(const Mat_<uint8_t>& image, const Mat_<float>& gradient, int x0, int y0, int x1, int y1, const Circle&, const Circle&)
 {
 	Parabola bestParabola;
 	double maxGrad = INT_MIN;
@@ -49,7 +48,7 @@ Parabola EyelidSegmentator::segmentUpper(const Mat_<uint8_t>& image, const Mat_<
 	return bestParabola;
 }
 
-Parabola EyelidSegmentator::segmentLower(const Mat_<uint8_t>& image, const Mat_<float>& gradient, int x0, int y0, int x1, int y1, const Circle& pupilCircle, const Circle& irisCircle)
+Parabola EyelidSegmentator::segmentLower(const Mat_<uint8_t>& image, const Mat_<float>& gradient, int x0, int y0, int x1, int y1, const Circle&, const Circle&)
 {
 	Parabola bestParabola;
 	double maxGrad = INT_MIN;
@@ -67,7 +66,7 @@ Parabola EyelidSegmentator::segmentLower(const Mat_<uint8_t>& image, const Mat_<
 
 std::pair<Parabola, double> EyelidSegmentator::findParabola(const Mat_<uint8_t>& image, const Mat_<float>& gradient, int p, int x0, int y0, int x1, int y1)
 {
-	int step = Parameters::getParameters()->parabolicDetectorStep;
+	int step = this->parameters.parabolicDetectorStep;
 
 	assert(y1 >= y0);
 	assert(x1 >= x0);

@@ -3,6 +3,9 @@
 
 QualityChecker::QualityChecker()
 {
+	this->parameters.pupilIrisGrayDiff = 20;
+	this->parameters.pupilIrisZScore = 3;
+
 }
 
 QualityChecker::~QualityChecker(){
@@ -58,8 +61,6 @@ double QualityChecker::checkFocus(const Mat& image)
  */
 QualityChecker::ValidationHeuristics QualityChecker::validateIris(const Mat& image, const SegmentationResult& sr)
 {
-	Parameters* parameters = Parameters::getParameters();
-
 	double r = sr.irisCircle.radius;
 	int x0 = std::max(0.0, sr.irisCircle.xc-r);
 	int x1 = std::min(image.cols, int(sr.irisCircle.xc+r));
@@ -112,7 +113,7 @@ QualityChecker::ValidationHeuristics QualityChecker::validateIris(const Mat& ima
 	double meanPupil = pupilSum/double(pupilCount);
 	double meanIris = irisSum/double(irisCount);
 	
-	if (meanIris-meanPupil < parameters->pupilIrisGrayDiff) {
+	if (meanIris-meanPupil < this->parameters.pupilIrisGrayDiff) {
 		// not enough contrast between pupil and iris
 		return LOW_CONTRAST;
 	}
@@ -148,7 +149,7 @@ QualityChecker::ValidationHeuristics QualityChecker::validateIris(const Mat& ima
 	double varIris = irisSum/double(irisCount);
 
 	double zScorePupilIris = abs(meanPupil-meanIris) / sqrt((varPupil+varIris)/2.0);
-	if (zScorePupilIris < parameters->pupilIrisZScore) {
+	if (zScorePupilIris < this->parameters.pupilIrisZScore) {
 		//return LOW_ZSCORE;
 	}
 	
@@ -158,7 +159,7 @@ QualityChecker::ValidationHeuristics QualityChecker::validateIris(const Mat& ima
 /**
  * Checks the quality of the image
  */
-double QualityChecker::getIrisQuality(const Mat& image, const SegmentationResult& segmentationResult)
+double QualityChecker::getIrisQuality(const Mat&, const SegmentationResult& segmentationResult)
 {
 	return segmentationResult.pupilContourQuality;
 }

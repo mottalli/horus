@@ -12,6 +12,15 @@
 PupilSegmentator::PupilSegmentator()
 {
 	this->_lastSigma = this->_lastMu = -100.0;
+
+	this->parameters.bufferWidth = 320;
+	this->parameters.muPupil = 2.0;
+	this->parameters.sigmaPupil = 5.0;
+	this->parameters.minimumPupilRadius = 7;
+	this->parameters.maximumPupilRadius = 80;
+	this->parameters.pupilAdjustmentRingWidth = 256;
+	this->parameters.pupilAdjustmentRingHeight = 100;
+	this->parameters.infraredThreshold = 200;
 }
 
 PupilSegmentator::~PupilSegmentator()
@@ -40,11 +49,9 @@ ContourAndCloseCircle PupilSegmentator::segmentPupil(const Mat& image)
 
 void PupilSegmentator::setupBuffers(const Mat& image)
 {
-	Parameters* parameters = Parameters::getParameters();
-
 	// Initialize the working image
-	int bufferWidth = parameters->bufferWidth;
-	int width = image.cols, height = image.rows;
+	int bufferWidth = this->parameters.bufferWidth;
+	int width = image.cols;
 
 	this->resizeFactor = ((width > bufferWidth) ? double(bufferWidth) / double(width) : 1.0);
 
@@ -61,9 +68,9 @@ void PupilSegmentator::setupBuffers(const Mat& image)
 	}
 
 
-	this->adjustmentRing.create(Size(parameters->pupilAdjustmentRingWidth, parameters->pupilAdjustmentRingHeight));
-	this->adjustmentRingGradient.create(Size(parameters->pupilAdjustmentRingWidth, parameters->pupilAdjustmentRingHeight));
-	this->adjustmentSnake.create(Size(parameters->pupilAdjustmentRingWidth, 1));
+	this->adjustmentRing.create(Size(this->parameters.pupilAdjustmentRingWidth, this->parameters.pupilAdjustmentRingHeight));
+	this->adjustmentRingGradient.create(Size(this->parameters.pupilAdjustmentRingWidth, this->parameters.pupilAdjustmentRingHeight));
+	this->adjustmentSnake.create(Size(this->parameters.pupilAdjustmentRingWidth, 1));
 }
 
 Circle PupilSegmentator::approximatePupil(const Mat_<uint8_t>& image)
@@ -88,7 +95,7 @@ Contour PupilSegmentator::adjustPupilContour(const Mat_<uint8_t>& image, const C
 	Tools::extractRing(image, this->adjustmentRing,
 			approximateCircle.xc, approximateCircle.yc, radiusMin, radiusMax);
 
-	int infraredThreshold = Parameters::getParameters()->infraredThreshold;
+	int infraredThreshold = this->parameters.infraredThreshold;
 
 
 	// Try to find the region where the infrarred light is
@@ -221,11 +228,9 @@ Contour PupilSegmentator::adjustPupilContour(const Mat_<uint8_t>& image, const C
 
 Circle PupilSegmentator::cascadedIntegroDifferentialOperator(const Mat_<uint8_t>& image)
 {
-	const Parameters* parameters = Parameters::getParameters();
-
-	int minradabs = parameters->minimumPupilRadius;
+	int minradabs = this->parameters.minimumPupilRadius;
 	int minrad = minradabs;
-	int maxrad = parameters->maximumPupilRadius;
+	int maxrad = this->parameters.maximumPupilRadius;
 
 	int dx = image.cols*0.2, dy = image.rows*0.2;			// Exclude the image borders
 
@@ -434,10 +439,8 @@ uint8_t PupilSegmentator::circleAverage(const Mat_<uint8_t>& image, int xc, int 
 
 void PupilSegmentator::similarityTransform()
 {
-	Parameters* parameters = Parameters::getParameters();
-
-	double sigma = parameters->sigmaPupil;
-	double mu = parameters->muPupil;
+	double sigma = this->parameters.sigmaPupil;
+	double mu = this->parameters.muPupil;
 
 	if (this->_lastSigma != sigma || this->_lastMu != mu) {
 		// Rebuild the lookup table
@@ -465,7 +468,7 @@ int PupilSegmentator::calculatePupilContourQuality(const Mat_<uint8_t>& region, 
 	assert(regionGradient.cols == contourSnake.cols);
 	assert(region.size() == regionGradient.size());
 
-	int infraredThreshold = Parameters::getParameters()->infraredThreshold;
+	int infraredThreshold = this->parameters.infraredThreshold;
 
 	int delta = region.rows * 0.1;
 	//const int delta = 2;

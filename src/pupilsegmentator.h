@@ -31,6 +31,17 @@ public:
 	Mat_<uint8_t> _LUT;
 	double resizeFactor;
 
+	struct {
+		int bufferWidth;
+		double muPupil;
+		double sigmaPupil;
+		int minimumPupilRadius;
+		int maximumPupilRadius;
+		int pupilAdjustmentRingWidth;
+		int pupilAdjustmentRingHeight;
+		int infraredThreshold;
+	} parameters;
+
 private:
 	void setupBuffers(const Mat& image);
 	void similarityTransform();

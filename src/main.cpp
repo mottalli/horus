@@ -15,7 +15,6 @@
 #include "irisencoder.h"
 #include "irisdctencoder.h"
 #include "gaborencoder.h"
-#include "parameters.h"
 #include "videoprocessor.h"
 #include "templatecomparator.h"
 #include "qualitychecker.h"
@@ -36,7 +35,6 @@ Segmentator segmentator;
 Decorator decorator;
 LogGaborEncoder logGaborEncoder;
 //IrisDCTEncoder irisDCTEncoder;
-Parameters* parameters = Parameters::getParameters();
 GaborEncoder gaborEncoder;
 VideoProcessor videoProcessor;
 QualityChecker qualityChecker;
@@ -94,7 +92,6 @@ int main1(int, char**) {
  */
 int main2(int, char**) {
 	VideoCapture capture(0);
-	parameters->bestFrameWaitCount = 0;
 
 	Mat frame;
 	char k;
@@ -207,7 +204,6 @@ int main3(int, char**) {
 
 int main4(int, char**) {
 	VideoCapture capture(0);
-	parameters->bestFrameWaitCount = 0;
 
 	Mat imagen, imagenBW, tmp;
 	char k;
@@ -264,7 +260,7 @@ int main5(int, char**)
 	VideoCapture capture(0);
 
 	int x0, x1, y0, y1, x, y;
-	unsigned int mean;
+	int mean;
 
 	const int THRESH = 60;
 
@@ -547,5 +543,6 @@ int main(int argc, char** argv)
 	archivos.push_back("/home/marcelo/iris/horus/ui/_base/986/986.jpg");
 
 	// CAMBIAR ESTA LLAMADA
-	return main3(argc, argv);
+	return main4(argc, argv);
 }
+
