@@ -25,7 +25,7 @@ public:
 		int pupilIrisGrayDiff;
 	} parameters;
 
-//private:
+private:
 	Mat evenFrame, oddFrame;
 	Mat_<float> bufX, bufY, bufMul;
 	Mat bufSobel;

@@ -12,12 +12,6 @@ decorator = horus.Decorator()
 encoder = horus.LogGaborEncoder()
 #encoder = horus.GaborEncoder()
 
-p = horus.Parameters.getParameters()
-
-
-#p.normalizationWidth = p.templateWidth = 512
-#p.normalizationHeight = p.templateHeight = 48
-#encoder = horus.IrisDCTEncoder()
 
 imagenes = []
 for path in paths:

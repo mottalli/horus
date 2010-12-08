@@ -31,7 +31,7 @@ public:
 	Mat_<uint8_t> _LUT;
 	double resizeFactor;
 
-	struct {
+	struct Parameters {
 		int bufferWidth;
 		double muPupil;
 		double sigmaPupil;
