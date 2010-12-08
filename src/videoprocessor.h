@@ -22,6 +22,16 @@ public:
 		GOT_TEMPLATE
 	} VideoStatus;
 
+	struct {
+		int bestFrameWaitCount;
+		int focusThreshold;
+		bool interlacedVideo;
+		int correlationThreshold;
+		float segmentationScoreThreshold;
+		int minimumContourQuality;
+		bool segmentEyelids;
+	} parameters;
+
 	VideoStatus processFrame(const Mat& frame);
 
 	void setWaitingFrames(int frames) { this->waitingFrames = frames; };
@@ -51,8 +61,8 @@ private:
 	SegmentationResult templateSegmentation;
 	double templateIrisQuality;
 	
-	unsigned int templateWaitCount;
-	unsigned int framesToSkip;
+	int templateWaitCount;
+	int framesToSkip;
 	bool waitingBestTemplate;
 };
 

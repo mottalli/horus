@@ -28,6 +28,9 @@ public:
 
 	double segmentationTime;
 
+	struct {
+	} parameters;
+
 private:
 	Mat workingImage;
 	float resizeFactor;

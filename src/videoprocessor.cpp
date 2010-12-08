@@ -10,8 +10,6 @@
 #include <iostream>
 #include <cmath>
 
-void cvShiftDFT(CvArr * src_arr, CvArr * dst_arr );
-
 VideoProcessor::VideoProcessor()
 {
 	this->lastStatus = DEFOCUSED;
@@ -20,6 +18,14 @@ VideoProcessor::VideoProcessor()
 	this->waitingBestTemplate = false;
 	this->waitingFrames = 40;
 	this->framesToSkip = 0;
+
+	this->parameters.bestFrameWaitCount = 20;
+	this->parameters.focusThreshold = 40;
+	this->parameters.interlacedVideo = true;
+	this->parameters.correlationThreshold = 92;
+	this->parameters.segmentationScoreThreshold = 1.7;
+	this->parameters.minimumContourQuality = 60;
+	this->parameters.segmentEyelids = false;
 }
 
 VideoProcessor::~VideoProcessor()
@@ -28,8 +34,6 @@ VideoProcessor::~VideoProcessor()
 
 VideoProcessor::VideoStatus VideoProcessor::processFrame(const Mat& frame)
 {
-	Parameters* parameters = Parameters::getParameters();
-
 	if (this->framesToSkip > 0) {
 		this->framesToSkip--;
 		this->lastStatus = UNPROCESSED;
@@ -52,7 +56,7 @@ VideoProcessor::VideoStatus VideoProcessor::processFrame(const Mat& frame)
 		}
 		
 		this->templateWaitCount++;
-		if (this->templateWaitCount >= parameters->bestFrameWaitCount) {
+		if (this->templateWaitCount >= this->parameters.bestFrameWaitCount) {
 			// Got the iris template with the best quality
 			this->lastStatus = GOT_TEMPLATE;
 			this->templateWaitCount = 0;
@@ -77,22 +81,20 @@ VideoProcessor::VideoStatus VideoProcessor::doProcess(const Mat& frame)
 	
 	const Mat& image = this->lastFrame;
 
-	Parameters* parameters = Parameters::getParameters();
-
 	this->lastFocusScore = this->qualityChecker.checkFocus(image);
-	if (this->lastFocusScore < parameters->focusThreshold) {
+	if (this->lastFocusScore < this->parameters.focusThreshold) {
 		return DEFOCUSED;
 	}
 
-	if (parameters->interlacedVideo) {
+	if (this->parameters.interlacedVideo) {
 		double interlacedCorrelation = this->qualityChecker.interlacedCorrelation(image);
-		if (interlacedCorrelation < parameters->correlationThreshold) {
+		if (interlacedCorrelation < this->parameters.correlationThreshold) {
 			return INTERLACED;
 		}
 	}
 
 	this->lastSegmentationResult = segmentator.segmentImage(image);
-	if (parameters->segmentEyelids) {
+	if (this->parameters.segmentEyelids) {
 		segmentator.segmentEyelids(image, this->lastSegmentationResult);
 	}
 
@@ -103,20 +105,10 @@ VideoProcessor::VideoStatus VideoProcessor::doProcess(const Mat& frame)
 	}
 
 	this->lastIrisQuality = qualityChecker.getIrisQuality(image, this->lastSegmentationResult);
-	if (this->lastIrisQuality < parameters->minimumContourQuality) {
+	if (this->lastIrisQuality < this->parameters.minimumContourQuality) {
 		// The image is kind of focused but the iris doesn't have enough quality
-		/*float q = 0.2;
+		// TODO: Check whether to return IRIS_TOO_FAR or IRIS_TOO_CLOSE
 
-		if (this->lastSegmentationResult.irisCircle.radius*2 < parameters->expectedIrisDiameter*q) {
-			// Iris too far?
-			return IRIS_TOO_FAR;
-		} else if (this->lastSegmentationResult.irisCircle.radius*2 > parameters->expectedIrisDiameter*q) {
-			// Iris too close?
-			return IRIS_TOO_CLOSE;
-		} else {
-			// Low quality for some reason...
-			return IRIS_LOW_QUALITY;
-		}*/
 		return IRIS_LOW_QUALITY;
 	}
 

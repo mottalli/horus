@@ -12,7 +12,6 @@ public:
 	double checkFocus(const Mat& image);
 	double getIrisQuality(const Mat& image, const SegmentationResult& segmentationResult);
 
-
 	typedef enum {
 		NO_COUNT,
 		LOW_CONTRAST,
@@ -21,8 +20,12 @@ public:
 	} ValidationHeuristics;
 	ValidationHeuristics validateIris(const Mat& image, const SegmentationResult& segmentationResult);
 
+	struct {
+		int pupilIrisZScore;
+		int pupilIrisGrayDiff;
+	} parameters;
 
-//private:
+private:
 	Mat evenFrame, oddFrame;
 	Mat_<float> bufX, bufY, bufMul;
 	Mat bufSobel;

@@ -1,10 +1,10 @@
 SET(SOURCES clock.cpp decorator.cpp eyelidsegmentator.cpp irisdatabase.cpp irisencoder.cpp
-	irissegmentator.cpp iristemplate.cpp loggaborencoder.cpp parameters.cpp pupilsegmentator.cpp qualitychecker.cpp segmentationresult.cpp
+	irissegmentator.cpp iristemplate.cpp loggaborencoder.cpp pupilsegmentator.cpp qualitychecker.cpp segmentationresult.cpp
 	segmentator.cpp serializer.cpp templatecomparator.cpp tools.cpp videoprocessor.cpp gaborencoder.cpp main.cpp
 )
 
 SET(HEADERS clock.h common.h decorator.h eyelidsegmentator.h irisdatabase.h irisencoder.h
-	irissegmentator.h iristemplate.h loggaborencoder.h parameters.h pupilsegmentator.h qualitychecker.h segmentationresult.h
+	irissegmentator.h iristemplate.h loggaborencoder.h pupilsegmentator.h qualitychecker.h segmentationresult.h
 	segmentator.h serializer.h templatecomparator.h tools.h videoprocessor.h gaborencoder.h
 )
 

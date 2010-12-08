@@ -38,8 +38,6 @@ def getDatabase(name):
 	return database
 
 def loadParameters(name):
-	parameters = horus.Parameters.getParameters()
-	
 	if name == 'mmu':
 		#parameters.normalizationWidth = parameters.templateWidth
 		#parameters.normalizationHeight = parameters.templateHeight
@@ -55,6 +53,4 @@ def loadParameters(name):
 	elif name == 'bath':
 		#parameters.normalizationWidth = parameters.templateWidth
 		#parameters.normalizationHeight = parameters.templateHeight
-		parameters.muPupil = 0
-		parameters.sigmaPupil = 10
 		pass

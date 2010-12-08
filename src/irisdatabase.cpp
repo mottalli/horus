@@ -71,7 +71,7 @@ void IrisDatabase::doMatch(const IrisTemplate& irisTemplate, void (*statusCallba
 	this->matchingTime = this->clock.stop();
 }
 
-void IrisDatabase::calculatePartsDistances(const IrisTemplate& irisTemplate, int nParts, int nRots, int rotStep)
+void IrisDatabase::calculatePartsDistances(const IrisTemplate& irisTemplate, unsigned int nParts, unsigned int nRots, unsigned int rotStep)
 {
 	size_t n = this->templates.size();
 
@@ -85,13 +85,13 @@ void IrisDatabase::calculatePartsDistances(const IrisTemplate& irisTemplate, int
 		vector<double> partsDistances = comparator.compareParts(*(this->templates[i]), nParts);
 		assert(partsDistances.size() == nParts);
 
-		for (int p = 0; p < nParts; p++) {
+		for (unsigned int p = 0; p < nParts; p++) {
 			this->resultPartsDistances[p][i] = partsDistances[p];
 		}
 	}
 }
 
-void IrisDatabase::doAContrarioMatch(const IrisTemplate& irisTemplate, int nParts, void (*statusCallback)(int), int nRots, int rotStep)
+void IrisDatabase::doAContrarioMatch(const IrisTemplate& irisTemplate, int nParts, void (*)(int), int nRots, int rotStep)
 {
 	this->clock.start();
 	unsigned const int BINS = this->templates.size()/2;
@@ -132,7 +132,7 @@ void IrisDatabase::doAContrarioMatch(const IrisTemplate& irisTemplate, int nPart
 		float* cumhist = (float*)malloc(BINS*sizeof(float));
 
 		cumhist[0] = cvQueryHistValue_1D(histograms[p], 0);
-		for (int i = 1; i < BINS; i++) {
+		for (unsigned int i = 1; i < BINS; i++) {
 			cumhist[i] = cumhist[i-1] + cvQueryHistValue_1D(histograms[p], i);
 		}
 
@@ -145,12 +145,12 @@ void IrisDatabase::doAContrarioMatch(const IrisTemplate& irisTemplate, int nPart
 	this->minNFA = INT_MAX;
 
 
-	for (int i = 0; i < n; i++) {
+	for (unsigned int i = 0; i < n; i++) {
 		this->resultNFAs[i] = log10(double(n));
 
 		for (int p = 0; p < nParts; p++) {
 			double distance = cvGetReal1D(distances[p], i);
-			int bin = floor( distance / ((BIN_MAX-BIN_MIN)/BINS) );
+			unsigned int bin = floor( distance / ((BIN_MAX-BIN_MIN)/BINS) );
 			assert(bin < BINS);
 
 			this->resultNFAs[i] += log10( double(cumhists[p][bin]) / double(n) );		// The accumulated histogram has to be normalized, so we divide by n

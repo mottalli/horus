@@ -13,6 +13,11 @@ public:
 
 	ContourAndCloseCircle segmentIris(const Mat& image, const ContourAndCloseCircle& pupilSegmentation);
 
+	struct {
+		int irisAdjustmentRingWidth;
+		int irisAdjustmentRingHeight;
+	} parameters;
+
 private:
 	void setupBuffers(const Mat_<uint8_t>& image);
 	ContourAndCloseCircle segmentIrisRecursive(const Mat_<uint8_t>& image, const ContourAndCloseCircle& pupilSegmentation, int radiusMax=-1, int radiusMin=-1);

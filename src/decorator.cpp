@@ -39,9 +39,8 @@ void Decorator::drawEncodingZone(Mat& image, const SegmentationResult& segmentat
 {
 	bool fill = false;
 	int step = 5, stepCounter = step;
-	Parameters* parameters = Parameters::getParameters();
 
-	int width = parameters->normalizationWidth, height = parameters->normalizationHeight;
+	const int width = 512, height = 80;
 
 	std::vector< std::pair<Point, Point> > irisPoints = Tools::iterateIris(segmentationResult,
 		width, height, IrisEncoder::THETA0,
