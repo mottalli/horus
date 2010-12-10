@@ -3,6 +3,19 @@
 #include "common.h"
 #include "segmentationresult.h"
 
+class QualityCheckerParameters
+{
+public:
+	int pupilIrisZScore;
+	int pupilIrisGrayDiff;
+
+	QualityCheckerParameters()
+	{
+		this->pupilIrisGrayDiff = 20;
+		this->pupilIrisZScore = 3;
+	}
+};
+
 class QualityChecker {
 public:
 	QualityChecker();
@@ -20,10 +33,7 @@ public:
 	} ValidationHeuristics;
 	ValidationHeuristics validateIris(const Mat& image, const SegmentationResult& segmentationResult);
 
-	struct {
-		int pupilIrisZScore;
-		int pupilIrisGrayDiff;
-	} parameters;
+	QualityCheckerParameters parameters;
 
 private:
 	Mat evenFrame, oddFrame;

@@ -2,6 +2,19 @@
 
 #include "common.h"
 
+class IrisSegmentatorParameters {
+public:
+	int irisAdjustmentRingWidth;
+	int irisAdjustmentRingHeight;
+
+	IrisSegmentatorParameters()
+	{
+		this->irisAdjustmentRingWidth = 512;
+		this->irisAdjustmentRingHeight = 90;
+	}
+} ;
+
+
 class IrisSegmentator {
 public:
     IrisSegmentator();
@@ -13,10 +26,7 @@ public:
 
 	ContourAndCloseCircle segmentIris(const Mat& image, const ContourAndCloseCircle& pupilSegmentation);
 
-	struct {
-		int irisAdjustmentRingWidth;
-		int irisAdjustmentRingHeight;
-	} parameters;
+	IrisSegmentatorParameters parameters;
 
 private:
 	void setupBuffers(const Mat_<uint8_t>& image);

@@ -18,14 +18,6 @@ VideoProcessor::VideoProcessor()
 	this->waitingBestTemplate = false;
 	this->waitingFrames = 40;
 	this->framesToSkip = 0;
-
-	this->parameters.bestFrameWaitCount = 20;
-	this->parameters.focusThreshold = 40;
-	this->parameters.interlacedVideo = true;
-	this->parameters.correlationThreshold = 92;
-	this->parameters.segmentationScoreThreshold = 1.7;
-	this->parameters.minimumContourQuality = 60;
-	this->parameters.segmentEyelids = false;
 }
 
 VideoProcessor::~VideoProcessor()

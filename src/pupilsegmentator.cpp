@@ -12,15 +12,6 @@
 PupilSegmentator::PupilSegmentator()
 {
 	this->_lastSigma = this->_lastMu = -100.0;
-
-	this->parameters.bufferWidth = 320;
-	this->parameters.muPupil = 2.0;
-	this->parameters.sigmaPupil = 5.0;
-	this->parameters.minimumPupilRadius = 7;
-	this->parameters.maximumPupilRadius = 80;
-	this->parameters.pupilAdjustmentRingWidth = 256;
-	this->parameters.pupilAdjustmentRingHeight = 100;
-	this->parameters.infraredThreshold = 200;
 }
 
 PupilSegmentator::~PupilSegmentator()

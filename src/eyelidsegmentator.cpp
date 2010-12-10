@@ -2,7 +2,6 @@
 
 EyelidSegmentator::EyelidSegmentator()
 {
-	this->parameters.parabolicDetectorStep = 10;
 }
 
 EyelidSegmentator::~EyelidSegmentator()

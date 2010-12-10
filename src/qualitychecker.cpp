@@ -3,9 +3,6 @@
 
 QualityChecker::QualityChecker()
 {
-	this->parameters.pupilIrisGrayDiff = 20;
-	this->parameters.pupilIrisZScore = 3;
-
 }
 
 QualityChecker::~QualityChecker(){

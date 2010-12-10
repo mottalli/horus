@@ -94,7 +94,7 @@ def segmentarBase(options):
 				buffer = flushBuffer(BASE, buffer)
 				sys.exit(0);
 			elif accion == ACCION_MU_PUPILA_INC:
-				segmentator.pupilSegmentator.muPupil = segmentator.pupilSegmentator.muPupil + 0.5
+				segmentator.pupilSegmentator.parameters.muPupil = segmentator.pupilSegmentator.parameters.muPupil + 0.5
 				print "mu:", segmentator.pupilSegmentator.parameters.muPupil
 				(resultadoSegmentacion, imagenDecorada) = segmentarYMostrar(fullPathImagen)
 			elif accion == ACCION_MU_PUPILA_DEC:

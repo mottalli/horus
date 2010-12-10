@@ -4,8 +4,6 @@
 
 IrisSegmentator::IrisSegmentator()
 {
-	this->parameters.irisAdjustmentRingWidth = 512;
-	this->parameters.irisAdjustmentRingHeight = 90;
 }
 
 

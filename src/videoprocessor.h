@@ -5,6 +5,29 @@
 #include "segmentator.h"
 #include "loggaborencoder.h"
 
+class VideoProcessorParameters
+{
+public:
+	int bestFrameWaitCount;
+	int focusThreshold;
+	bool interlacedVideo;
+	int correlationThreshold;
+	float segmentationScoreThreshold;
+	int minimumContourQuality;
+	bool segmentEyelids;
+
+	VideoProcessorParameters()
+	{
+		this->bestFrameWaitCount = 20;
+		this->focusThreshold = 40;
+		this->interlacedVideo = true;
+		this->correlationThreshold = 92;
+		this->segmentationScoreThreshold = 1.7;
+		this->minimumContourQuality = 60;
+		this->segmentEyelids = false;
+	}
+};
+
 class VideoProcessor {
 public:
 	VideoProcessor();
@@ -22,15 +45,7 @@ public:
 		GOT_TEMPLATE
 	} VideoStatus;
 
-	struct {
-		int bestFrameWaitCount;
-		int focusThreshold;
-		bool interlacedVideo;
-		int correlationThreshold;
-		float segmentationScoreThreshold;
-		int minimumContourQuality;
-		bool segmentEyelids;
-	} parameters;
+	VideoProcessorParameters parameters;
 
 	VideoStatus processFrame(const Mat& frame);
 
