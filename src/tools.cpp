@@ -290,16 +290,26 @@ std::vector< std::pair<Point, Point> > Tools::iterateIris(const SegmentationResu
 	return res;
 }
 
-void Tools::superimposeTexture(Mat& image, const Mat& texture, const SegmentationResult& segmentation, double theta0, double theta1, double radius)
+void Tools::superimposeTexture(Mat& image, const Mat& texture, const SegmentationResult& segmentation, double theta0, double theta1, double radius, bool blend, double blendStart)
 {
 	assert(texture.type() == CV_8U);
 	assert(image.type() == CV_8U);
+
 	std::vector< std::pair<Point, Point> > irisIt = Tools::iterateIris(segmentation, texture.cols, texture.rows, theta0, theta1, radius);
 	for (size_t i = 0; i < irisIt.size(); i++) {
 		int xsrc = irisIt[i].first.x, ysrc = irisIt[i].first.y;
 		int xdest = std::floor(irisIt[i].second.x + 0.5), ydest = std::floor(irisIt[i].second.y + 0.5);
-		//cvSet2D(image, ydest, xdest, cvGet2D(texture, ysrc, xsrc));
-		image.at<uint8_t>(ydest, xdest) = texture.at<uint8_t>(ysrc, xsrc);
+
+		double orig = double(image.at<uint8_t>(ydest, xdest));
+		double new_ = double(texture.at<uint8_t>(ysrc, xsrc));
+
+		if (blend && ysrc >= (texture.rows*blendStart)) {
+			double q = 1.0 - ( double(ysrc-texture.rows*blendStart)/double(texture.rows-texture.rows*blendStart) );
+			new_ = q*new_ + (1.0-q)*orig;
+			//new_ = 255;
+		}
+
+		image.at<uint8_t>(ydest, xdest) = uint8_t(new_);
 	}
 }
 
@@ -409,3 +419,9 @@ void Tools::stretchHistogram(const Mat_<uint8_t>& image, Mat_<uint8_t>& dest, fl
 	}
 }
 
+Mat_<uint8_t> Tools::normalizeImage(const Mat& image, uint8_t min, uint8_t max)
+{
+	Mat res;
+	normalize(imagen, res, min, max, NORM_MINMAX);
+	return res;
+}

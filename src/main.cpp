@@ -429,6 +429,55 @@ int main7(int, char**)
 }
 
 
+int main8(int, char**)
+{
+	/*Mat imagen1 = imread(archivos[9], 0);
+	Mat imagen2 = imread(archivos[3], 0);*/
+
+	Mat imagen1 = imread(archivos[9], 0);
+	Mat imagen2 = imread(archivos[3], 0);
+
+	SegmentationResult sr1 = segmentator.segmentImage(imagen1);
+	SegmentationResult sr2 = segmentator.segmentImage(imagen2);
+
+	IrisTemplate template1 = logGaborEncoder.generateTemplate(imagen1, sr1);
+	IrisTemplate template2 = logGaborEncoder.generateTemplate(imagen2, sr2);
+	TemplateComparator comparator1(template1);
+	TemplateComparator comparator2(template2);
+
+	Mat textura1(Size(512, 80), CV_8UC1), textura2(Size(512, 80), CV_8UC1), mascara1, mascara2;
+
+	IrisEncoder::normalizeIris(imagen1, textura1, mascara1, sr1);
+	IrisEncoder::normalizeIris(imagen2, textura2, mascara2, sr2);
+
+	imshow("imagen1", imagen1);
+	imshow("imagen2", imagen2);
+
+	Tools::superimposeTexture(imagen1, textura2, sr1);
+	Tools::superimposeTexture(imagen2, textura1, sr2);
+
+	imshow("superpuesta1", imagen1);
+	imshow("superpuesta2", imagen2);
+
+	sr1 = segmentator.segmentImage(imagen1);
+	sr2 = segmentator.segmentImage(imagen2);
+
+	IrisTemplate templateSup1 = logGaborEncoder.generateTemplate(imagen1, sr1);
+	IrisTemplate templateSup2 = logGaborEncoder.generateTemplate(imagen2, sr2);
+	TemplateComparator comparatorSup1(templateSup1);
+	TemplateComparator comparatorSup2(templateSup2);
+
+	cout << "HD template 1, template 2:" << comparator1.compare(template2) << endl;
+	cout << "HD template sup 1, template 1:" << comparatorSup1.compare(template1) << endl;
+	cout << "HD template sup 1, template 2:" << comparatorSup1.compare(template2) << endl;
+	cout << "HD template sup 2, template 1:" << comparatorSup2.compare(template1) << endl;
+	cout << "HD template sup 2, template 2:" << comparatorSup2.compare(template2) << endl;
+
+	while (true) if (char(waitKey(0)) == 'q') break;
+
+	return 0;
+}
+
 Mat_<uint8_t> normalizarImagen(const Mat& imagen)
 {
 	Mat res;
@@ -472,6 +521,7 @@ string statusToString(VideoProcessor::VideoStatus status)
 
 	return strStatus;
 }
+
 
 int main(int argc, char** argv)
 {
@@ -543,6 +593,6 @@ int main(int argc, char** argv)
 	archivos.push_back("/home/marcelo/iris/horus/ui/_base/986/986.jpg");
 
 	// CAMBIAR ESTA LLAMADA
-	return main4(argc, argv);
+	return main8(argc, argv);
 }
 
