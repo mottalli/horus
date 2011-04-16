@@ -26,10 +26,18 @@ VideoProcessor::~VideoProcessor()
 
 VideoProcessor::VideoStatus VideoProcessor::processFrame(const Mat& frame)
 {
+	frame.copyTo(this->lastFrame);
+
 	if (this->framesToSkip > 0) {
 		this->framesToSkip--;
 		this->lastStatus = UNPROCESSED;
 		return UNPROCESSED;
+	}
+
+	if (frame.channels() == 1) {
+		this->lastFrameBW = this->lastFrame;
+	} else {
+		cvtColor(frame, this->lastFrameBW, CV_BGR2GRAY);
 	}
 	
 	this->lastStatus = this->doProcess(frame);
@@ -41,7 +49,7 @@ VideoProcessor::VideoStatus VideoProcessor::processFrame(const Mat& frame)
 	if (this->waitingBestTemplate) {
 		if (this->lastStatus == FOCUSED_IRIS && this->lastIrisQuality > this->templateIrisQuality) {
 			// Got a better quality image
-			this->lastFrame.copyTo(this->templateFrame);
+			this->lastFrameBW.copyTo(this->templateFrame);
 			this->templateIrisQuality = this->lastIrisQuality;
 			this->templateSegmentation = this->lastSegmentationResult;
 			this->templateWaitCount = 0;
@@ -65,13 +73,7 @@ VideoProcessor::VideoStatus VideoProcessor::processFrame(const Mat& frame)
 
 VideoProcessor::VideoStatus VideoProcessor::doProcess(const Mat& frame)
 {
-	if (frame.channels() == 1) {
-		frame.copyTo(this->lastFrame);
-	} else {
-		cvtColor(frame, this->lastFrame, CV_BGR2GRAY);
-	}
-	
-	const Mat& image = this->lastFrame;
+	const Mat& image = this->lastFrameBW;
 
 	this->lastFocusScore = this->qualityChecker.checkFocus(image);
 	if (this->lastFocusScore < this->parameters.focusThreshold) {

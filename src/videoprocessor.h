@@ -65,9 +65,10 @@ public:
 	const Mat& getTemplateFrame() const { return this->templateFrame; };
 	SegmentationResult getTemplateSegmentation() const { return this->templateSegmentation; };
 
-private:
 	Mat lastFrame;
 
+private:
+	Mat_<uint8_t> lastFrameBW;
 	unsigned int waitingFrames;
 
 	VideoStatus doProcess(const Mat& frame);

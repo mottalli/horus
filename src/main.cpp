@@ -428,6 +428,45 @@ int main7(int, char**)
 	}
 }
 
+// PROCESAR UNA UNICA IMAGEN
+int main8(int, char**)
+{
+	Mat imagen = imread(archivos[3]);
+	Mat imagenBW;
+
+	cvtColor(imagen, imagenBW, CV_BGR2GRAY);
+
+	SegmentationResult sr = segmentator.segmentImage(imagenBW);
+	IrisTemplate logGaborTemplate = logGaborEncoder.generateTemplate(imagenBW, sr);
+
+	decorator.drawSegmentationResult(imagen, sr);
+	decorator.drawEncodingZone(imagen, sr);
+	decorator.drawTemplate(imagen, logGaborTemplate);
+
+	namedWindow("imagen", 1);
+	imshow("imagen", imagen);
+
+	while (char(waitKey(0)) != 'q') {};
+
+	Mat_<uint8_t> binaryMatrix = logGaborTemplate.getUnpackedTemplate();
+	//Mat_<uint8_t> binaryMatrix = logGaborTemplate.getUnpackedMask();
+	uint8_t v = 0;
+	for (int y = 0; y < binaryMatrix.rows; y++) {
+		int acum = 0;
+		for (int x = 0; x < binaryMatrix.cols; x++) {
+			if (binaryMatrix(y, x) != v) {
+				cout << acum << ' ';
+				v = binaryMatrix(y, x);
+				acum = 0;
+			} else {
+				acum++;
+			}
+		}
+		cout << endl;
+	}
+
+	return 0;
+}
 
 Mat_<uint8_t> normalizarImagen(const Mat& imagen)
 {
@@ -543,6 +582,6 @@ int main(int argc, char** argv)
 	archivos.push_back("/home/marcelo/iris/horus/ui/_base/986/986.jpg");
 
 	// CAMBIAR ESTA LLAMADA
-	return main4(argc, argv);
+	return main8(argc, argv);
 }
 
