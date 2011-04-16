@@ -49,7 +49,7 @@ public:
 
 	VideoStatus processFrame(const Mat& frame);
 
-	void setWaitingFrames(int frames) { this->waitingFrames = frames; };
+	void setWaitingFrames(int frames) { this->waitingFrames = frames; }
 
 	QualityChecker qualityChecker;
 	Segmentator segmentator;
@@ -61,9 +61,9 @@ public:
 	SegmentationResult lastSegmentationResult;
 	double lastIrisQuality;
 	
-	IrisTemplate getTemplate();
-	const Mat& getTemplateFrame() const { return this->templateFrame; };
-	SegmentationResult getTemplateSegmentation() const { return this->templateSegmentation; };
+	IrisTemplate getTemplate() const;
+	const Mat& getTemplateFrame() const { return this->templateFrame; }
+	SegmentationResult getTemplateSegmentation() const { return this->templateSegmentation; }
 
 	Mat lastFrame;
 

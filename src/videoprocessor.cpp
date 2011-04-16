@@ -111,7 +111,8 @@ VideoProcessor::VideoStatus VideoProcessor::doProcess(const Mat& frame)
 	return FOCUSED_IRIS;
 }
 
-IrisTemplate VideoProcessor::getTemplate()
+IrisTemplate VideoProcessor::getTemplate() const
 {
-	return this->irisEncoder.generateTemplate(this->templateFrame, this->templateSegmentation);
+	// const_cast is needed here before generateTemplate is not const... the other option is making irisEncoder as a mutable variable
+	return const_cast<VideoProcessor*>(this)->irisEncoder.generateTemplate(this->templateFrame, this->templateSegmentation);
 }

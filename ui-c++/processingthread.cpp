@@ -7,8 +7,12 @@ ProcessingThread::ProcessingThread(QObject *parent) :
 
 void ProcessingThread::run()
 {
-	_videoProcessor.processFrame(_frame);
+	VideoProcessor::VideoStatus status = _videoProcessor.processFrame(_frame);
 	signalFrameProcessed(_videoProcessor);
+
+	if (status == VideoProcessor::GOT_TEMPLATE) {
+		signalGotTemplate(_videoProcessor);
+	}
 }
 
 void ProcessingThread::slotProcessFrame(const Mat& frame)
@@ -16,3 +20,4 @@ void ProcessingThread::slotProcessFrame(const Mat& frame)
 	_frame = frame;
 	start();
 }
+

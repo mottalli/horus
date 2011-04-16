@@ -14,6 +14,7 @@ public:
 
 signals:
 	void signalFrameProcessed(const VideoProcessor& vp);
+	void signalGotTemplate(const VideoProcessor& vp);
 
 public slots:
 	void slotProcessFrame(const Mat& frame);

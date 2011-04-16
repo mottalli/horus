@@ -23,6 +23,7 @@ public:
 public slots:
 	void slotFrameAvailable(const Mat& frame);
 	void slotFrameProcessed(const VideoProcessor& videoProcessor);
+	void slotGotTemplate(const VideoProcessor& videoProcessor);
 
 private:
     Ui::MainWindow *ui;
