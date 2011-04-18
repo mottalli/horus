@@ -5,6 +5,29 @@
 #include "segmentator.h"
 #include "loggaborencoder.h"
 
+class VideoProcessorParameters
+{
+public:
+	int bestFrameWaitCount;
+	int focusThreshold;
+	bool interlacedVideo;
+	int correlationThreshold;
+	float segmentationScoreThreshold;
+	int minimumContourQuality;
+	bool segmentEyelids;
+
+	VideoProcessorParameters()
+	{
+		this->bestFrameWaitCount = 20;
+		this->focusThreshold = 40;
+		this->interlacedVideo = true;
+		this->correlationThreshold = 92;
+		this->segmentationScoreThreshold = 1.7;
+		this->minimumContourQuality = 60;
+		this->segmentEyelids = false;
+	}
+};
+
 class VideoProcessor {
 public:
 	VideoProcessor();
@@ -22,9 +45,11 @@ public:
 		GOT_TEMPLATE
 	} VideoStatus;
 
+	VideoProcessorParameters parameters;
+
 	VideoStatus processFrame(const Mat& frame);
 
-	void setWaitingFrames(int frames) { this->waitingFrames = frames; };
+	void setWaitingFrames(int frames) { this->waitingFrames = frames; }
 
 	QualityChecker qualityChecker;
 	Segmentator segmentator;
@@ -36,13 +61,14 @@ public:
 	SegmentationResult lastSegmentationResult;
 	double lastIrisQuality;
 	
-	IrisTemplate getTemplate();
-	const Mat& getTemplateFrame() const { return this->templateFrame; };
-	SegmentationResult getTemplateSegmentation() const { return this->templateSegmentation; };
+	IrisTemplate getTemplate() const;
+	const Mat& getTemplateFrame() const { return this->templateFrame; }
+	SegmentationResult getTemplateSegmentation() const { return this->templateSegmentation; }
 
-private:
 	Mat lastFrame;
 
+private:
+	Mat_<uint8_t> lastFrameBW;
 	unsigned int waitingFrames;
 
 	VideoStatus doProcess(const Mat& frame);
@@ -51,8 +77,8 @@ private:
 	SegmentationResult templateSegmentation;
 	double templateIrisQuality;
 	
-	unsigned int templateWaitCount;
-	unsigned int framesToSkip;
+	int templateWaitCount;
+	int framesToSkip;
 	bool waitingBestTemplate;
 };
 

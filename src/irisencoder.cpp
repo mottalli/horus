@@ -2,7 +2,6 @@
 #include <iostream>
 
 #include "irisencoder.h"
-#include "parameters.h"
 #include "tools.h"
 
 const double IrisEncoder::THETA0 = -M_PI/4.0;
@@ -33,7 +32,6 @@ IrisTemplate IrisEncoder::generateTemplate(const Mat& image, const SegmentationR
 		cvtColor(image, bwimage, CV_BGR2GRAY);
 	}
 
-	Parameters* parameters = Parameters::getParameters();
 	Size normalizedSize = this->getNormalizationSize();
 
 	this->normalizedTexture.create(normalizedSize);
@@ -117,7 +115,5 @@ Size IrisEncoder::getOptimumTemplateSize(int width, int height)
 
 Size IrisEncoder::getNormalizationSize()
 {
-	Parameters* parameters = Parameters::getParameters();
-
-	return Size(parameters->normalizationWidth, parameters->normalizationHeight);
+	return Size(512, 80);
 }

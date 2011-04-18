@@ -58,8 +58,11 @@ namespace Tools
 	std::string base64EncodeMat(const Mat& mat);
 	Mat base64DecodeMat(const std::string &s);
 
+	void stretchHistogram(const Mat_<uint8_t>& image, Mat_<uint8_t>& dest, float marginMin=0.01, float marginMax=0.0);
 
 	std::vector< std::pair<Point, Point> > iterateIris(const SegmentationResult& segmentation, int width, int height, double theta0=0.0, double theta1=2.0*M_PI, double radius=1.0);
-	void superimposeTexture(Mat& image, const Mat& texture, const SegmentationResult& segmentation, double theta0, double theta1, double radius);
+	void superimposeTexture(Mat& image, const Mat& texture, const SegmentationResult& segmentation, double theta0=0.0, double theta1=2.0*M_PI, double radius=1.0, bool blend=true, double blendStart = 0.7);
+
+	Mat_<uint8_t> normalizeImage(const Mat& image, uint8_t min=0, uint8_t max=255);	// Normalizes an image to the given range
 }
 

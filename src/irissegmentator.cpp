@@ -1,9 +1,9 @@
 #include "irissegmentator.h"
-#include "parameters.h"
 #include "tools.h"
 #include <cmath>
 
-IrisSegmentator::IrisSegmentator() {
+IrisSegmentator::IrisSegmentator()
+{
 }
 
 
@@ -31,13 +31,15 @@ ContourAndCloseCircle IrisSegmentator::segmentIrisRecursive(const Mat_<uint8_t>&
 
 	Tools::extractRing(image, this->adjustmentRing, pupilCircle.xc, pupilCircle.yc, radiusMin, radiusMax);
 
-	blur(this->adjustmentRing, this->adjustmentRing, Size(3, 15));
+	blur(this->adjustmentRing, this->adjustmentRing, Size(3, 7));
 	Sobel(this->adjustmentRing, this->adjustmentRingGradient, CV_16S, 0, 1, 3);
 
-	double theta0 = -M_PI/4.0;
-	double theta1 = M_PI/4.0;
-	double theta2 = 3.0*M_PI/4.0;
-	double theta3 = 5.0*M_PI/4.0;
+	const double theta0 = -M_PI/4.0;
+	//const double theta1 = M_PI/4.0;
+	//const double theta2 = 3.0*M_PI/4.0;
+	const double theta1 = 3.0*M_PI/8.0;
+	const double theta2 = 5.0*M_PI/8.0;
+	const double theta3 = 5.0*M_PI/4.0;
 
 	Mat_<int16_t>& gradient = this->adjustmentRingGradient;
 	Mat_<float>& snake = this->adjustmentSnake;
@@ -103,7 +105,8 @@ ContourAndCloseCircle IrisSegmentator::segmentIrisRecursive(const Mat_<uint8_t>&
 		snake(0, x) = y;
 	}
 	for (int x = x3; x < XIMAGE(x0) && x < snake.cols; x++) {
-		int y = bestY2 + (double(x-x3)/double(snake.cols-1-x3)) * double(bestY1-bestY2);
+		//int y = bestY2 + (double(x-x3)/double(snake.cols-1-x3)) * double(bestY1-bestY2);
+		int y = bestY2 + (double(x-x3)/double(XIMAGE(x0)-1-x3)) * double(bestY1-bestY2);
 		snake(0, x) = y;
 	}
 
@@ -145,9 +148,8 @@ ContourAndCloseCircle IrisSegmentator::segmentIrisRecursive(const Mat_<uint8_t>&
     return result;
 }
 
-void IrisSegmentator::setupBuffers(const Mat_<uint8_t>& image)
+void IrisSegmentator::setupBuffers(const Mat_<uint8_t>&)
 {
-	Parameters* parameters = Parameters::getParameters();
-	this->adjustmentSnake.create(1, parameters->irisAdjustmentRingWidth);
-	this->adjustmentRing.create(Size(parameters->irisAdjustmentRingWidth, parameters->irisAdjustmentRingHeight));
+	this->adjustmentSnake.create(1, this->parameters.irisAdjustmentRingWidth);
+	this->adjustmentRing.create(Size(this->parameters.irisAdjustmentRingWidth, this->parameters.irisAdjustmentRingHeight));
 }

@@ -3,6 +3,19 @@
 #include "common.h"
 #include "segmentationresult.h"
 
+class QualityCheckerParameters
+{
+public:
+	int pupilIrisZScore;
+	int pupilIrisGrayDiff;
+
+	QualityCheckerParameters()
+	{
+		this->pupilIrisGrayDiff = 20;
+		this->pupilIrisZScore = 3;
+	}
+};
+
 class QualityChecker {
 public:
 	QualityChecker();
@@ -12,7 +25,6 @@ public:
 	double checkFocus(const Mat& image);
 	double getIrisQuality(const Mat& image, const SegmentationResult& segmentationResult);
 
-
 	typedef enum {
 		NO_COUNT,
 		LOW_CONTRAST,
@@ -21,8 +33,9 @@ public:
 	} ValidationHeuristics;
 	ValidationHeuristics validateIris(const Mat& image, const SegmentationResult& segmentationResult);
 
+	QualityCheckerParameters parameters;
 
-//private:
+private:
 	Mat evenFrame, oddFrame;
 	Mat_<float> bufX, bufY, bufMul;
 	Mat bufSobel;

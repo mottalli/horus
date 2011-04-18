@@ -1,8 +1,8 @@
-LIBS = -lcxcore \
-    -lcv \
+LIBS = -lml \
+	-lcvaux \
     -lhighgui \
-    -lcvaux \
-    -lml
+	-lcv \
+	-lcxcore
 
 # OTHER_FILES += src/irisdatabase_kernel.cu
 HEADERS += src/clock.h \
@@ -16,7 +16,6 @@ HEADERS += src/clock.h \
     src/serializer.h \
  #   src/cudacommon.h \
     src/decorator.h \
-    src/parameters.h \
     src/templatecomparator.h \
     src/eyelidsegmentator.h \
     src/loggaborencoder.h \
@@ -30,7 +29,6 @@ HEADERS += src/clock.h \
     src/gaborencoder.h
 SOURCES += src/segmentationresult.cpp \
     src/clock.cpp \
-    src/parameters.cpp \
 	src/main.cpp \
 #	src/irisdatabasecuda.cpp \
     src/segmentator.cpp \

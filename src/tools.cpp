@@ -290,16 +290,26 @@ std::vector< std::pair<Point, Point> > Tools::iterateIris(const SegmentationResu
 	return res;
 }
 
-void Tools::superimposeTexture(Mat& image, const Mat& texture, const SegmentationResult& segmentation, double theta0, double theta1, double radius)
+void Tools::superimposeTexture(Mat& image, const Mat& texture, const SegmentationResult& segmentation, double theta0, double theta1, double radius, bool blend, double blendStart)
 {
 	assert(texture.type() == CV_8U);
 	assert(image.type() == CV_8U);
+
 	std::vector< std::pair<Point, Point> > irisIt = Tools::iterateIris(segmentation, texture.cols, texture.rows, theta0, theta1, radius);
 	for (size_t i = 0; i < irisIt.size(); i++) {
 		int xsrc = irisIt[i].first.x, ysrc = irisIt[i].first.y;
 		int xdest = std::floor(irisIt[i].second.x + 0.5), ydest = std::floor(irisIt[i].second.y + 0.5);
-		//cvSet2D(image, ydest, xdest, cvGet2D(texture, ysrc, xsrc));
-		image.at<uint8_t>(ydest, xdest) = texture.at<uint8_t>(ysrc, xsrc);
+
+		double orig = double(image.at<uint8_t>(ydest, xdest));
+		double new_ = double(texture.at<uint8_t>(ysrc, xsrc));
+
+		if (blend && ysrc >= (texture.rows*blendStart)) {
+			double q = 1.0 - ( double(ysrc-texture.rows*blendStart)/double(texture.rows-texture.rows*blendStart) );
+			new_ = q*new_ + (1.0-q)*orig;
+			//new_ = 255;
+		}
+
+		image.at<uint8_t>(ydest, xdest) = uint8_t(new_);
 	}
 }
 
@@ -365,4 +375,53 @@ Circle Tools::approximateCircle(const Contour& contour)
 	result.radius = bestRadius;
 
 	return result;
+}
+
+void Tools::stretchHistogram(const Mat_<uint8_t>& image, Mat_<uint8_t>& dest, float marginMin, float marginMax)
+{
+	if (dest.size() != image.size()) {
+		dest.create(image.size());
+	}
+
+	// Quick & dirty way to calculate the histogram
+	unsigned int hist[256];
+	memset(hist, 0, sizeof(hist));
+
+	unsigned int total = image.rows*image.cols;
+
+	/*for (int y = 0; y < image.rows; y++) {
+		const uint8_t* ptr = image.ptr(y);
+		for (int x = 0; x < image.cols; x++) {
+		hist[ptr[x]]++;
+	}
+	}*/
+
+	for (MatConstIterator_<uint8_t> it = image.begin(); it != image.end(); it++) {
+		hist[*it]++;
+	}
+
+	unsigned int sum;
+	unsigned char x0, x1;
+	for (x0 = 0, sum=0; sum <= marginMin*float(total); x0++) {
+		sum += hist[x0];
+	}
+
+	for (x1 = 255,sum=0; sum <= marginMax*float(total); x1--) {
+		sum += hist[x1];
+	}
+
+	for (int y = 0; y < image.rows; y++) {
+		for (int x = 0; x < image.cols; x++) {
+			int q = (float(image(y, x)-x0)/float(x1-x0)) * 255;
+			q = max(min(q, 255), 0);
+			dest(y, x) = q;
+		}
+	}
+}
+
+Mat_<uint8_t> Tools::normalizeImage(const Mat& image, uint8_t min, uint8_t max)
+{
+	Mat res;
+	normalize(image, res, min, max, NORM_MINMAX);
+	return res;
 }

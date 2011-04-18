@@ -10,8 +10,6 @@
 #include <iostream>
 #include <cmath>
 
-void cvShiftDFT(CvArr * src_arr, CvArr * dst_arr );
-
 VideoProcessor::VideoProcessor()
 {
 	this->lastStatus = DEFOCUSED;
@@ -28,12 +26,18 @@ VideoProcessor::~VideoProcessor()
 
 VideoProcessor::VideoStatus VideoProcessor::processFrame(const Mat& frame)
 {
-	Parameters* parameters = Parameters::getParameters();
+	frame.copyTo(this->lastFrame);
 
 	if (this->framesToSkip > 0) {
 		this->framesToSkip--;
 		this->lastStatus = UNPROCESSED;
 		return UNPROCESSED;
+	}
+
+	if (frame.channels() == 1) {
+		this->lastFrameBW = this->lastFrame;
+	} else {
+		cvtColor(frame, this->lastFrameBW, CV_BGR2GRAY);
 	}
 	
 	this->lastStatus = this->doProcess(frame);
@@ -45,14 +49,14 @@ VideoProcessor::VideoStatus VideoProcessor::processFrame(const Mat& frame)
 	if (this->waitingBestTemplate) {
 		if (this->lastStatus == FOCUSED_IRIS && this->lastIrisQuality > this->templateIrisQuality) {
 			// Got a better quality image
-			this->lastFrame.copyTo(this->templateFrame);
+			this->lastFrameBW.copyTo(this->templateFrame);
 			this->templateIrisQuality = this->lastIrisQuality;
 			this->templateSegmentation = this->lastSegmentationResult;
 			this->templateWaitCount = 0;
 		}
 		
 		this->templateWaitCount++;
-		if (this->templateWaitCount >= parameters->bestFrameWaitCount) {
+		if (this->templateWaitCount >= this->parameters.bestFrameWaitCount) {
 			// Got the iris template with the best quality
 			this->lastStatus = GOT_TEMPLATE;
 			this->templateWaitCount = 0;
@@ -69,30 +73,22 @@ VideoProcessor::VideoStatus VideoProcessor::processFrame(const Mat& frame)
 
 VideoProcessor::VideoStatus VideoProcessor::doProcess(const Mat& frame)
 {
-	if (frame.channels() == 1) {
-		frame.copyTo(this->lastFrame);
-	} else {
-		cvtColor(frame, this->lastFrame, CV_BGR2GRAY);
-	}
-	
-	const Mat& image = this->lastFrame;
-
-	Parameters* parameters = Parameters::getParameters();
+	const Mat& image = this->lastFrameBW;
 
 	this->lastFocusScore = this->qualityChecker.checkFocus(image);
-	if (this->lastFocusScore < parameters->focusThreshold) {
+	if (this->lastFocusScore < this->parameters.focusThreshold) {
 		return DEFOCUSED;
 	}
 
-	if (parameters->interlacedVideo) {
+	if (this->parameters.interlacedVideo) {
 		double interlacedCorrelation = this->qualityChecker.interlacedCorrelation(image);
-		if (interlacedCorrelation < parameters->correlationThreshold) {
+		if (interlacedCorrelation < this->parameters.correlationThreshold) {
 			return INTERLACED;
 		}
 	}
 
 	this->lastSegmentationResult = segmentator.segmentImage(image);
-	if (parameters->segmentEyelids) {
+	if (this->parameters.segmentEyelids) {
 		segmentator.segmentEyelids(image, this->lastSegmentationResult);
 	}
 
@@ -103,20 +99,10 @@ VideoProcessor::VideoStatus VideoProcessor::doProcess(const Mat& frame)
 	}
 
 	this->lastIrisQuality = qualityChecker.getIrisQuality(image, this->lastSegmentationResult);
-	if (this->lastIrisQuality < parameters->minimumContourQuality) {
+	if (this->lastIrisQuality < this->parameters.minimumContourQuality) {
 		// The image is kind of focused but the iris doesn't have enough quality
-		/*float q = 0.2;
+		// TODO: Check whether to return IRIS_TOO_FAR or IRIS_TOO_CLOSE
 
-		if (this->lastSegmentationResult.irisCircle.radius*2 < parameters->expectedIrisDiameter*q) {
-			// Iris too far?
-			return IRIS_TOO_FAR;
-		} else if (this->lastSegmentationResult.irisCircle.radius*2 > parameters->expectedIrisDiameter*q) {
-			// Iris too close?
-			return IRIS_TOO_CLOSE;
-		} else {
-			// Low quality for some reason...
-			return IRIS_LOW_QUALITY;
-		}*/
 		return IRIS_LOW_QUALITY;
 	}
 
@@ -125,7 +111,8 @@ VideoProcessor::VideoStatus VideoProcessor::doProcess(const Mat& frame)
 	return FOCUSED_IRIS;
 }
 
-IrisTemplate VideoProcessor::getTemplate()
+IrisTemplate VideoProcessor::getTemplate() const
 {
-	return this->irisEncoder.generateTemplate(this->templateFrame, this->templateSegmentation);
+	// const_cast is needed here before generateTemplate is not const... the other option is making irisEncoder as a mutable variable
+	return const_cast<VideoProcessor*>(this)->irisEncoder.generateTemplate(this->templateFrame, this->templateSegmentation);
 }

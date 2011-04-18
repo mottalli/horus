@@ -9,6 +9,30 @@
 
 #include "common.h"
 
+class PupilSegmentatorParameters
+{
+public:
+	int bufferWidth;
+	double muPupil;
+	double sigmaPupil;
+	int minimumPupilRadius;
+	int maximumPupilRadius;
+	int pupilAdjustmentRingWidth;
+	int pupilAdjustmentRingHeight;
+	int infraredThreshold;
+
+	PupilSegmentatorParameters()
+	{
+		this->bufferWidth = 320;
+		this->muPupil = 2.0;
+		this->sigmaPupil = 5.0;
+		this->minimumPupilRadius = 7;
+		this->maximumPupilRadius = 80;
+		this->pupilAdjustmentRingWidth = 256;
+		this->pupilAdjustmentRingHeight = 100;
+		this->infraredThreshold = 200;
+	}
+};
 
 class PupilSegmentator {
 public:
@@ -30,6 +54,8 @@ public:
 	Mat_<float> originalAdjustmentSnake;
 	Mat_<uint8_t> _LUT;
 	double resizeFactor;
+
+	PupilSegmentatorParameters parameters;
 
 private:
 	void setupBuffers(const Mat& image);

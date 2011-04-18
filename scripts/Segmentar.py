@@ -69,8 +69,6 @@ def segmentarBase(options):
 			print 'Segmentando %i (%s)' % (idImagen, fullPathImagen)
 			(resultadoSegmentacion, decorada) = segmentarYMostrar(fullPathImagen)
 		
-		parameters = horus.Parameters.getParameters()
-		
 		while 1:
 			accion = obtenerAccion()
 			if accion == ACCION_ANTERIOR:
@@ -96,20 +94,20 @@ def segmentarBase(options):
 				buffer = flushBuffer(BASE, buffer)
 				sys.exit(0);
 			elif accion == ACCION_MU_PUPILA_INC:
-				parameters.muPupil = parameters.muPupil + 0.5
-				print "mu:", parameters.muPupil
+				segmentator.pupilSegmentator.parameters.muPupil = segmentator.pupilSegmentator.parameters.muPupil + 0.5
+				print "mu:", segmentator.pupilSegmentator.parameters.muPupil
 				(resultadoSegmentacion, imagenDecorada) = segmentarYMostrar(fullPathImagen)
 			elif accion == ACCION_MU_PUPILA_DEC:
-				parameters.muPupil = parameters.muPupil - 0.5
-				print "mu:", parameters.muPupil
+				segmentator.pupilSegmentator.parameters.muPupil = segmentator.pupilSegmentator.parameters.muPupil - 0.5
+				print "mu:", segmentator.pupilSegmentator.parameters.muPupil
 				(resultadoSegmentacion, imagenDecorada) = segmentarYMostrar(fullPathImagen)
 			elif accion == ACCION_SIGMA_PUPILA_INC:
-				parameters.sigmaPupil = parameters.sigmaPupil + 0.5
-				print "sigma:", parameters.sigmaPupil
+				segmentator.pupilSegmentator.parameters.sigmaPupil = segmentator.pupilSegmentator.parameters.sigmaPupil + 0.5
+				print "sigma:", segmentator.pupilSegmentator.parameters.sigmaPupil
 				(resultadoSegmentacion, imagenDecorada) = segmentarYMostrar(fullPathImagen)
 			elif accion == ACCION_SIGMA_PUPILA_DEC:
-				parameters.sigmaPupil = parameters.sigmaPupil - 0.5
-				print "sigma:", parameters.sigmaPupil
+				segmentator.pupilSegmentator.parameters.sigmaPupil = segmentator.pupilSegmentator.parameters.sigmaPupil - 0.5
+				print "sigma:", segmentator.pupilSegmentator.parameters.sigmaPupil
 				(resultadoSegmentacion, imagenDecorada) = segmentarYMostrar(fullPathImagen)
 			else:
 				print accion

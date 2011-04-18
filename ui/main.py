@@ -11,9 +11,6 @@ from opencv import highgui
 
 app = QtGui.QApplication(sys.argv)
 
-parameters = horus.Parameters.getParameters()
-parameters.segmentEyelids = False
-
 cap = highgui.cvCreateCameraCapture(0)
 if not cap:
 	raise IOError("Unable to initialize capture")
@@ -23,9 +20,6 @@ VideoThread.videoThread.start()
 
 mainForm = MainForm.MainForm()
 mainForm.show()
-
-horus.Parameters.getParameters().focusThreshold = 30
-
 
 res = app.exec_()
 sys.exit(res)

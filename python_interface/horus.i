@@ -10,7 +10,6 @@
 #include "../src/irissegmentator.h"
 #include "../src/iristemplate.h"
 #include "../src/irisdatabase.h"
-#include "../src/parameters.h"
 #include "../src/pupilsegmentator.h"
 #include "../src/qualitychecker.h"
 #include "../src/segmentationresult.h"
@@ -100,6 +99,22 @@ namespace std
 	}
 %}
 
+%extend IrisEncoder {
+	static void normalizeIrisWRAP(const Mat& image, Mat& dest, Mat& destMask, const SegmentationResult& segmentationResult, double theta0, double theta1, double radius)
+	{
+		IrisEncoder::normalizeIris(image, dest, destMask, segmentationResult, theta0, theta1, radius);
+	};
+}
+
+void superimposeTextureWRAP(Mat& image, const Mat& texture, const SegmentationResult& segmentation, double theta0, double theta1, double radius, bool blend, double blendStart);
+%{
+void superimposeTextureWRAP(Mat& image, const Mat& texture, const SegmentationResult& segmentation, double theta0, double theta1, double radius, bool blend, double blendStart)
+{
+	Tools::superimposeTexture(image, texture, segmentation, theta0, theta1, radius, blend, blendStart);
+}
+%}
+
+
 
 %include "../src/common.h"
 %include "../src/clock.h"
@@ -110,7 +125,6 @@ namespace std
 %include "../src/irissegmentator.h"
 %include "../src/iristemplate.h"
 %include "../src/irisdatabase.h"
-%include "../src/parameters.h"
 %include "../src/pupilsegmentator.h"
 %include "../src/qualitychecker.h"
 %include "../src/segmentationresult.h"
