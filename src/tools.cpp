@@ -422,6 +422,6 @@ void Tools::stretchHistogram(const Mat_<uint8_t>& image, Mat_<uint8_t>& dest, fl
 Mat_<uint8_t> Tools::normalizeImage(const Mat& image, uint8_t min, uint8_t max)
 {
 	Mat res;
-	normalize(imagen, res, min, max, NORM_MINMAX);
+	normalize(image, res, min, max, NORM_MINMAX);
 	return res;
 }
