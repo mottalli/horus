@@ -1,8 +1,8 @@
-LIBS = -lcxcore \
-    -lcv \
+LIBS = -lml \
+	-lcvaux \
     -lhighgui \
-    -lcvaux \
-    -lml
+	-lcv \
+	-lcxcore
 
 # OTHER_FILES += src/irisdatabase_kernel.cu
 HEADERS += src/clock.h \
