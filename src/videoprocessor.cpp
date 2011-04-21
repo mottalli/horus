@@ -18,8 +18,12 @@ VideoProcessor::VideoProcessor()
 	this->templateWaitCount = 0;
 	this->templateIrisQuality = 0.0;
 	this->waitingBestTemplate = false;
-	this->waitingFrames = 40;
 	this->framesToSkip = 0;
+
+	this->eyeClassifier.load("haarcascade_eye.xml");
+	if (this->eyeClassifier.empty()) {
+		throw runtime_error("Unable to load haarcascade_eye.xml classifier");
+	}
 }
 
 VideoProcessor::~VideoProcessor()
@@ -60,7 +64,7 @@ VideoProcessor::VideoStatus VideoProcessor::processFrame(const Mat& frame)
 			this->templateIrisQuality = 0;
 			
 			// Wait before processing more images
-			this->framesToSkip = this->waitingFrames;
+			this->framesToSkip = parameters->waitingFrames;
 		}
 	}
 	
@@ -75,14 +79,35 @@ VideoProcessor::VideoStatus VideoProcessor::doProcess(const Mat& frame)
 		cvtColor(frame, this->lastFrame, CV_BGR2GRAY);
 	}
 	
-	const Mat& image = this->lastFrame;
+	const Mat_<uint8_t>& image = this->lastFrame;
 
 	Parameters* parameters = Parameters::getParameters();
 
-	this->lastFocusScore = this->qualityChecker.checkFocus(image);
+	// Step 1 - See if there's an eye
+	vector<Rect> classifications;
+
+	Mat_<uint8_t> tmp;
+	pyrDown(image, tmp);			//TODO: Move this to inner variable
+	this->eyeClassifier.detectMultiScale(tmp, classifications, 2, 3, 0, Size(tmp.cols/4, tmp.rows/4));
+
+	if (classifications.size() == 0) {
+		return NO_EYE;
+	}
+
+	/*namedWindow("pyr");
+	rectangle(tmp, classifications[0], CV_RGB(255,255,255));
+	imshow("pyr", tmp);*/
+
+	Rect& c = classifications[0];
+	this->eyeROI = Rect(2*c.x, 2*c.y, 2*c.width, 2*c.height);
+
+
+
+	// Step 2 - Check that the image is in focus
+	/*this->lastFocusScore = this->qualityChecker.checkFocus(image(this->eyeROI));
 	if (this->lastFocusScore < parameters->focusThreshold) {
 		return DEFOCUSED;
-	}
+	}*/
 
 	if (parameters->interlacedVideo) {
 		double interlacedCorrelation = this->qualityChecker.interlacedCorrelation(image);
@@ -91,6 +116,7 @@ VideoProcessor::VideoStatus VideoProcessor::doProcess(const Mat& frame)
 		}
 	}
 
+	segmentator.setEyeROI(this->eyeROI);
 	this->lastSegmentationResult = segmentator.segmentImage(image);
 	if (parameters->segmentEyelids) {
 		segmentator.segmentEyelids(image, this->lastSegmentationResult);

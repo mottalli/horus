@@ -43,6 +43,7 @@ Parameters::Parameters() {
 	segmentationScoreThreshold = 1.7;
 	minimumContourQuality = 60;
 	bestFrameWaitCount = 20;
+	waitingFrames = 40;
 	
 	pupilIrisGrayDiff = 20;
 	pupilIrisZScore = 3;

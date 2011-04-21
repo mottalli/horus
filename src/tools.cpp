@@ -379,13 +379,6 @@ void Tools::stretchHistogram(const Mat_<uint8_t>& image, Mat_<uint8_t>& dest, fl
 
 	unsigned int total = image.rows*image.cols;
 
-	/*for (int y = 0; y < image.rows; y++) {
-		const uint8_t* ptr = image.ptr(y);
-		for (int x = 0; x < image.cols; x++) {
-		hist[ptr[x]]++;
-	}
-	}*/
-
 	for (MatConstIterator_<uint8_t> it = image.begin(); it != image.end(); it++) {
 		hist[*it]++;
 	}
@@ -409,3 +402,10 @@ void Tools::stretchHistogram(const Mat_<uint8_t>& image, Mat_<uint8_t>& dest, fl
 	}
 }
 
+Mat_<uint8_t> Tools::normalizeImage(const Mat& image)
+{
+	Mat_<uint8_t> res;
+	normalize(image, res, 0, 255, NORM_MINMAX);
+
+	return res;
+}

@@ -40,6 +40,7 @@ public:
 	int pupilIrisGrayDiff;
 	int pupilIrisZScore;
 	int bestFrameWaitCount;
+	int waitingFrames;
 
 	// Template generation parameters
 	int normalizationWidth;

@@ -4,6 +4,7 @@
 #include "qualitychecker.h"
 #include "segmentator.h"
 #include "loggaborencoder.h"
+#include "gaborencoder.h"
 
 class VideoProcessor {
 public:
@@ -14,6 +15,7 @@ public:
 		UNPROCESSED,
 		DEFOCUSED,
 		INTERLACED,
+		NO_EYE,
 		FOCUSED_NO_IRIS,
 		IRIS_LOW_QUALITY,
 		IRIS_TOO_CLOSE,
@@ -23,8 +25,6 @@ public:
 	} VideoStatus;
 
 	VideoStatus processFrame(const Mat& frame);
-
-	void setWaitingFrames(int frames) { this->waitingFrames = frames; };
 
 	QualityChecker qualityChecker;
 	Segmentator segmentator;
@@ -40,10 +40,10 @@ public:
 	const Mat& getTemplateFrame() const { return this->templateFrame; };
 	SegmentationResult getTemplateSegmentation() const { return this->templateSegmentation; };
 
-private:
-	Mat lastFrame;
+	Rect eyeROI;
 
-	unsigned int waitingFrames;
+private:
+	Mat_<uint8_t> lastFrame;
 
 	VideoStatus doProcess(const Mat& frame);
 	
@@ -54,5 +54,7 @@ private:
 	unsigned int templateWaitCount;
 	unsigned int framesToSkip;
 	bool waitingBestTemplate;
+
+	CascadeClassifier eyeClassifier;
 };
 

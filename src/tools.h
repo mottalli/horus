@@ -59,6 +59,7 @@ namespace Tools
 	Mat base64DecodeMat(const std::string &s);
 
 	void stretchHistogram(const Mat_<uint8_t>& image, Mat_<uint8_t>& dest, float marginMin=0.01, float marginMax=0.0);
+	Mat_<uint8_t> normalizeImage(const Mat& image);
 
 
 	std::vector< std::pair<Point, Point> > iterateIris(const SegmentationResult& segmentation, int width, int height, double theta0=0.0, double theta1=2.0*M_PI, double radius=1.0);

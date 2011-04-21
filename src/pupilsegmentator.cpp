@@ -44,22 +44,19 @@ void PupilSegmentator::setupBuffers(const Mat& image)
 
 	// Initialize the working image
 	int bufferWidth = parameters->bufferWidth;
-	int width = image.cols, height = image.rows;
+	int width = image.cols;
 
-	this->resizeFactor = ((width > bufferWidth) ? double(bufferWidth) / double(width) : 1.0);
+	if (this->ROI.width) {
+		this->resizeFactor = 1.0;
+	} else {
+		this->resizeFactor = ((width > bufferWidth) ? double(bufferWidth) / double(width) : 1.0);
+	}
 
 	if (this->resizeFactor != 1.0) {
 		resize(image, this->workingImage, Size(), this->resizeFactor, this->resizeFactor);
 	} else {
 		this->workingImage = image;
 	}
-
-	if (!this->ROI.width || !this->ROI.height) {
-		this->workingROI = Rect(0, 0, this->workingImage.cols, this->workingImage.rows);
-	} else {
-		this->workingROI = Rect(this->ROI.x*this->resizeFactor, this->ROI.y*this->resizeFactor, this->ROI.width*this->resizeFactor, this->ROI.height*this->resizeFactor);
-	}
-
 
 	this->adjustmentRing.create(Size(parameters->pupilAdjustmentRingWidth, parameters->pupilAdjustmentRingHeight));
 	this->adjustmentRingGradient.create(Size(parameters->pupilAdjustmentRingWidth, parameters->pupilAdjustmentRingHeight));
@@ -68,16 +65,30 @@ void PupilSegmentator::setupBuffers(const Mat& image)
 
 Circle PupilSegmentator::approximatePupil(const Mat_<uint8_t>& image)
 {
+	Mat_<uint8_t> searchArea;
+	bool useROI = (this->ROI.width > 0);
+
+	if (useROI) {
+		searchArea = image(this->ROI);		// ROI to search the pupil
+	} else {
+		searchArea = image;		// If ROI is not used, use the entire image
+	}
+
 	// First, equalize the image
-	equalizeHist(image, this->equalizedImage);
-	//image.copyTo(this->equalizedImage);
+	equalizeHist(searchArea, this->equalizedImage);
 
 	// Then apply the similarity transformation
 	this->similarityTransform();
-	blur(this->similarityImage, this->similarityImage, Size(3, 3));
+	blur(this->similarityImage, this->similarityImage, Size(7, 7));
 
 	// Now perform the cascaded integro-differential operator
 	Circle res = this->cascadedIntegroDifferentialOperator(this->similarityImage);
+
+	if (useROI) {
+		res.xc += this->ROI.x;
+		res.yc += this->ROI.y;
+	}
+
 	return res;
 }
 
@@ -227,12 +238,11 @@ Circle PupilSegmentator::cascadedIntegroDifferentialOperator(const Mat_<uint8_t>
 	int minrad = minradabs;
 	int maxrad = parameters->maximumPupilRadius;
 
-	int dx = image.cols*0.2, dy = image.rows*0.2;			// Exclude the image borders
+	//int dx = image.cols*0.2, dy = image.rows*0.2;			// Exclude the image borders
+	int dx = 0, dy = 0;
 
-	/*int minx = dx, miny = dy;
-	int maxx = image.cols - dx, maxy = image.rows - dy;*/
-	int minx = this->workingROI.x+dx, miny = this->workingROI.y+dy;			// Detect the circle ONLY inside the ROI
-	int maxx = this->workingROI.x+this->workingROI.width-dx, maxy = this->workingROI.y+this->workingROI.height-dy;
+	int minx = dx, miny = dy;
+	int maxx = image.cols - dx, maxy = image.rows - dy;
 	int x, y;
 	//int maxStep = INT_MIN;
 	int bestX = 0, bestY = 0, bestRadius = 0;
