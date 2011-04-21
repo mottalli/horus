@@ -12,7 +12,7 @@ class VideoThread : public QThread
 public:
 	explicit VideoThread(int cam = 0);
 	void run();
-	void stop() { qDebug() << " VideoThread::stop"; _stop = true; }
+	void stop() { qDebug() << "VideoThread::stop"; _stop = true; }
 
 signals:
 	void signalFrameAvailable(const Mat& frame);

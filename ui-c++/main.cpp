@@ -5,6 +5,9 @@
 #include "mainwindow.h"
 #include "videothread.h"
 #include "processingthread.h"
+#include "sqlite3irisdatabase.h"
+
+SQLite3IrisDatabase DB("/home/marcelo/Documents/Programacion/horus/ui-python/_base");
 
 
 int main(int argc, char *argv[])
