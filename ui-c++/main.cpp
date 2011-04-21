@@ -1,5 +1,6 @@
 #include <QtGui/QApplication>
 #include <QMetaType>
+#include <QDebug>
 
 #include "mainwindow.h"
 #include "videothread.h"
