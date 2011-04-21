@@ -72,6 +72,7 @@ public:
 
 private:
 	unsigned int waitingFrames;
+	Mat_<uint8_t> lastFrameBW;
 
 	VideoStatus doProcess(const Mat& frame);
 	

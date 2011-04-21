@@ -78,7 +78,7 @@ private:
 
 	double _lastSigma, _lastMu;
 
-	Rect ROI;
+	Rect ROI, workingROI;
 };
 
 

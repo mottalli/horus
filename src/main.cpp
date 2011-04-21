@@ -15,7 +15,6 @@
 #include "irisencoder.h"
 #include "irisdctencoder.h"
 #include "gaborencoder.h"
-#include "parameters.h"
 #include "videoprocessor.h"
 #include "templatecomparator.h"
 #include "qualitychecker.h"
@@ -36,7 +35,6 @@ Segmentator segmentator;
 Decorator decorator;
 LogGaborEncoder logGaborEncoder;
 //IrisDCTEncoder irisDCTEncoder;
-Parameters* parameters = Parameters::getParameters();
 GaborEncoder gaborEncoder;
 VideoProcessor videoProcessor;
 QualityChecker qualityChecker;
@@ -58,7 +56,7 @@ int main1(int, char**)
 		Rect rect(x0-radius, y0-radius, 2*radius, 2*radius);
 
 		Mat_<uint8_t> porcion = imagen(rect).clone();
-		threshold(porcion, porcion, parameters->infraredThreshold, 255, THRESH_BINARY);
+		//threshold(porcion, porcion, parameters->infraredThreshold, 255, THRESH_BINARY);
 
 
 		decorator.drawSegmentationResult(imagen, sr);
@@ -84,8 +82,8 @@ int main2(int, char**)
 	Mat_<uint8_t> previousTemplate, currentTemplate;
 	namedWindow("video", 1);
 
-	parameters->waitingFrames = 0;
-	parameters->bestFrameWaitCount = 1;
+	//parameters->waitingFrames = 0;
+	//parameters->bestFrameWaitCount = 1;
 
 	while (true) {
 		cap >> frame;

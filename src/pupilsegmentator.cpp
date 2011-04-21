@@ -63,8 +63,8 @@ void PupilSegmentator::setupBuffers(const Mat& image)
 	}
 
 
-	this->adjustmentRing.create(Size(this->parameters.pupilAdjustmentRingWidth, parameters->pupilAdjustmentRingHeight));
-	this->adjustmentRingGradient.create(Size(this->parameters.pupilAdjustmentRingWidth, parameters->pupilAdjustmentRingHeight));
+	this->adjustmentRing.create(Size(this->parameters.pupilAdjustmentRingWidth, this->parameters.pupilAdjustmentRingHeight));
+	this->adjustmentRingGradient.create(Size(this->parameters.pupilAdjustmentRingWidth, this->parameters.pupilAdjustmentRingHeight));
 	this->adjustmentSnake.create(Size(this->parameters.pupilAdjustmentRingWidth, 1));
 }
 
@@ -235,7 +235,7 @@ Circle PupilSegmentator::cascadedIntegroDifferentialOperator(const Mat_<uint8_t>
 {
 	int minradabs = this->parameters.minimumPupilRadius;
 	int minrad = minradabs;
-	int maxrad = parameters->maximumPupilRadius;
+	int maxrad = this->parameters.maximumPupilRadius;
 
 	int dx = image.cols*0.2, dy = image.rows*0.2;			// Exclude the image borders
 
