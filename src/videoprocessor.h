@@ -45,6 +45,14 @@ public:
 		GOT_TEMPLATE
 	} VideoStatus;
 
+	typedef struct {
+		Mat_<uint8_t> image;
+		SegmentationResult segmentationResult;
+		IrisTemplate irisTemplate;
+		double quality;
+	} CapturedTemplate;
+
+
 	VideoProcessorParameters parameters;
 
 	VideoStatus processFrame(const Mat& frame);
@@ -60,10 +68,11 @@ public:
 	VideoStatus lastStatus;
 	SegmentationResult lastSegmentationResult;
 	double lastIrisQuality;
+	IrisTemplate lastTemplate;
 	
 	IrisTemplate getTemplate() const;
-	const Mat& getTemplateFrame() const { return this->templateFrame; }
-	SegmentationResult getTemplateSegmentation() const { return this->templateSegmentation; }
+	const Mat& getTemplateFrame() const;
+	SegmentationResult getTemplateSegmentation() const;
 
 	Mat lastFrame;
 
@@ -73,12 +82,11 @@ private:
 
 	VideoStatus doProcess(const Mat& frame);
 	
-	Mat templateFrame;
-	SegmentationResult templateSegmentation;
-	double templateIrisQuality;
-	
 	int templateWaitCount;
 	int framesToSkip;
 	bool waitingBestTemplate;
+	size_t bestTemplateIdx;
+
+	vector<CapturedTemplate> templateBuffer;
 };
 
