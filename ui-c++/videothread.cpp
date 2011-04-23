@@ -20,8 +20,6 @@ void VideoThread::run()
 		_cap >> _frame;
 
 		emit(signalFrameAvailable(_frame));
-
-		waitKey(20);
 	}
 
 	_cap.release();

@@ -22,6 +22,7 @@ ENDIF (USE_CUDA)
 
 ADD_SUBDIRECTORY(python_interface)
 ADD_SUBDIRECTORY(src)
+ADD_SUBDIRECTORY(test)
 
 CONFIGURE_FILE(
   "${CMAKE_CURRENT_SOURCE_DIR}/cmake_uninstall.cmake.in"
