@@ -12,16 +12,16 @@
 
 Decorator::Decorator()
 {
-	this->irisColor = CV_RGB(0,255,0);
-	this->pupilColor = CV_RGB(255,0,0);
-	this->upperEyelidColor = CV_RGB(0,0,255);
-	this->lowerEyelidColor = CV_RGB(0,0,255);
+	this->irisColor = Scalar(0,255,0);
+	this->pupilColor = Scalar(255,0,0);
+	this->upperEyelidColor = Scalar(0,0,255);
+	this->lowerEyelidColor = Scalar(0,0,255);
 }
 
 void Decorator::drawSegmentationResult(Mat& image, const SegmentationResult& segmentationResult) const
 {
-	Scalar irisColor_ = (image.channels() == 1 ? CV_RGB(255,255,255) : this->irisColor);
-	Scalar pupilColor_ = (image.channels() == 1 ? CV_RGB(255,255,255) : this->pupilColor);
+	Scalar irisColor_ = (image.channels() == 1 ? Scalar(255,255,255) : this->irisColor);
+	Scalar pupilColor_ = (image.channels() == 1 ? Scalar(255,255,255) : this->pupilColor);
 	this->drawContour(image, segmentationResult.irisContour, irisColor_);
 	this->drawContour(image, segmentationResult.pupilContour, pupilColor_);
 
@@ -70,7 +70,6 @@ void Decorator::drawEncodingZone(Mat& image, const SegmentationResult& segmentat
 	}
 
 }
-
 
 void Decorator::drawContour(Mat& image, const Contour& contour, const Scalar& color) const
 {
@@ -144,4 +143,46 @@ void Decorator::drawTemplate(Mat& image, const IrisTemplate& irisTemplate)
 	Point p0(templateRect.x-1, templateRect.y-1);
 	Point p1(p0.x + templateRect.width+1, p0.y+templateRect.height+1);
 	rectangle(image, p0, p1, CV_RGB(0,0,0), 1);
+}
+
+void Decorator::setDrawingColors(Scalar pupilColor_, Scalar irisColor_, Scalar upperEyelidColor_, Scalar lowerEyelidColor_)
+{
+	this->pupilColor = pupilColor_;
+	this->irisColor = irisColor_;
+	this->upperEyelidColor = upperEyelidColor_;
+	this->lowerEyelidColor = lowerEyelidColor_;
+}
+
+void Decorator::drawFocusScores(const list<double>& focusScores, Mat image, Rect rect, double threshold)
+{
+	image(rect) = Scalar(255,255,255);
+	rectangle(image, rect, Scalar(0,0,0), 1);
+
+	if (threshold > 0) {
+		double y = rect.height - ((threshold/100.0) * rect.height);
+		double yimg = rect.y + y;
+		line(image, Point(rect.x, yimg), Point(rect.x+rect.width, yimg), Scalar(255,0,0));
+	}
+
+	Point lastPoint;
+
+	//for (int i = focusScores.size()-1; i >= 0 && (rect.width - (focusScores.size()-1-i)) > 0; i--) {
+	int i =  i = focusScores.size()-1;
+	for (list<double>::const_reverse_iterator it = focusScores.rbegin(); it != focusScores.rend(); it++) {
+		double focusScore = *it;
+		double x = rect.width - (focusScores.size()-1-i);
+
+		if (x <= 0) break;
+
+		double y = rect.height - ((focusScore/100.0) * rect.height);
+
+		Point pimg = rect.tl() + Point(x,y);
+		if (lastPoint.x == 0 && lastPoint.y == 0) {
+			lastPoint = pimg;
+		}
+
+		line(image, lastPoint, pimg, Scalar(0,0,255));
+		lastPoint = pimg;
+		i--;
+	}
 }

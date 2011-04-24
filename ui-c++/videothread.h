@@ -22,6 +22,7 @@ private:
 	VideoCapture _cap;
 	bool _stop;
 	Mat _frame;
+	int _cam;
 };
 
 #endif // VIDEOTHREAD_H

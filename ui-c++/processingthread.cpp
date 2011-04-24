@@ -17,7 +17,7 @@ void ProcessingThread::run()
 
 void ProcessingThread::slotProcessFrame(const Mat& frame)
 {
-	_frame = frame;
+	_frame = frame.clone();
 	start();
 }
 

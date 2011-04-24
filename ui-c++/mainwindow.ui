@@ -78,29 +78,29 @@
        <item row="1" column="0">
         <widget class="QGroupBox" name="groupBox_4">
          <property name="title">
-          <string>Acción</string>
+          <string>Acción automática</string>
          </property>
          <layout class="QGridLayout" name="gridLayout_4">
           <item row="0" column="0">
            <layout class="QHBoxLayout" name="horizontalLayout">
             <item>
-             <widget class="QRadioButton" name="radioIdentificar">
+             <widget class="QRadioButton" name="automaticaIdentificar">
               <property name="text">
                <string>Identificar</string>
               </property>
              </widget>
             </item>
             <item>
-             <widget class="QRadioButton" name="radioRegistrar">
+             <widget class="QRadioButton" name="automaticaRegistrar">
               <property name="text">
                <string>Registrar</string>
               </property>
              </widget>
             </item>
             <item>
-             <widget class="QRadioButton" name="radioCapturar">
+             <widget class="QRadioButton" name="automaticaNada">
               <property name="text">
-               <string>Capturar</string>
+               <string>Ninguna</string>
               </property>
               <property name="checked">
                <bool>true</bool>
@@ -208,29 +208,11 @@
      <height>25</height>
     </rect>
    </property>
-   <widget class="QMenu" name="menu_Archivo">
-    <property name="title">
-     <string>&amp;Archivo</string>
-    </property>
-    <addaction name="action_Par_metros"/>
-    <addaction name="action_Procesar_archivo"/>
-   </widget>
-   <addaction name="menu_Archivo"/>
   </widget>
   <widget class="QStatusBar" name="statusBar"/>
   <action name="actionE_xit">
    <property name="text">
     <string>&amp;Salir</string>
-   </property>
-  </action>
-  <action name="action_Par_metros">
-   <property name="text">
-    <string>&amp;Parámetros</string>
-   </property>
-  </action>
-  <action name="action_Procesar_archivo">
-   <property name="text">
-    <string>P&amp;rocesar archivo...</string>
    </property>
   </action>
  </widget>
