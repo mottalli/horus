@@ -19,7 +19,7 @@ public:
 	VideoProcessorParameters()
 	{
 		this->bestFrameWaitCount = 20;
-		this->focusThreshold = 40;
+		this->focusThreshold = 70;
 		this->interlacedVideo = true;
 		this->correlationThreshold = 92;
 		this->segmentationScoreThreshold = 1.7;
@@ -70,9 +70,10 @@ public:
 	double lastIrisQuality;
 	IrisTemplate lastTemplate;
 	
-	IrisTemplate getTemplate() const;
+	IrisTemplate getAverageTemplate() const;
 	const Mat& getTemplateFrame() const;
-	SegmentationResult getTemplateSegmentation() const;
+	const SegmentationResult& getTemplateSegmentation() const;
+	IrisTemplate getTemplate() const;
 
 	Mat lastFrame;
 

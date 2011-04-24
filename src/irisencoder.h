@@ -19,6 +19,11 @@ public:
 	IrisTemplate generateTemplate(const Mat& image, const SegmentationResult& segmentationResult);
 	static void normalizeIris(const Mat& image, Mat& dest, Mat& destMask, const SegmentationResult& segmentationResult, double theta0 = 0.0, double theta1 = 2.0*M_PI, double radius = 1.0);
 
+	/**
+	 * Given a list of templates,
+	 */
+	static IrisTemplate averageTemplates(const vector<const IrisTemplate*>& templates);
+
 protected:
 	static Size getOptimumTemplateSize(int width, int height);		// Returns the optimum template size that is closer to (width, height)
 

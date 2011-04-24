@@ -117,3 +117,48 @@ Size IrisEncoder::getNormalizationSize()
 {
 	return Size(512, 80);
 }
+
+IrisTemplate IrisEncoder::averageTemplates(const vector<const IrisTemplate*>& templates)
+{
+	assert(templates.size() >= 1);
+	Mat_<uint8_t> unpackedTemplate, unpackedMask;
+	Mat_<uint8_t> acum, acumMask;
+
+	for (int i = 0; i < templates.size(); i++) {
+		unpackedTemplate = templates[i]->getUnpackedTemplate();
+		unpackedMask = templates[i]->getUnpackedMask();
+
+		if (acum.empty()) {
+			acum = Mat_<float>::zeros(unpackedTemplate.size());
+			acumMask = Mat_<float>::zeros(unpackedTemplate.size());
+		}
+
+		assert(acum.size() == unpackedTemplate.size());
+
+		acum += unpackedTemplate;
+		acumMask += unpackedMask;
+	}
+
+	Mat averageTemplate = Mat::zeros(acum.size(), CV_8UC1), averageMask;
+	Mat zeros, ones, zerosMask, onesMask;
+
+	threshold(acum, zeros, templates.size()*0.25, 1, THRESH_BINARY_INV);
+	threshold(acum, ones, templates.size()*0.75, 1, THRESH_BINARY);
+
+	threshold(acumMask, zerosMask, templates.size()*0.25, 1, THRESH_BINARY_INV);
+	threshold(acumMask, onesMask, templates.size()*0.75, 1, THRESH_BINARY);
+
+	averageTemplate.setTo(Scalar(1,1,1), ones);
+	averageTemplate.setTo(Scalar(0,0,0), zeros);
+
+	bitwise_xor(zeros, ones, averageMask);				// EITHER 0 or 1 => consistent => mark as valid in mask
+	averageMask.setTo(0, zerosMask);					// Disable the bits that are usually disabled in the mask
+
+	/*threshold(acum, averageTemplate, templates.size()/2, 1, CV_THRESH_BINARY);
+	averageTemplate.convertTo(averageTemplate, CV_8U);
+
+	//TODO: calculate average mask
+	Mat averageMask = templates[0]->getUnpackedMask();*/
+
+	return IrisTemplate(averageTemplate, averageMask);
+}

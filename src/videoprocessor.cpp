@@ -126,3 +126,22 @@ IrisTemplate VideoProcessor::getTemplate() const
 {
 	return this->templateBuffer[this->bestTemplateIdx].irisTemplate;
 }
+
+IrisTemplate VideoProcessor::getAverageTemplate() const
+{
+	vector<const IrisTemplate*> templates;
+	for (vector<CapturedTemplate>::const_iterator it = this->templateBuffer.begin(); it != this->templateBuffer.end(); it++) {
+		templates.push_back( &((*it).irisTemplate) );
+	}
+	return IrisEncoder::averageTemplates(templates);
+}
+
+const Mat& VideoProcessor::getTemplateFrame() const
+{
+	return this->templateBuffer[this->bestTemplateIdx].image;
+}
+
+const SegmentationResult& VideoProcessor::getTemplateSegmentation() const
+{
+	return this->templateBuffer[this->bestTemplateIdx].segmentationResult;
+}
