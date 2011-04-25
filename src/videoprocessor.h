@@ -71,9 +71,9 @@ public:
 	IrisTemplate lastTemplate;
 	
 	IrisTemplate getAverageTemplate() const;
-	const Mat& getTemplateFrame() const;
-	const SegmentationResult& getTemplateSegmentation() const;
-	IrisTemplate getTemplate() const;
+	const Mat& getBestTemplateFrame() const;
+	const SegmentationResult& getBestTemplateSegmentation() const;
+	IrisTemplate getBestTemplate() const;
 
 	Mat lastFrame;
 

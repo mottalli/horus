@@ -122,7 +122,7 @@ VideoProcessor::VideoStatus VideoProcessor::doProcess(const Mat& frame)
 	return FOCUSED_IRIS;
 }
 
-IrisTemplate VideoProcessor::getTemplate() const
+IrisTemplate VideoProcessor::getBestTemplate() const
 {
 	return this->templateBuffer[this->bestTemplateIdx].irisTemplate;
 }
@@ -136,12 +136,12 @@ IrisTemplate VideoProcessor::getAverageTemplate() const
 	return IrisEncoder::averageTemplates(templates);
 }
 
-const Mat& VideoProcessor::getTemplateFrame() const
+const Mat& VideoProcessor::getBestTemplateFrame() const
 {
 	return this->templateBuffer[this->bestTemplateIdx].image;
 }
 
-const SegmentationResult& VideoProcessor::getTemplateSegmentation() const
+const SegmentationResult& VideoProcessor::getBestTemplateSegmentation() const
 {
 	return this->templateBuffer[this->bestTemplateIdx].segmentationResult;
 }
