@@ -4,10 +4,13 @@
 #include <list>
 #include <vector>
 
-#include <horus/segmentator.h>
-#include <horus/loggaborencoder.h>
-#include <horus/irisdatabase.h>
-#include <horus/decorator.h>
+#include "segmentator.h"
+#include "loggaborencoder.h"
+#include "irisdatabase.h"
+#include "decorator.h"
+#include "videoprocessor.h"
+#include "irisdatabase.h"
+#include "serializer.h"
 
 using namespace cv;
 using namespace std;

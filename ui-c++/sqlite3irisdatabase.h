@@ -3,9 +3,8 @@
 
 #include <iostream>
 #include <QDebug>
-#include <horus/irisdatabase.h>
-#include <horus/serializer.h>
 
+#include "common.h"
 #include "external/sqlite3/sqlite3.h"
 
 class SQLite3IrisDatabase : public IrisDatabase

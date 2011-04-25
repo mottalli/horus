@@ -2,8 +2,6 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
-#include <horus/videoprocessor.h>
-#include <horus/decorator.h>
 
 #include "common.h"
 #include "matchingdialog.h"
@@ -37,11 +35,13 @@ private slots:
 
 private:
 	void identificarTemplate(const IrisTemplate& irisTemplate, Mat imagen=Mat(), SegmentationResult segmentationResult=SegmentationResult());
+	void mostrarEnfoque(double enfoque, double threshold, int width);
 
     Ui::MainWindow *ui;
 	Decorator decorator;
 
 	Mat lastFrame, lastIrisFrame, decoratedFrame, resizedFrame;
+	Mat imagenEnfoque;
 	SegmentationResult lastIrisFrameSegmentation;
 	IrisTemplate lastTemplate;
 	list<double> lastFocusScores;

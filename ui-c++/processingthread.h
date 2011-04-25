@@ -3,7 +3,7 @@
 
 #include <QThread>
 
-#include <horus/videoprocessor.h>
+#include "common.h"
 
 class ProcessingThread : public QThread
 {
