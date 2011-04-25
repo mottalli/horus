@@ -10,29 +10,36 @@
 SQLite3IrisDatabase DB("/home/marcelo/Documents/Programacion/horus/ui-python/_base");
 
 
+VideoThread irisVideoThread(0);
+ProcessingThread processingThread;
+
 int main(int argc, char *argv[])
 {
 	QApplication a(argc, argv);
 	MainWindow w;
 	w.show();
 
-	// Inicializacion
+	/******* Inicializacion *******/
 	qRegisterMetaType<Mat>("Mat");
 	qRegisterMetaType<VideoProcessor>("VideoProcessor");
 	qRegisterMetaType<IrisTemplate>("IrisTemplate");
 
-	VideoThread irisVideoThread(0);
-	ProcessingThread processingThread;
-	QObject::connect(&irisVideoThread, SIGNAL(signalFrameAvailable(Mat)), &w, SLOT(slotFrameAvailable(Mat)));
-	QObject::connect(&irisVideoThread, SIGNAL(signalFrameAvailable(Mat)), &processingThread, SLOT(slotProcessFrame(Mat)));
-	QObject::connect(&processingThread, SIGNAL(signalFrameProcessed(VideoProcessor)), &w, SLOT(slotFrameProcessed(VideoProcessor)));
-	QObject::connect(&processingThread, SIGNAL(signalGotTemplate(VideoProcessor)), &w, SLOT(slotGotTemplate(VideoProcessor)));
+	//QObject::connect(&irisVideoThread, SIGNAL(signalFrameAvailable(Mat)), &w, SLOT(slotFrameAvailable(Mat)));
+	QObject::connect(&irisVideoThread, SIGNAL(signalFrameAvailable(Mat)), &processingThread, SLOT(slotProcessFrame(Mat)), Qt::BlockingQueuedConnection);
+	QObject::connect(&processingThread, SIGNAL(signalFrameProcessed(VideoProcessor)), &w, SLOT(slotFrameProcessed(VideoProcessor)), Qt::BlockingQueuedConnection);
+	QObject::connect(&processingThread, SIGNAL(signalGotTemplate(VideoProcessor)), &w, SLOT(slotGotTemplate(VideoProcessor)), Qt::BlockingQueuedConnection);
 	irisVideoThread.start();
 
-	// Ejecución
+	/******* Ejecución *******/
 	int res = a.exec();
 
-	// Terminación
+	/******* Terminación *******/
+
+	// Si no se hace esto, hay un deadlock al salir
+	QObject::disconnect(&irisVideoThread, SIGNAL(signalFrameAvailable(Mat)), &processingThread, SLOT(slotProcessFrame(Mat)));
+	QObject::disconnect(&processingThread, SIGNAL(signalFrameProcessed(VideoProcessor)), &w, SLOT(slotFrameProcessed(VideoProcessor)));
+	QObject::disconnect(&processingThread, SIGNAL(signalGotTemplate(VideoProcessor)), &w, SLOT(slotGotTemplate(VideoProcessor)));
+
 	irisVideoThread.stop();
 	irisVideoThread.wait();
 
