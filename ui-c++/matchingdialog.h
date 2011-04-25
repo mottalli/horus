@@ -2,6 +2,7 @@
 #define MATCHINGDIALOG_H
 
 #include <QDialog>
+#include "common.h"
 
 namespace Ui {
     class MatchingDialog;
@@ -14,6 +15,8 @@ class MatchingDialog : public QDialog
 public:
     explicit MatchingDialog(QWidget *parent = 0);
     ~MatchingDialog();
+
+	void doMatch(const IrisTemplate& irisTemplate, Mat imagen=Mat(), SegmentationResult segmentationResult=SegmentationResult());
 
 private:
     Ui::MatchingDialog *ui;

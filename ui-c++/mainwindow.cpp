@@ -77,6 +77,7 @@ void MainWindow::slotGotTemplate(const VideoProcessor& videoProcessor)
 
 void MainWindow::on_btnIdentificar_clicked()
 {
+	this->identificarTemplate(this->lastTemplate);
 }
 
 void MainWindow::on_btnRegistrar_clicked()
@@ -112,4 +113,9 @@ void MainWindow::on_btnForzarRegistracion_clicked()
 	// Genera un template a partir de la imagen
 	Segmentator segmentator;
 
+}
+
+void MainWindow::identificarTemplate(const IrisTemplate& irisTemplate, Mat imagen, SegmentationResult segmentationResult)
+{
+	this->matchingDialog.doMatch(irisTemplate, imagen, segmentationResult);
 }
