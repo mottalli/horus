@@ -43,6 +43,7 @@ public:
 	inline int getPupilContourQuality() const { return this->pupilContourQuality; }
 
 	inline void setROI(Rect ROI) { this->ROI = ROI; };
+	inline void unsetROI() { this->ROI = Rect(0,0,0,0); };
 
 	// Internal buffers
 	Mat_<uint8_t> similarityImage;

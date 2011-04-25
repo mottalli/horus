@@ -37,6 +37,7 @@ public:
 		UNPROCESSED,
 		DEFOCUSED,
 		INTERLACED,
+		NO_EYE,
 		FOCUSED_NO_IRIS,
 		IRIS_LOW_QUALITY,
 		IRIS_TOO_CLOSE,
@@ -49,7 +50,7 @@ public:
 
 	VideoStatus processFrame(const Mat& frame);
 
-	void setWaitingFrames(int frames) { this->waitingFrames = frames; }
+	void setWaitingFrames(int frames) { this->waitingFrames = frames; };
 
 	QualityChecker qualityChecker;
 	Segmentator segmentator;
@@ -67,9 +68,11 @@ public:
 
 	Mat lastFrame;
 
+	Rect eyeROI;
+
 private:
-	Mat_<uint8_t> lastFrameBW;
 	unsigned int waitingFrames;
+	Mat_<uint8_t> lastFrameBW;
 
 	VideoStatus doProcess(const Mat& frame);
 	
@@ -80,5 +83,7 @@ private:
 	int templateWaitCount;
 	int framesToSkip;
 	bool waitingBestTemplate;
+
+	CascadeClassifier eyeClassifier;
 };
 
