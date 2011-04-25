@@ -87,11 +87,11 @@ void Decorator::drawContour(Mat& image, const Contour& contour, const Scalar& co
 
 	for (int i = 1; i < n; i++) {
 		const Point p = contour[i];
-		line(image, lastPoint, p, color, 1);
+		line(image, lastPoint, p, color, this->lineWidth);
 		lastPoint = p;
 	}
 
-	line(image, lastPoint, p0, color, 1);
+	line(image, lastPoint, p0, color, this->lineWidth);
 }
 
 void Decorator::drawParabola(Mat& image, const Parabola& parabola, int xMin, int xMax, const Scalar& color) const
