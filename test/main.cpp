@@ -19,12 +19,16 @@ Decorator decorator;
 void drawFocusScores(const vector<double>& focusScores, Mat image, Rect rect, double threshold = 0);
 void calcularCuadroDistancias(const vector<IrisTemplate>& templates);
 
+const string GREEN = "\033[32m";
+const string RED = "\033[31m";
+const string BLACK = "\033[0m";
+
 int main(int, char**)
 {
-	VideoCapture cap("/home/marcelo/iris/BBDD/Videos/bursztyn1/20080501-230748.mpg");
+	//VideoCapture cap("/home/marcelo/iris/BBDD/Videos/bursztyn1/20080501-230748.mpg");
 	//VideoCapture cap("/home/marcelo/iris/BBDD/Videos/marcelo1/marcelo1.mpg");
 	//VideoCapture cap("/home/marcelo/iris/BBDD/Videos/marta1/20080702-232946.mpg");
-	//VideoCapture cap("/home/marcelo/iris/BBDD/Videos/norberto1/20080501-230608.mpg");
+	VideoCapture cap("/home/marcelo/iris/BBDD/Videos/norberto1/20080501-230608.mpg");
 	//VideoCapture cap("/home/marcelo/iris/BBDD/Videos/norberto2/20080501-231028.mpg");
 	Mat frame;
 
@@ -98,7 +102,7 @@ void drawFocusScores(const vector<double>& focusScores, Mat image, Rect rect, do
 
 void calcularCuadroDistancias(const vector<IrisTemplate>& templates)
 {
-	//cout.setf(0, ios::floatfield);
+	cout.setf(ios::fixed, ios::floatfield);
 
 	for (int i = 0; i < templates.size(); i++) {
 		TemplateComparator comparator(templates[i]);
@@ -108,7 +112,9 @@ void calcularCuadroDistancias(const vector<IrisTemplate>& templates)
 				continue;
 			}
 
-			cout << setw(10) << setprecision(3) <<  comparator.compare(templates[j]);
+			double dist = comparator.compare(templates[j]);
+
+			cout << setw(10) << setprecision(3) << (dist < 0.35 ? GREEN : RED) << dist << BLACK;
 		}
 		cout << endl;
 	}
