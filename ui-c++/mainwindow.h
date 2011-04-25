@@ -34,13 +34,14 @@ private slots:
 	void on_btnForzarRegistracion_clicked();
 
 private:
-	void identificarTemplate(const IrisTemplate& irisTemplate, Mat imagen=Mat(), SegmentationResult segmentationResult=SegmentationResult());
+	void identificarTemplate(const IrisTemplate& irisTemplate, const Mat_<uint8_t>& imagen, const SegmentationResult& segmentationResult);
 	void mostrarEnfoque(double enfoque, double threshold, int width);
 
     Ui::MainWindow *ui;
 	Decorator decorator;
 
-	Mat lastFrame, lastIrisFrame, decoratedFrame, resizedFrame;
+	Mat lastFrame, decoratedFrame, resizedFrame;
+	Mat_<uint8_t> lastIrisFrame;
 	Mat imagenEnfoque;
 	SegmentationResult lastIrisFrameSegmentation;
 	IrisTemplate lastTemplate;

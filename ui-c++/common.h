@@ -3,6 +3,7 @@
 #include <opencv/highgui.h>
 #include <list>
 #include <vector>
+#include <sstream>
 
 #include "segmentator.h"
 #include "loggaborencoder.h"

@@ -16,7 +16,7 @@ public:
     explicit MatchingDialog(QWidget *parent = 0);
     ~MatchingDialog();
 
-	void doMatch(const IrisTemplate& irisTemplate, Mat imagen=Mat(), SegmentationResult segmentationResult=SegmentationResult());
+	void doMatch(const IrisTemplate& irisTemplate, const Mat_<uint8_t>& image, const SegmentationResult& segmentationResult);
 
 private:
     Ui::MatchingDialog *ui;

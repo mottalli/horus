@@ -50,7 +50,8 @@ void MainWindow::slotGotTemplate(const VideoProcessor& videoProcessor)
 	//this->lastTemplate = videoProcessor.getTemplate();
 	this->lastTemplate = videoProcessor.getAverageTemplate();
 	this->lastIrisFrameSegmentation = videoProcessor.getBestTemplateSegmentation();
-	videoProcessor.getBestTemplateFrame().copyTo(this->lastIrisFrame);
+	//videoProcessor.getBestTemplateFrame().copyTo(this->lastIrisFrame);
+	this->lastIrisFrame = videoProcessor.getBestTemplateFrame().clone();
 
 	cvtColor(this->lastIrisFrame, this->decoratedFrame, CV_GRAY2RGB);
 
@@ -65,7 +66,7 @@ void MainWindow::slotGotTemplate(const VideoProcessor& videoProcessor)
 
 void MainWindow::on_btnIdentificar_clicked()
 {
-	this->identificarTemplate(this->lastTemplate);
+	this->identificarTemplate(this->lastTemplate, this->lastIrisFrame, this->lastIrisFrameSegmentation);
 }
 
 void MainWindow::on_btnRegistrar_clicked()
@@ -103,7 +104,7 @@ void MainWindow::on_btnForzarRegistracion_clicked()
 
 }
 
-void MainWindow::identificarTemplate(const IrisTemplate& irisTemplate, Mat imagen, SegmentationResult segmentationResult)
+void MainWindow::identificarTemplate(const IrisTemplate& irisTemplate, const Mat_<uint8_t>& imagen, const SegmentationResult& segmentationResult)
 {
 	if (this->matchingDialog.isVisible()) return;
 
