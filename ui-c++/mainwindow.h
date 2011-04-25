@@ -2,10 +2,9 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
-#include <horus/videoprocessor.h>
-#include <horus/decorator.h>
 
 #include "common.h"
+#include "matchingdialog.h"
 
 
 namespace Ui {
@@ -29,23 +28,25 @@ public slots:
 
 private slots:
 	void on_btnIdentificar_clicked();
-
 	void on_btnRegistrar_clicked();
-
 	void on_btnGuardarImagen_clicked();
-
 	void on_btnCapturar_clicked();
-
 	void on_btnForzarRegistracion_clicked();
 
 private:
+	void identificarTemplate(const IrisTemplate& irisTemplate, Mat imagen=Mat(), SegmentationResult segmentationResult=SegmentationResult());
+	void mostrarEnfoque(double enfoque, double threshold, int width);
+
     Ui::MainWindow *ui;
 	Decorator decorator;
 
 	Mat lastFrame, lastIrisFrame, decoratedFrame, resizedFrame;
+	Mat imagenEnfoque;
 	SegmentationResult lastIrisFrameSegmentation;
 	IrisTemplate lastTemplate;
 	list<double> lastFocusScores;
+
+	MatchingDialog matchingDialog;
 };
 
 #endif // MAINWINDOW_H

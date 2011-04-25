@@ -10,22 +10,27 @@
 #include "tools.h"
 #include <cmath>
 
+const Scalar Decorator::DEFAULT_PUPIL_COLOR = CV_RGB(255,255,0);
+const Scalar Decorator::DEFAULT_IRIS_COLOR = CV_RGB(255,0,0);
+const Scalar Decorator::DEFAULT_EYELID_COLOR = CV_RGB(0,0,255);
+
 Decorator::Decorator()
 {
-	this->irisColor = Scalar(0,255,0);
-	this->pupilColor = Scalar(255,0,0);
-	this->upperEyelidColor = Scalar(0,0,255);
-	this->lowerEyelidColor = Scalar(0,0,255);
+	this->irisColor = Decorator::DEFAULT_IRIS_COLOR;
+	this->pupilColor = Decorator::DEFAULT_PUPIL_COLOR;
+	this->upperEyelidColor = Decorator::DEFAULT_EYELID_COLOR;
+	this->lowerEyelidColor = Decorator::DEFAULT_EYELID_COLOR;
+	this->lineWidth = 1;
 }
 
 void Decorator::drawSegmentationResult(Mat& image, const SegmentationResult& segmentationResult) const
 {
-	Scalar irisColor_ = (image.channels() == 1 ? Scalar(255,255,255) : this->irisColor);
-	Scalar pupilColor_ = (image.channels() == 1 ? Scalar(255,255,255) : this->pupilColor);
+	Scalar irisColor_ = (image.channels() == 1 ? (Scalar)CV_RGB(255,255,255) : this->irisColor);
+	Scalar pupilColor_ = (image.channels() == 1 ? (Scalar)CV_RGB(255,255,255) : this->pupilColor);
 	this->drawContour(image, segmentationResult.irisContour, irisColor_);
 	this->drawContour(image, segmentationResult.pupilContour, pupilColor_);
 
-	const Circle& irisCircle = segmentationResult.irisCircle;
+	//const Circle& irisCircle = segmentationResult.irisCircle;
 
 	if (segmentationResult.eyelidsSegmented) {
 		int xMin = segmentationResult.irisCircle.xc-segmentationResult.irisCircle.radius;
@@ -80,11 +85,8 @@ void Decorator::drawContour(Mat& image, const Contour& contour, const Scalar& co
 
 	Point lastPoint = p0;
 
-	Mat_<Vec3b>& image3 = (Mat_<Vec3b>&)image;
-
 	for (int i = 1; i < n; i++) {
 		const Point p = contour[i];
-		//image.at<Vec3b>(p.y, p.x) = Vec3b(0, 255, 255);
 		line(image, lastPoint, p, color, 1);
 		lastPoint = p;
 	}
@@ -120,7 +122,6 @@ void Decorator::drawTemplate(Mat& image, const IrisTemplate& irisTemplate)
 	if (imgTemplate.rows < 10) {
 		Mat tmp(3*imgTemplate.rows+2, imgTemplate.cols+2, CV_8U, Scalar(128));
 
-		int width = imgTemplate.cols;
 		for (int i = 0; i < imgTemplate.rows; i++) {
 			Mat r = tmp(Rect(1, 3*i+2, imgTemplate.cols, 1));
 			imgTemplate.row(i).copyTo(r);
@@ -155,19 +156,17 @@ void Decorator::setDrawingColors(Scalar pupilColor_, Scalar irisColor_, Scalar u
 
 void Decorator::drawFocusScores(const list<double>& focusScores, Mat image, Rect rect, double threshold)
 {
-	image(rect) = Scalar(255,255,255);
-	rectangle(image, rect, Scalar(0,0,0), 1);
+	image(rect) = CV_RGB(255,255,255);
 
 	if (threshold > 0) {
 		double y = rect.height - ((threshold/100.0) * rect.height);
 		double yimg = rect.y + y;
-		line(image, Point(rect.x, yimg), Point(rect.x+rect.width, yimg), Scalar(255,0,0));
+		line(image, Point(rect.x, yimg), Point(rect.x+rect.width, yimg), CV_RGB(255,0,0));
 	}
 
 	Point lastPoint;
 
-	//for (int i = focusScores.size()-1; i >= 0 && (rect.width - (focusScores.size()-1-i)) > 0; i--) {
-	int i =  i = focusScores.size()-1;
+	int i = focusScores.size()-1;
 	for (list<double>::const_reverse_iterator it = focusScores.rbegin(); it != focusScores.rend(); it++) {
 		double focusScore = *it;
 		double x = rect.width - (focusScores.size()-1-i);
@@ -181,7 +180,7 @@ void Decorator::drawFocusScores(const list<double>& focusScores, Mat image, Rect
 			lastPoint = pimg;
 		}
 
-		line(image, lastPoint, pimg, Scalar(0,0,255));
+		line(image, lastPoint, pimg, CV_RGB(0,0,255));
 		lastPoint = pimg;
 		i--;
 	}

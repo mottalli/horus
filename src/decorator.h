@@ -13,16 +13,20 @@ public:
 	Scalar upperEyelidColor;
 	Scalar lowerEyelidColor;
 
+	static const Scalar DEFAULT_IRIS_COLOR, DEFAULT_PUPIL_COLOR, DEFAULT_EYELID_COLOR;
+
 	void drawSegmentationResult(Mat& image, const SegmentationResult& segmentationResult) const;
 	void drawTemplate(Mat& image, const IrisTemplate& irisTemplate);
 	void drawEncodingZone(Mat& image, const SegmentationResult& segmentationResult);
 
-	void setDrawingColors(Scalar pupilColor = Scalar(0,255,0),
-							Scalar irisColor = Scalar(255,0,0),
-							Scalar upperEyelidColor = Scalar(0,0,255),
-							Scalar lowerEyelidColor = Scalar(0,0,255)
+	void setDrawingColors(Scalar pupilColor = DEFAULT_PUPIL_COLOR,
+							Scalar irisColor = DEFAULT_IRIS_COLOR,
+							Scalar upperEyelidColor = DEFAULT_EYELID_COLOR,
+							Scalar lowerEyelidColor = DEFAULT_EYELID_COLOR
 						  );
 	void drawFocusScores(const list<double>& focusScores, Mat image, Rect rect, double threshold);
+
+	int lineWidth;
 
 private:
 	void drawContour(Mat& image, const Contour& contour, const Scalar& color) const;

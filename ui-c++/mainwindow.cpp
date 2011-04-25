@@ -7,9 +7,9 @@
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
 	ui(new Ui::MainWindow),
-	lastFocusScores(100, 0)
+	lastFocusScores(1000, 0)
 {
-    ui->setupUi(this);
+	this->ui->setupUi(this);
 }
 
 MainWindow::~MainWindow()
@@ -24,49 +24,36 @@ void MainWindow::slotFrameAvailable(const Mat& /*frame*/)
 void MainWindow::slotFrameProcessed(const VideoProcessor& videoProcessor)
 {
 	VideoProcessor::VideoStatus status = videoProcessor.lastStatus;
-
-	this->lastFocusScores.pop_front();
-	this->lastFocusScores.push_back(videoProcessor.lastFocusScore);
-
-
 	videoProcessor.lastFrame.copyTo(this->lastFrame);
 
-	int heightControl = 50;
-	decorator.drawFocusScores(this->lastFocusScores, this->lastFrame, Rect(0, this->lastFrame.rows-heightControl, this->lastFrame.cols, heightControl), videoProcessor.parameters.focusThreshold);
+	mostrarEnfoque(videoProcessor.lastFocusScore, videoProcessor.parameters.focusThreshold, this->lastFrame.cols);
 
+	Mat frameDecorado = this->lastFrame;
 
-	switch (status) {
+	if (status >= VideoProcessor::FOCUSED_NO_IRIS) {
+		Scalar pupilColor = (status == VideoProcessor::FOCUSED_NO_IRIS ? (Scalar)CV_RGB(255,255,255) :  Decorator::DEFAULT_PUPIL_COLOR);
+		Scalar irisColor = (status == VideoProcessor::FOCUSED_NO_IRIS ? (Scalar)CV_RGB(255,255,255) : Decorator::DEFAULT_IRIS_COLOR);
+		decorator.lineWidth = (status == VideoProcessor::FOCUSED_NO_IRIS ? 1 : 2);
 
-	case VideoProcessor::IRIS_TOO_CLOSE:
-	case VideoProcessor::IRIS_TOO_FAR:
-	case VideoProcessor::INTERLACED:
-	case VideoProcessor::IRIS_LOW_QUALITY:
-	case VideoProcessor::GOT_TEMPLATE:
-		ui->focusScore->setValue(videoProcessor.lastFocusScore);
-	case VideoProcessor::UNPROCESSED:
-	case VideoProcessor::DEFOCUSED:
-		ui->video->showImage(this->lastFrame);
-		break;
-
-	case VideoProcessor::FOCUSED_NO_IRIS:
-	case VideoProcessor::FOCUSED_IRIS:
-		Mat tmp = this->lastFrame.clone();
-		decorator.drawSegmentationResult(tmp, videoProcessor.lastSegmentationResult);
-		ui->video->showImage(tmp);
-		break;
+		frameDecorado = this->lastFrame.clone();
+		decorator.setDrawingColors(pupilColor, irisColor);
+		decorator.drawSegmentationResult(frameDecorado, videoProcessor.lastSegmentationResult);
 	}
+
+	this->ui->video->showImage(frameDecorado);
 }
 
 void MainWindow::slotGotTemplate(const VideoProcessor& videoProcessor)
 {
 	qDebug() << "Template!";
 
-	this->lastTemplate = const_cast<VideoProcessor&>(videoProcessor).getTemplate();
+	this->lastTemplate = videoProcessor.getTemplate();
 	this->lastIrisFrameSegmentation = videoProcessor.getTemplateSegmentation();
 	videoProcessor.getTemplateFrame().copyTo(this->lastIrisFrame);
 
-	this->lastIrisFrame.convertTo(this->decoratedFrame, CV_GRAY2BGR);
+	cvtColor(this->lastIrisFrame, this->decoratedFrame, CV_GRAY2RGB);
 
+	this->decorator.setDrawingColors();
 	this->decorator.drawSegmentationResult(this->decoratedFrame, this->lastIrisFrameSegmentation);
 
 	// Muestra el frame decorado en la ventana de la imagen capturada. Para esto, hay que resizearlo
@@ -77,6 +64,7 @@ void MainWindow::slotGotTemplate(const VideoProcessor& videoProcessor)
 
 void MainWindow::on_btnIdentificar_clicked()
 {
+	this->identificarTemplate(this->lastTemplate);
 }
 
 void MainWindow::on_btnRegistrar_clicked()
@@ -112,4 +100,23 @@ void MainWindow::on_btnForzarRegistracion_clicked()
 	// Genera un template a partir de la imagen
 	Segmentator segmentator;
 
+}
+
+void MainWindow::identificarTemplate(const IrisTemplate& irisTemplate, Mat imagen, SegmentationResult segmentationResult)
+{
+	this->matchingDialog.doMatch(irisTemplate, imagen, segmentationResult);
+}
+
+void MainWindow::mostrarEnfoque(double enfoque, double threshold, int width)
+{
+	this->lastFocusScores.pop_front();
+	this->lastFocusScores.push_back(enfoque);
+
+	if (this->imagenEnfoque.empty()) {
+		this->imagenEnfoque.create(Size(width, 30), CV_8UC3);
+	}
+
+	decorator.drawFocusScores(this->lastFocusScores, this->imagenEnfoque, Rect(0, 0, this->imagenEnfoque.cols, this->imagenEnfoque.rows), threshold);
+	this->ui->animacionEnfoque->showImage(this->imagenEnfoque);
+	this->ui->focusScore->setValue(enfoque);
 }
