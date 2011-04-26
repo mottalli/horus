@@ -11,7 +11,7 @@ TEMPLATE = app
 
 LIBS += -lml -lcvaux -lhighgui -lcv -lcxcore
 
-INCLUDEPATH += ../src
+INCLUDEPATH += ../src ./external
 
 SOURCES += main.cpp\
         mainwindow.cpp \

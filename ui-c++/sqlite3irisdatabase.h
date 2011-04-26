@@ -3,6 +3,7 @@
 
 #include <iostream>
 #include <QDebug>
+#include <QObject>
 
 #include "common.h"
 #include "external/sqlite3/sqlite3.h"
@@ -22,13 +23,14 @@ public:
 	} IrisData;
 
 
-	const IrisData getIrisData(int userId);
+	IrisData getIrisData(int userId) const;
+	void addUser(string userName, const IrisTemplate& irisTemplate, const SegmentationResult& segmentationResult, const Mat image=Mat());
 
 private:
 	string dbPath;
-	sqlite3* db;
+	mutable sqlite3* db;
 
-	void VERIFY_SQL(int status, const string msgError = "");
+	void VERIFY_SQL(int status, const string msgError = "") const;
 };
 
 #endif // SQLITE3IRISDATABASE_H
