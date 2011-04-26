@@ -19,7 +19,7 @@ public:
 	VideoProcessorParameters()
 	{
 		this->bestFrameWaitCount = 20;
-		this->focusThreshold = 70;
+		this->focusThreshold = 50;
 		this->interlacedVideo = true;
 		this->correlationThreshold = 92;
 		this->segmentationScoreThreshold = 1.7;

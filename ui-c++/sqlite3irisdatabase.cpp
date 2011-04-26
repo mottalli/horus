@@ -1,9 +1,8 @@
 #include "sqlite3irisdatabase.h"
 #include <sys/stat.h>
 
-#include "external/boost/lexical_cast.hpp"
-#include "external/boost/system/error_code.hpp"
-#include "external/boost/filesystem.hpp"
+#include "external/boost/boost/lexical_cast.hpp"
+#include "external/boost/boost/filesystem.hpp"
 
 SQLite3IrisDatabase::SQLite3IrisDatabase(const string& dbPath) :
 	dbPath(dbPath), db(NULL)
@@ -110,17 +109,15 @@ void SQLite3IrisDatabase::addUser(string userName, const IrisTemplate& irisTempl
 	sqlite3_int64 userId = sqlite3_last_insert_rowid(this->db);
 
 	// Guardo la imagen
-	/*if (!image.empty()) {
+	if (!image.empty()) {
 		ostringstream tmpstream;
-		string filename = boost::lexical_cast<string>(userId) + ".jpg";
-		string relativePath = boost::lexical_cast<string>(userId) + "/";
-		string relativeFilename = relativePath + filename;
-		string fullFilename = this->dbPath + "/" + relativeFilename;
+		string filename = boost::lexical_cast<string>(userId) + ".jpg";			// foo.jpg
+		string relativePath = boost::lexical_cast<string>(userId) + "/";		// foo/
+		string relativeFilename = relativePath + filename;						// foo/foo.jpg
+		string fullPath = this->dbPath + "/" + relativePath;					// /path/to/db/foo/
+		string fullFilename = this->dbPath + "/" + relativeFilename;			// /path/to/db/foo/foo.jpg
 
-		if (mkdir(relativePath.c_str(), S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH) != 0) {
-			qDebug() << "No se pudo crear el directorio " << relativePath.c_str() << "!";
-		}
-
+		boost::filesystem3::create_directories(fullPath);
 		imwrite(fullFilename, image);
 
 		sql = "UPDATE usuarios SET imagen=? WHERE id_usuario=?";
@@ -128,7 +125,7 @@ void SQLite3IrisDatabase::addUser(string userName, const IrisTemplate& irisTempl
 		VERIFY_SQL( sqlite3_bind_text(stmt, 1, relativeFilename.c_str(), -1, SQLITE_TRANSIENT) );
 		VERIFY_SQL( sqlite3_bind_int(stmt, 2, userId) );
 		sqlite3_step(stmt);
-	}*/
+	}
 
 	this->addTemplate(userId, irisTemplate);
 }

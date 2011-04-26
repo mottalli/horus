@@ -26,9 +26,13 @@ void VideoThread::run()
 
 		if (_frame.empty()) break;		// Fin del video (por algún motivo)
 
-		flip(_frame, _frame, 1);		// El flip es para que el video no salga al revés
+		flip(_frame, _frame, 1);		// El flip es para que el video no salga al revés (es anti-intuitivo para los usuarios)
 
-		emit(signalFrameAvailable(_frame));
+		// Extraigo una sub-ventana porque los bordes suelen venir negros
+		int dx = 20, dy = 10;
+		Mat subwindow = _frame(Rect(dx, dy, _frame.cols-2*dx, _frame.rows-2*dy));
+
+		emit(signalFrameAvailable(subwindow));
 		msleep(30);
 	}
 

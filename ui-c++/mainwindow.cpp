@@ -38,8 +38,11 @@ void MainWindow::slotFrameProcessed(const VideoProcessor& videoProcessor)
 		frameDecorado = this->lastFrame.clone();
 		decorator.setDrawingColors(pupilColor, irisColor);
 		decorator.drawSegmentationResult(frameDecorado, videoProcessor.lastSegmentationResult);
+
+		this->drawCrosshair(frameDecorado, Point(videoProcessor.lastSegmentationResult.irisCircle.xc, videoProcessor.lastSegmentationResult.irisCircle.yc), 1);
 	}
 
+	this->drawCrosshair(frameDecorado, Point(frameDecorado.cols/2, frameDecorado.rows/2), 2);
 	this->ui->video->showImage(frameDecorado);
 }
 
@@ -66,12 +69,14 @@ void MainWindow::slotGotTemplate(const VideoProcessor& videoProcessor)
 
 void MainWindow::on_btnIdentificar_clicked()
 {
+	if (this->lastIrisFrame.empty()) return;				// Sólo hacer identificación si hay un iris
+
 	this->identificarTemplate(this->lastTemplate, this->lastIrisFrame, this->lastIrisFrameSegmentation);
 }
 
 void MainWindow::on_btnRegistrar_clicked()
 {
-
+	if (this->lastIrisFrame.empty()) return;				// Sólo registrar si hay un iris
 }
 
 void MainWindow::on_btnGuardarImagen_clicked()
@@ -123,4 +128,15 @@ void MainWindow::mostrarEnfoque(double enfoque, double threshold, int width)
 	decorator.drawFocusScores(this->lastFocusScores, this->imagenEnfoque, Rect(0, 0, this->imagenEnfoque.cols, this->imagenEnfoque.rows), threshold);
 	this->ui->animacionEnfoque->showImage(this->imagenEnfoque);
 	this->ui->focusScore->setValue(enfoque);
+}
+
+void MainWindow::drawCrosshair(Mat& image, Point p, int thickness, int size, Scalar color)
+{
+	Point p00 = Point(p.x, p.y-size/2);
+	Point p01 = Point(p.x, p.y+size/2);
+	Point p10 = Point(p.x-size/2, p.y);
+	Point p11 = Point(p.x+size/2, p.y);
+
+	line(image, p00, p01, color, thickness);
+	line(image, p10, p11, color, thickness);
 }

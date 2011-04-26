@@ -11,7 +11,7 @@ TEMPLATE = app
 
 LIBS += -lml -lcvaux -lhighgui -lcv -lcxcore
 
-INCLUDEPATH += ../src ./external
+INCLUDEPATH += ../src ./external/boost/
 
 SOURCES += main.cpp\
         mainwindow.cpp \
@@ -21,13 +21,25 @@ SOURCES += main.cpp\
     registerdialog.cpp \
 	matchingdialog.cpp \
 	external/sqlite3/sqlite3.c \
-	sqlite3irisdatabase.cpp \
-	../src/clock.cpp              ../src/loggaborencoder.cpp     ../src/segmentator.cpp \
+	sqlite3irisdatabase.cpp
+
+SOURCES += ../src/clock.cpp              ../src/loggaborencoder.cpp     ../src/segmentator.cpp \
 	../src/decorator.cpp          ../src/serializer.cpp \
 	../src/eyelidsegmentator.cpp  ../src/irisencoder.cpp       ../src/pupilsegmentator.cpp    ../src/templatecomparator.cpp \
 	../src/gaborencoder.cpp       ../src/irissegmentator.cpp   ../src/qualitychecker.cpp      ../src/tools.cpp \
 	../src/irisdatabase.cpp       ../src/iristemplate.cpp      ../src/segmentationresult.cpp  ../src/videoprocessor.cpp
 
+SOURCES += external/boost/libs/system/src/error_code.cpp \
+	external/boost/libs/system/src/local_free_on_destruction.hpp \
+	external/boost/libs/filesystem/v3/src/windows_file_codecvt.hpp \
+	external/boost/libs/filesystem/v3/src/windows_file_codecvt.cpp \
+	external/boost/libs/filesystem/v3/src/codecvt_error_category.cpp \
+	external/boost/libs/filesystem/v3/src/path_traits.cpp \
+	external/boost/libs/filesystem/v3/src/unique_path.cpp \
+	external/boost/libs/filesystem/v3/src/utf8_codecvt_facet.cpp \
+	external/boost/libs/filesystem/v3/src/portability.cpp \
+	external/boost/libs/filesystem/v3/src/operations.cpp \
+	external/boost/libs/filesystem/v3/src/path.cpp \
 
 HEADERS  += mainwindow.h \
     videothread.h \

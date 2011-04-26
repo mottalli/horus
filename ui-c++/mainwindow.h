@@ -36,6 +36,7 @@ private slots:
 private:
 	void identificarTemplate(const IrisTemplate& irisTemplate, const Mat_<uint8_t>& imagen, const SegmentationResult& segmentationResult);
 	void mostrarEnfoque(double enfoque, double threshold, int width);
+	void drawCrosshair(Mat& image, Point p, int thickness = 1, int size=25, Scalar color=CV_RGB(255,255,255));
 
     Ui::MainWindow *ui;
 	Decorator decorator;
