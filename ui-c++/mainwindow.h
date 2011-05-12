@@ -35,10 +35,14 @@ private slots:
 
 	void on_btnForzarIdentificacion_clicked();
 
+	void on_tabWidget_currentChanged(int index);
+
 private:
 	void identifyTemplate(const IrisTemplate& irisTemplate, const GrayscaleImage& image, const SegmentationResult& segmentationResult);
 	void registerTemplate(const IrisTemplate& irisTemplate, const GrayscaleImage& image, const SegmentationResult& segmentationResult);
 	void mostrarEnfoque(double enfoque, double threshold, int width);
+
+	static QString statusToString(VideoProcessor::VideoStatus status);
 
     Ui::MainWindow *ui;
 	Decorator decorator;

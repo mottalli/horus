@@ -1,4 +1,3 @@
-#include <QDebug>
 #include <QFileDialog>
 #include <QSound>
 
@@ -43,6 +42,7 @@ void MainWindow::slotFrameProcessed(const VideoProcessor& videoProcessor)
 
 	int irisScore = ((status >= VideoProcessor::FOCUSED_NO_IRIS) ? videoProcessor.lastIrisQuality : 0);
 	this->ui->irisScore->setValue(irisScore);
+	this->ui->statusBar->showMessage(MainWindow::statusToString(status));
 }
 
 void MainWindow::slotGotTemplate(const VideoProcessor& videoProcessor)
@@ -154,4 +154,41 @@ void MainWindow::on_btnForzarIdentificacion_clicked()
 	this->lastIrisFrameSegmentation = ::PROCESSING_THREAD.videoProcessor.segmentator.segmentImage(this->lastIrisFrame);
 	this->lastTemplate = ::PROCESSING_THREAD.videoProcessor.irisEncoder.generateTemplate(this->lastIrisFrame, this->lastIrisFrameSegmentation);
 	this->identifyTemplate(this->lastTemplate, this->lastIrisFrame, this->lastIrisFrameSegmentation);*/
+}
+
+void MainWindow::on_tabWidget_currentChanged(int index)
+{
+
+}
+
+QString MainWindow::statusToString(VideoProcessor::VideoStatus status)
+{
+	switch (status) {
+	case VideoProcessor::UNPROCESSED:
+		return QString("Esperando...");
+	case VideoProcessor::DEFOCUSED:
+		return QString("Video desenfocado");
+	case VideoProcessor::INTERLACED:
+		return QString("Frame entrelazado");
+	case VideoProcessor::NO_EYE:
+		return QString("Ojo no detectado");
+	case VideoProcessor::FOCUSED_NO_IRIS:
+		return QString("Iris no detectado");
+	case VideoProcessor::IRIS_LOW_QUALITY:
+		return QString("Baja calidad de iris");
+	case VideoProcessor::IRIS_TOO_CLOSE:
+		return QString("Iris demasiado cerca");
+	case VideoProcessor::IRIS_TOO_FAR:
+		return QString("Iris demasiado lejos");
+	case VideoProcessor::FOCUSED_IRIS:
+		return QString("Iris obtenido");
+	case VideoProcessor::BAD_TEMPLATE:
+		return QString("Baja calidad de template");
+	case VideoProcessor::FINISHED_CAPTURE:
+		return QString("Captura finalizada");
+	case VideoProcessor::GOT_TEMPLATE:
+		return QString("Template obtenido");
+	}
+
+	return QString("");
 }
