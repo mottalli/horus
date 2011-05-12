@@ -22,6 +22,12 @@ ContourAndCloseCircle PupilSegmentator::segmentPupil(const GrayscaleImage& image
 {
 	assert(image.channels() == 1 && image.depth() == CV_8U);
 
+	if (this->ROI.width) {
+		this->workingROI = this->ROI;
+	} else {
+		this->workingROI = Rect(0,0,image.cols,image.rows);
+	}
+
 	this->setupBuffers(image);
 	ContourAndCloseCircle result;
 
@@ -44,7 +50,7 @@ void PupilSegmentator::setupBuffers(const Image& image)
 	int bufferWidth = this->parameters.bufferWidth;
 	int width = image.cols;
 
-	if (this->ROI.width) {
+	if (this->workingROI.width) {
 		this->resizeFactor = 1.0;
 	} else {
 		this->resizeFactor = ((width > bufferWidth) ? double(bufferWidth) / double(width) : 1.0);
@@ -55,13 +61,6 @@ void PupilSegmentator::setupBuffers(const Image& image)
 	} else {
 		this->workingImage = image;
 	}
-
-	if (!this->ROI.width || !this->ROI.height) {
-		this->workingROI = Rect(0, 0, this->workingImage.cols, this->workingImage.rows);
-	} else {
-		this->workingROI = Rect(this->ROI.x*this->resizeFactor, this->ROI.y*this->resizeFactor, this->ROI.width*this->resizeFactor, this->ROI.height*this->resizeFactor);
-	}
-
 
 	this->adjustmentRing.create(Size(this->parameters.pupilAdjustmentRingWidth, this->parameters.pupilAdjustmentRingHeight));
 	this->adjustmentRingGradient.create(Size(this->parameters.pupilAdjustmentRingWidth, this->parameters.pupilAdjustmentRingHeight));
@@ -76,16 +75,7 @@ Circle PupilSegmentator::approximatePupil(const GrayscaleImage& image)
 	blur(this->similarityImage, this->similarityImage, Size(7, 7));
 
 	// Now perform the cascaded integro-differential operator (use the ROI if any)
-	GrayscaleImage searchArea;
-	bool useROI = (this->ROI.width > 0);
-	searchArea = (useROI ? this->similarityImage(this->ROI) : this->similarityImage);
-
-	Circle res = this->cascadedIntegroDifferentialOperator(searchArea);
-
-	if (useROI) {
-		res.xc += this->ROI.x;
-		res.yc += this->ROI.y;
-	}
+	Circle res = this->cascadedIntegroDifferentialOperator(this->similarityImage);
 
 	return res;
 }
@@ -234,7 +224,7 @@ Circle PupilSegmentator::cascadedIntegroDifferentialOperator(const GrayscaleImag
 	int minrad = minradabs;
 	int maxrad = this->parameters.maximumPupilRadius;
 
-	bool useROI = (this->ROI.width > 0);
+	bool useROI = (this->ROI.width > 0);		// Note that this->ROI isn't necessarily the same as this->workingROI (if this->ROI is empty, this->workingROI is the whole image)
 	int dx, dy;
 
 	if (useROI) {
@@ -245,11 +235,11 @@ Circle PupilSegmentator::cascadedIntegroDifferentialOperator(const GrayscaleImag
 		dy = image.rows*0.2;
 	}
 
-	int minx = dx, miny = dy;
-	int maxx = image.cols - dx, maxy = image.rows - dy;
+	int minx = this->workingROI.x+dx;
+	int miny = this->workingROI.y+dy;
+	int maxx = (this->workingROI.x+this->workingROI.width) - dx;
+	int maxy = (this->workingROI.y+this->workingROI.height) - dy;
 
-	//int minx = this->workingROI.x+dx, miny = this->workingROI.y+dy;			// Detect the circle ONLY inside the ROI
-	//int maxx = min(image.cols-1, this->workingROI.x+this->workingROI.width-dx), maxy = min(image.rows-1, this->workingROI.y+this->workingROI.height-dy);
 	int x, y;
 	//int maxStep = INT_MIN;
 	int bestX = 0, bestY = 0, bestRadius = 0;
@@ -340,14 +330,6 @@ uint8_t PupilSegmentator::circleAverage(const GrayscaleImage& image, int xc, int
 			i++;
 			w = (i - 1) * 8 + 1;
 
-			/*row1 = ((uint8_t*) (image->imageData)) + image->widthStep
-					* (yc + y);
-			row2 = ((uint8_t*) (image->imageData)) + image->widthStep
-					* (yc - y);
-			row3 = ((uint8_t*) (image->imageData)) + image->widthStep
-					* (yc + x);
-			row4 = ((uint8_t*) (image->imageData)) + image->widthStep
-					* (yc - x);*/
 			row1 = image.ptr(yc+y);
 			row2 = image.ptr(yc-y);
 			row3 = image.ptr(yc+x);
@@ -408,16 +390,6 @@ uint8_t PupilSegmentator::circleAverage(const GrayscaleImage& image, int xc, int
 		while (x < y) {
 			i++;
 			w = (i - 1) * 8 + 1;
-
-			/*row1 = ((uint8_t*) (image->imageData)) + image->widthStep
-					* (yc + y);
-			row2 = ((uint8_t*) (image->imageData)) + image->widthStep
-					* (yc - y);
-			row3 = ((uint8_t*) (image->imageData)) + image->widthStep
-					* (yc + x);
-			row4 = ((uint8_t*) (image->imageData)) + image->widthStep
-					* (yc - x);
-					*/
 
 			row1 = image.ptr(yc+y);
 			row2 = image.ptr(yc-y);

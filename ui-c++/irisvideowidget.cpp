@@ -27,7 +27,7 @@ void IrisVideoWidget::slotFrameProcessed(const VideoProcessor& videoProcessor)
 			double q = min<double>(1.0, double(videoProcessor.templateBuffer.size()) / double(videoProcessor.parameters.minCountForTemplateAveraging));
 			double angle = q*2*M_PI;
 			int width = int(400.0*q);
-			int height = (videoProcessor.lastSegmentationResult.irisCircle.radius-videoProcessor.lastSegmentationResult.pupilCircle.radius)/2;
+			int height = (videoProcessor.lastSegmentationResult.irisCircle.radius-videoProcessor.lastSegmentationResult.pupilCircle.radius)/2 + 1;
 			vector< pair<Point, Point> > pts = Tools::iterateIris(videoProcessor.lastSegmentationResult, width, height, -M_PI/2, angle-M_PI/2);
 			for (size_t i = 0; i < pts.size(); i++) {
 				Point p = pts[i].second;

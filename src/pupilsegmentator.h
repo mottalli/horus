@@ -42,8 +42,8 @@ public:
 	ContourAndCloseCircle segmentPupil(const GrayscaleImage& image);
 	inline int getPupilContourQuality() const { return this->pupilContourQuality; }
 
-	inline void setROI(Rect ROI) { this->ROI = ROI; };
-	inline void unsetROI() { this->ROI = Rect(0,0,0,0); };
+	inline void setROI(Rect ROI) { this->ROI = ROI; }
+	inline void unsetROI() { this->ROI = Rect(0,0,0,0); }
 
 	// Internal buffers
 	GrayscaleImage similarityImage;

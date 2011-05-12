@@ -161,25 +161,27 @@ Mat Tools::base64DecodeMat(const string &s)
 
 vector< pair<Point, Point> > Tools::iterateIris(const SegmentationResult& segmentation, int width, int height, double theta0, double theta1, double radius)
 {
-	vector< pair<Point, Point> > res;
+	vector< pair<Point, Point> > res(width*height);
 	const Contour& pupilContour = segmentation.pupilContour;
 	const Contour& irisContour = segmentation.irisContour;
+
+	assert(height > 1);
 
 	Point p0, p1;
 	for (int x = 0; x < width; x++) {
 		double theta = (double(x)/double(width)) * (theta1-theta0) + theta0;
 		if (theta < 0) theta = 2.0 * M_PI + theta;
 		assert(theta >= 0 && theta <= 2.0*M_PI);
-		double w = (theta/(2.0*M_PI))*double(pupilContour.size());
-		p0 = pupilContour[int(floor(w)) % pupilContour.size()];
+		double w = (theta/(2.0*M_PI))*double(pupilContour.size()-1);
+		p0 = pupilContour[int(floor(w))];
 		p1 = pupilContour[int(ceil(w)) % pupilContour.size()];
 
 		double prop = w-floor(w);
 		double xfrom = double(p0.x) + double(p1.x-p0.x)*prop;
 		double yfrom = double(p0.y) + double(p1.y-p0.y)*prop;
 
-		w = (theta/(2.0*M_PI))*double(irisContour.size());
-		p0 = irisContour[int(floor(w)) % irisContour.size()];
+		w = (theta/(2.0*M_PI))*double(irisContour.size()-1);
+		p0 = irisContour[int(floor(w))];
 		p1 = irisContour[int(ceil(w)) % irisContour.size()];
 		prop = w-floor(w);
 		double xto = double(p0.x) + double(p1.x-p0.x)*prop;
@@ -190,7 +192,7 @@ vector< pair<Point, Point> > Tools::iterateIris(const SegmentationResult& segmen
 			double ximage = xfrom + w*(xto-xfrom);
 			double yimage = yfrom + w*(yto-yfrom);
 
-			res.push_back(pair<Point, Point>(Point(x, y), Point(ximage, yimage)));
+			res[x*height+y] = pair<Point, Point>(Point(x, y), Point(ximage, yimage));
 		}
 	}
 
