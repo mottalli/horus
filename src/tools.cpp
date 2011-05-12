@@ -172,16 +172,16 @@ vector< pair<Point, Point> > Tools::iterateIris(const SegmentationResult& segmen
 		double theta = (double(x)/double(width)) * (theta1-theta0) + theta0;
 		if (theta < 0) theta = 2.0 * M_PI + theta;
 		assert(theta >= 0 && theta <= 2.0*M_PI);
-		double w = (theta/(2.0*M_PI))*double(pupilContour.size()-1);
-		p0 = pupilContour[int(floor(w))];
+		double w = (theta/(2.0*M_PI))*double(pupilContour.size());
+		p0 = pupilContour[int(floor(w)) % pupilContour.size()];
 		p1 = pupilContour[int(ceil(w)) % pupilContour.size()];
 
 		double prop = w-floor(w);
 		double xfrom = double(p0.x) + double(p1.x-p0.x)*prop;
 		double yfrom = double(p0.y) + double(p1.y-p0.y)*prop;
 
-		w = (theta/(2.0*M_PI))*double(irisContour.size()-1);
-		p0 = irisContour[int(floor(w))];
+		w = (theta/(2.0*M_PI))*double(irisContour.size());
+		p0 = irisContour[int(floor(w)) % irisContour.size()];
 		p1 = irisContour[int(ceil(w)) % irisContour.size()];
 		prop = w-floor(w);
 		double xto = double(p0.x) + double(p1.x-p0.x)*prop;
@@ -293,12 +293,11 @@ void Tools::stretchHistogram(const GrayscaleImage& image, GrayscaleImage& dest, 
 	}
 
 	// Quick & dirty way to calculate the histogram
-	unsigned int hist[256];
-	memset(hist, 0, sizeof(hist));
+	vector<int> hist(256, 0);
 
 	unsigned int total = image.rows*image.cols;
 
-	for (MatConstIterator_<uint8_t> it = image.begin(); it != image.end(); it++) {
+	for (GrayscaleImage::const_iterator it = image.begin(); it != image.end(); it++) {
 		hist[*it]++;
 	}
 
@@ -308,16 +307,14 @@ void Tools::stretchHistogram(const GrayscaleImage& image, GrayscaleImage& dest, 
 		sum += hist[x0];
 	}
 
-	for (x1 = 255,sum=0; sum <= marginMax*float(total); x1--) {
+	for (x1 = 255, sum=0; sum <= marginMax*float(total); x1--) {
 		sum += hist[x1];
 	}
 
-	for (int y = 0; y < image.rows; y++) {
-		for (int x = 0; x < image.cols; x++) {
-			int q = (float(image(y, x)-x0)/float(x1-x0)) * 255;
-			q = max(min(q, 255), 0);
-			dest(y, x) = q;
-		}
+	for (GrayscaleImage::const_iterator it = image.begin(); it != image.end(); it++) {
+		int q = int((float((*it)- x0)/float(x1-x0))*255.0);
+		q = max(min(q,255), 0);
+		dest(it.pos()) = q;
 	}
 }
 

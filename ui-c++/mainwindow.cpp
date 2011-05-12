@@ -57,6 +57,7 @@ void MainWindow::slotGotTemplate(const VideoProcessor& videoProcessor)
 	this->decorator.setDrawingColors();
 	this->decorator.lineWidth = 1;
 	this->decorator.drawSegmentationResult(this->decoratedFrame, this->lastIrisFrameSegmentation);
+	this->decorator.drawEncodingZone(this->decoratedFrame, this->lastIrisFrameSegmentation);
 
 	// Muestra el frame decorado en la ventana de la imagen capturada. Para esto, hay que resizearlo
 	cv::resize(this->decoratedFrame, this->resizedFrame, Size(320*1.2, 240*1.2));

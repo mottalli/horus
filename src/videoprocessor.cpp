@@ -177,7 +177,7 @@ IrisTemplate VideoProcessor::getAverageTemplate() const
 GrayscaleImage VideoProcessor::getBestTemplateFrame() const
 {
 	GrayscaleImage res;
-	Tools::stretchHistogram(this->templateBuffer[this->bestTemplateIdx].image, res, 0.01, 0);
+	Tools::stretchHistogram(this->templateBuffer[this->bestTemplateIdx].image, res, 0, 0);
 	return res;
 }
 
