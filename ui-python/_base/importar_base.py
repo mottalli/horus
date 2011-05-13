@@ -4,6 +4,11 @@
 import sqlite3
 import sys
 import os.path
+import horus
+from opencv import highgui
+
+encoder = horus.LogGaborEncoder()
+
 
 if len(sys.argv) != 2:
 	print 'Uso: %s /path/de/base' % (sys.argv[0])
@@ -27,10 +32,15 @@ if not otraConn:
 filas = otraConn.execute('SELECT imagen,segmentacion,codigo_gabor FROM base_iris WHERE segmentacion_correcta=1')
 for fila in filas:
 	nombre = str(fila[0])
-	imagen = os.path.join(sys.argv[1], str(fila[0]))
+	pathImagen = os.path.join(sys.argv[1], str(fila[0]))
 	segmentacion = str(fila[1])
-	codigo_gabor = str(fila[2])
 	
-	print "Importando", imagen
-	conn.execute('INSERT INTO usuarios(nombre, imagen, segmentacion, codigo_gabor) VALUES(?, ?, ?, ?)', (nombre, imagen, segmentacion, codigo_gabor))
+	# Recodifica el template
+	imagen = highgui.cvLoadImage(pathImagen, 0)
+	segmentacionDes = horus.unserializeSegmentationResult(segmentacion)
+	codigo_gabor = encoder.generateTemplate(imagem, segmentacionDes)
+	codigo_gabor = horus.serializeIrisTemplate(codigo_gabor)
+	
+	print "Importando y recodificando", imagen
+	conn.execute('INSERT INTO usuarios(nombre, imagen, segmentacion, codigo_gabor) VALUES(?, ?, ?, ?)', (nombre, pathImagen, segmentacion, codigo_gabor))
 conn.commit()

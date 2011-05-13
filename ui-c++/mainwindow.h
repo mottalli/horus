@@ -5,7 +5,7 @@
 
 #include "common.h"
 #include "matchingdialog.h"
-
+#include "registerdialog.h"
 
 namespace Ui {
     class MainWindow;
@@ -19,10 +19,10 @@ public:
     explicit MainWindow(QWidget *parent = 0);
     ~MainWindow();
 
-	void ofrecerGuardarImagen(const Mat& imagen);
+	void ofrecerGuardarImagen(const Image& imagen);
 
 public slots:
-	void slotFrameAvailable(const Mat& frame);
+	void slotFrameAvailable(const ColorImage& frame);
 	void slotFrameProcessed(const VideoProcessor& videoProcessor);
 	void slotGotTemplate(const VideoProcessor& videoProcessor);
 
@@ -33,22 +33,25 @@ private slots:
 	void on_btnCapturar_clicked();
 	void on_btnForzarRegistracion_clicked();
 
+	void on_btnForzarIdentificacion_clicked();
+
 private:
-	void identificarTemplate(const IrisTemplate& irisTemplate, const Mat_<uint8_t>& imagen, const SegmentationResult& segmentationResult);
+	void identifyTemplate(const IrisTemplate& irisTemplate, const GrayscaleImage& image, const SegmentationResult& segmentationResult);
+	void registerTemplate(const IrisTemplate& irisTemplate, const GrayscaleImage& image, const SegmentationResult& segmentationResult);
 	void mostrarEnfoque(double enfoque, double threshold, int width);
-	void drawCrosshair(Mat& image, Point p, int thickness = 1, int size=25, Scalar color=CV_RGB(255,255,255));
 
     Ui::MainWindow *ui;
 	Decorator decorator;
 
-	Mat lastFrame, decoratedFrame, resizedFrame;
-	Mat_<uint8_t> lastIrisFrame;
-	Mat imagenEnfoque;
+	ColorImage decoratedFrame, resizedFrame;
+	GrayscaleImage lastIrisFrame;
+	ColorImage imagenEnfoque;
 	SegmentationResult lastIrisFrameSegmentation;
 	IrisTemplate lastTemplate;
 	list<double> lastFocusScores;
 
 	MatchingDialog matchingDialog;
+	RegisterDialog registerDialog;
 };
 
 #endif // MAINWINDOW_H

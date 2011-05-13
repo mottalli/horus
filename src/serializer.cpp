@@ -106,8 +106,11 @@ string Serializer::serializeIrisTemplate(const IrisTemplate& irisTemplate)
 	ostringstream stream;
 	string serializedTemplate = Tools::base64EncodeMat(irisTemplate.irisTemplate);
 	string serializedMask = Tools::base64EncodeMat(irisTemplate.mask);
+	string signature = irisTemplate.encoderSignature;
 
-	stream << "LG," << serializedTemplate.length() << "," << serializedTemplate << serializedMask;
+	assert(find(signature.begin(), signature.end(), ',') == signature.end());	// Signature must not contain a comma
+
+	stream << irisTemplate.encoderSignature << ',' << serializedTemplate.length() << "," << serializedTemplate << serializedMask;
 
 	return stream.str();
 }
@@ -115,30 +118,31 @@ string Serializer::serializeIrisTemplate(const IrisTemplate& irisTemplate)
 IrisTemplate Serializer::unserializeIrisTemplate(const string& serializedTemplate)
 {
 	istringstream stream(serializedTemplate);
-	char L, G, comma;
-	string strbuffer;
-	char* buffer;
-	int bufferSize;
+	char comma;
+	string encodedMat, signature;
+	char buffer[serializedTemplate.length()];
+	int encodedTemplateLength;
 
-	stream >> L >> G >> comma;
-	assert(L == 'L' && G == 'G' && comma == ',');
+	// Read the signature (all the text until the first comma)
+	stream.get(buffer, serializedTemplate.length(), ',');
+	signature = string(buffer);
+	stream >> comma;
+	assert(comma == ',');
 
-	stream >> bufferSize >> comma;
-	buffer = new char[bufferSize+1];
-	stream.get(buffer, bufferSize+1);		// According to documentation, it reads up to (bufferSize+1)-1 characters
-	buffer[bufferSize] = '\0';
-	strbuffer = buffer;
-	Mat packedTemplate = Tools::base64DecodeMat(strbuffer);
+	// Now read the encoded template
+	stream >> encodedTemplateLength >> comma;
+	stream.get(buffer, encodedTemplateLength+1);		// According to documentation, it reads up to (encodedTemplateLength+1)-1 characters
+	encodedMat = string(buffer);
+	Mat packedTemplate = Tools::base64DecodeMat(encodedMat);
 
-	stream >> strbuffer;
-	Mat packedMask = Tools::base64DecodeMat(strbuffer);
+	stream >> encodedMat;
+	Mat packedMask = Tools::base64DecodeMat(encodedMat);
 
 	IrisTemplate res;
 	// Note that by doing this, irisTemplate takes posession of the template and the mask
 	res.irisTemplate = packedTemplate;
 	res.mask = packedMask;
-
-	delete[] buffer;
+	res.encoderSignature = signature;
 
 	return res;
 }

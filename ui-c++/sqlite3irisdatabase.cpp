@@ -1,9 +1,6 @@
 #include "sqlite3irisdatabase.h"
 #include <sys/stat.h>
 
-#include "external/boost/boost/lexical_cast.hpp"
-#include "external/boost/boost/filesystem.hpp"
-
 SQLite3IrisDatabase::SQLite3IrisDatabase(const string& dbPath) :
 	dbPath(dbPath), db(NULL)
 {
@@ -22,7 +19,7 @@ SQLite3IrisDatabase::SQLite3IrisDatabase(const string& dbPath) :
 		string serializedTemplate = (const char*)sqlite3_column_text(rows, 1);
 
 		if (serializedTemplate.length() == 0) {
-			throw std::runtime_error("Se detectó una imagen no codificada");
+			throw runtime_error("Se detectó una imagen no codificada");
 		}
 
 		this->addTemplate(idUsuario, Serializer::unserializeIrisTemplate(serializedTemplate));
@@ -60,14 +57,17 @@ SQLite3IrisDatabase::IrisData SQLite3IrisDatabase::getIrisData(int userId) const
 
 	if (sqlite3_step(stmt) == SQLITE_ROW) {
 		// Match
-		res.userName = (const char*)sqlite3_column_text(stmt, 0);
 		string serializedSegmentation = (const char*)sqlite3_column_text(stmt, 1);
-		res.segmentation = Serializer::unserializeSegmentationResult(serializedSegmentation);
 		string serializedTemplate = (const char*)sqlite3_column_text(stmt, 2);
-		res.irisTemplate = Serializer::unserializeIrisTemplate(serializedTemplate);
-
 		string imagePath = (const char*)sqlite3_column_text(stmt, 3);
-		imagePath = this->dbPath + "/" + imagePath;
+		if (imagePath[0] != '/') {				// Es un path relativo a la base de datos
+			imagePath = this->dbPath + "/" + imagePath;
+		}
+
+		res.userId = userId;
+		res.userName = (const char*)sqlite3_column_text(stmt, 0);
+		res.segmentation = Serializer::unserializeSegmentationResult(serializedSegmentation);
+		res.irisTemplate = Serializer::unserializeIrisTemplate(serializedTemplate);
 		res.image = imread(imagePath, 1);
 	}
 
@@ -77,7 +77,7 @@ SQLite3IrisDatabase::IrisData SQLite3IrisDatabase::getIrisData(int userId) const
 void SQLite3IrisDatabase::addUser(string userName, const IrisTemplate& irisTemplate, const SegmentationResult& segmentationResult, const Mat image)
 {
 	if (userName.empty()) {
-		throw std::runtime_error("El nombre no puede estar vacío");
+		throw runtime_error("El nombre no puede estar vacío");
 	}
 
 	// Me fijo si hay otro con el mismo nombre
@@ -87,7 +87,7 @@ void SQLite3IrisDatabase::addUser(string userName, const IrisTemplate& irisTempl
 	VERIFY_SQL( sqlite3_bind_text(stmt, 1, userName.c_str(), -1, SQLITE_TRANSIENT) );
 	bool userExists = (sqlite3_step(stmt) == SQLITE_ROW);
 	if (userExists) {
-		throw std::runtime_error("Ya existe un usuario en la base de datos con ese nombre");
+		throw runtime_error("Ya existe un usuario en la base de datos con ese nombre");
 	}
 
 	string serializedTemplate = Serializer::serializeIrisTemplate(irisTemplate);
@@ -95,14 +95,14 @@ void SQLite3IrisDatabase::addUser(string userName, const IrisTemplate& irisTempl
 	string fullImagePath = "-x-";		// Valor temporario
 
 	// Inserto
-	sql = "INSERT INTO usuarios(nombre,imagen,segmentacion,codigo_gabor VALUES(?,?,?,?)";
+	sql = "INSERT INTO usuarios(nombre,imagen,segmentacion,codigo_gabor) VALUES(?,?,?,?)";
 	VERIFY_SQL( sqlite3_prepare(this->db, sql.c_str(), -1, &stmt, NULL) );
 	VERIFY_SQL( sqlite3_bind_text(stmt, 1, userName.c_str(), -1, SQLITE_TRANSIENT) );
 	VERIFY_SQL( sqlite3_bind_text(stmt, 2, fullImagePath.c_str(), -1, SQLITE_TRANSIENT) );
 	VERIFY_SQL( sqlite3_bind_text(stmt, 3, serializedSegmentation.c_str(), -1, SQLITE_TRANSIENT) );
 	VERIFY_SQL( sqlite3_bind_text(stmt, 4, serializedTemplate.c_str(), -1, SQLITE_TRANSIENT) );
 	if (sqlite3_step(stmt) != SQLITE_DONE) {
-		throw std::runtime_error(string("No se pudo insertar el registro en la base [") + boost::lexical_cast<string>(sqlite3_errmsg(this->db)) + string("]"));
+		throw runtime_error(string("No se pudo insertar el registro en la base [") + sqlite3_errmsg(this->db) + string("]"));
 	}
 
 	// Obtengo el ID insertado
@@ -110,14 +110,13 @@ void SQLite3IrisDatabase::addUser(string userName, const IrisTemplate& irisTempl
 
 	// Guardo la imagen
 	if (!image.empty()) {
-		ostringstream tmpstream;
-		string filename = boost::lexical_cast<string>(userId) + ".jpg";			// foo.jpg
-		string relativePath = boost::lexical_cast<string>(userId) + "/";		// foo/
+		string filename = (boost::format("%1%.jpg") % userId).str();			// foo.jpg
+		string relativePath = (boost::format("%1%/") % userId).str();			// foo/
 		string relativeFilename = relativePath + filename;						// foo/foo.jpg
 		string fullPath = this->dbPath + "/" + relativePath;					// /path/to/db/foo/
 		string fullFilename = this->dbPath + "/" + relativeFilename;			// /path/to/db/foo/foo.jpg
 
-		boost::filesystem3::create_directories(fullPath);
+		boost::filesystem::create_directories(fullPath);
 		imwrite(fullFilename, image);
 
 		sql = "UPDATE usuarios SET imagen=? WHERE id_usuario=?";
@@ -128,4 +127,23 @@ void SQLite3IrisDatabase::addUser(string userName, const IrisTemplate& irisTempl
 	}
 
 	this->addTemplate(userId, irisTemplate);
+}
+
+void SQLite3IrisDatabase::addImage(int userId, const Mat& image)
+{
+	string sUserId = boost::lexical_cast<string>(userId);
+	string relativePath = sUserId + "/";
+	string fullPath = this->dbPath + "/" + relativePath;
+
+	if (!boost::filesystem::is_directory(fullPath)) {
+		throw runtime_error(string("No existe el directorio para el usuario ") + sUserId);
+	}
+
+	for (int i = 1; ; i++) {
+		string fullFilename = (boost::format("%1%/%2%_%3%.jpg") % fullPath % userId % i).str();			// /path/to/db/foo/foo_{i}.jpg
+		if (!boost::filesystem::is_regular_file(fullFilename)) {			// Encontré un nombre disponible para el archivo
+			imwrite(fullFilename, image);
+			break;
+		}
+	}
 }

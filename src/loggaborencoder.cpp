@@ -19,7 +19,7 @@ LogGabor1DFilter::~LogGabor1DFilter()
 {
 }
 
-void LogGabor1DFilter::applyFilter(const Mat_<uint8_t>& image, Mat_<float>& dest, const Mat_<uint8_t>& mask, Mat_<uint8_t>& destMask)
+void LogGabor1DFilter::applyFilter(const GrayscaleImage& image, Mat_<float>& dest, const GrayscaleImage& mask, GrayscaleImage& destMask)
 {
 	assert(image.size() == mask.size());
 
@@ -27,7 +27,7 @@ void LogGabor1DFilter::applyFilter(const Mat_<uint8_t>& image, Mat_<float>& dest
 
 	Mat_<float> imageFloat;
 	image.convertTo(imageFloat, imageFloat.type());
-	blur(imageFloat, imageFloat, Size(3,3));			// Blur a bit (improves result for some reason)
+	//blur(imageFloat, imageFloat, Size(3,3));			// Blur a bit (improves result for some reason)
 
 	this->filterResult.create(image.size());
 	assert(this->filter.channels() == 2);
@@ -52,7 +52,7 @@ void LogGabor1DFilter::applyFilter(const Mat_<uint8_t>& image, Mat_<float>& dest
 	dest = (this->type == FILTER_REAL ? real : imag);
 
 	// Filter out elements with low response to the filter
-	Mat_<uint8_t> responseMask;
+	GrayscaleImage responseMask;
 	Mat absreal, absimag, absResponse;
 	multiply(real, real, absreal);
 	multiply(imag, imag, absimag);
@@ -62,7 +62,7 @@ void LogGabor1DFilter::applyFilter(const Mat_<uint8_t>& image, Mat_<float>& dest
 	bitwise_and(mask, responseMask, destMask);
 }
 
-void LogGabor1DFilter::initializeFilter(const Mat_<uint8_t> image)
+void LogGabor1DFilter::initializeFilter(const GrayscaleImage image)
 {
 	float q = 2.0*log(this->sigmaOnF)*log(this->sigmaOnF);
 	this->filter.create(image.size());
@@ -93,7 +93,7 @@ LogGaborEncoder::~LogGaborEncoder()
 {
 }
 
-IrisTemplate LogGaborEncoder::encodeTexture(const Mat_<uint8_t>& texture, const Mat_<uint8_t>& mask)
+IrisTemplate LogGaborEncoder::encodeTexture(const GrayscaleImage& texture, const GrayscaleImage& mask)
 {
 	Size templateSize = LogGaborEncoder::getTemplateSize();
 	Size textureSize = texture.size();
@@ -132,7 +132,18 @@ IrisTemplate LogGaborEncoder::encodeTexture(const Mat_<uint8_t>& texture, const 
 		}
 	}
 
-	IrisTemplate result(resultTemplate, resultMask);
+	IrisTemplate result(resultTemplate, resultMask, this->getEncoderSignature());
 
 	return result;
+}
+
+string LogGaborEncoder::getEncoderSignature() const
+{
+	ostringstream signature;
+	signature << "LG:" << this->filterBank.size() << ':';
+	for (vector<LogGabor1DFilter>::const_iterator it = this->filterBank.begin(); it != this->filterBank.end(); it++) {
+		const LogGabor1DFilter& f = (*it);
+		signature << f.f0 << '-' << f.sigmaOnF << '-' << f.type;
+	}
+	return signature.str();
 }

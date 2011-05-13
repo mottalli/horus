@@ -19,21 +19,21 @@ class IrisTemplate {
 public:
 	IrisTemplate();
 	IrisTemplate(const IrisTemplate& otherTemplate);
-	IrisTemplate(const Mat& binaryTemplate, const Mat& binaryMask);
+	IrisTemplate(const GrayscaleImage& binaryTemplate, const GrayscaleImage& binaryMask, string algorithmSignature);
+	virtual ~IrisTemplate();
 
-	Mat getTemplateImage() const;
-	Mat getNoiseMaskImage() const;
-	Mat getUnpackedTemplate() const;
-	Mat getUnpackedMask() const;
+	GrayscaleImage getTemplateImage() const;
+	GrayscaleImage getUnpackedTemplate() const;
+	GrayscaleImage getUnpackedMask() const;
 
-	const Mat_<uint8_t>& getPackedTemplate() const { return this->irisTemplate; };
-	const Mat_<uint8_t>& getPackedMask() const { return this->mask; };
+	const GrayscaleImage& getPackedTemplate() const { return this->irisTemplate; };
+	const GrayscaleImage& getPackedMask() const { return this->mask; };
 
 	IrisTemplate& operator=(const IrisTemplate& otherTemplate);
 
-	virtual ~IrisTemplate();
+	string encoderSignature;
 protected:
-	Mat_<uint8_t> irisTemplate;
-	Mat_<uint8_t> mask;
+	GrayscaleImage irisTemplate;
+	GrayscaleImage mask;
 };
 

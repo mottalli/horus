@@ -86,12 +86,14 @@ class MainForm(QtGui.QMainWindow, Ui_MainForm):
 			self.decorator.irisColor = opencv.CV_RGB(255,255,0)
 			
 		
-		self.focusScore.setValue(videoProcessor.lastFocusScore)
+		#self.focusScore.setValue(videoProcessor.lastFocusScore)
 	
 		if resultado == horus.VideoProcessor.UNPROCESSED:
 			self.statusBar.showMessage('Esperando...')
 		elif resultado == horus.VideoProcessor.DEFOCUSED:
 			self.statusBar.showMessage('Desenfocado')
+		elif resultado == horus.VideoProcessor.NO_EYE:
+			self.statusBar.showMessage('Ojo no detectado')
 		elif resultado == horus.VideoProcessor.FOCUSED_NO_IRIS:
 			self.statusBar.showMessage('Imagen sin iris')
 		elif resultado == horus.VideoProcessor.IRIS_LOW_QUALITY:

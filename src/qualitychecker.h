@@ -2,6 +2,7 @@
 
 #include "common.h"
 #include "segmentationresult.h"
+#include "iristemplate.h"
 
 class QualityCheckerParameters
 {
@@ -21,9 +22,9 @@ public:
 	QualityChecker();
 	virtual ~QualityChecker();
 
-	double interlacedCorrelation(const Mat& image);
-	double checkFocus(const Mat& image);
-	double getIrisQuality(const Mat& image, const SegmentationResult& segmentationResult);
+	double interlacedCorrelation(const GrayscaleImage& image);
+	double checkFocus(const Image& image);
+	double getIrisQuality(const GrayscaleImage& image, const SegmentationResult& segmentationResult);
 
 	typedef enum {
 		NO_COUNT,
@@ -31,12 +32,16 @@ public:
 		LOW_ZSCORE,
 		HAS_IRIS
 	} ValidationHeuristics;
-	ValidationHeuristics validateIris(const Mat& image, const SegmentationResult& segmentationResult);
+	ValidationHeuristics validateIris(const GrayscaleImage& image, const SegmentationResult& segmentationResult);
 
 	QualityCheckerParameters parameters;
 
+	//TODO
+	double irisTemplateQuality(const IrisTemplate& irisTemplate);
+	double matchQuality(const TemplateComparator& comparator);
+
 private:
-	Mat evenFrame, oddFrame;
+	GrayscaleImage evenFrame, oddFrame;
 	Mat_<float> bufX, bufY, bufMul;
 	Mat bufSobel;
 };

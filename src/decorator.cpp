@@ -10,8 +10,8 @@
 #include "tools.h"
 #include <cmath>
 
-const Scalar Decorator::DEFAULT_PUPIL_COLOR = CV_RGB(255,255,0);
-const Scalar Decorator::DEFAULT_IRIS_COLOR = CV_RGB(255,0,0);
+const Scalar Decorator::DEFAULT_PUPIL_COLOR = CV_RGB(255,0,0);
+const Scalar Decorator::DEFAULT_IRIS_COLOR = CV_RGB(0,255,0);
 const Scalar Decorator::DEFAULT_EYELID_COLOR = CV_RGB(0,0,255);
 
 Decorator::Decorator()
@@ -23,7 +23,7 @@ Decorator::Decorator()
 	this->lineWidth = 1;
 }
 
-void Decorator::drawSegmentationResult(Mat& image, const SegmentationResult& segmentationResult) const
+void Decorator::drawSegmentationResult(Image& image, const SegmentationResult& segmentationResult) const
 {
 	Scalar irisColor_ = (image.channels() == 1 ? (Scalar)CV_RGB(255,255,255) : this->irisColor);
 	Scalar pupilColor_ = (image.channels() == 1 ? (Scalar)CV_RGB(255,255,255) : this->pupilColor);
@@ -40,7 +40,7 @@ void Decorator::drawSegmentationResult(Mat& image, const SegmentationResult& seg
 	}
 }
 
-void Decorator::drawEncodingZone(Mat& image, const SegmentationResult& segmentationResult)
+void Decorator::drawEncodingZone(Image& image, const SegmentationResult& segmentationResult)
 {
 	bool fill = false;
 	int step = 5, stepCounter = step;
@@ -76,7 +76,7 @@ void Decorator::drawEncodingZone(Mat& image, const SegmentationResult& segmentat
 
 }
 
-void Decorator::drawContour(Mat& image, const Contour& contour, const Scalar& color) const
+void Decorator::drawContour(Image& image, const Contour& contour, const Scalar& color) const
 {
 	if (contour.size() < 2) return;
 
@@ -94,7 +94,7 @@ void Decorator::drawContour(Mat& image, const Contour& contour, const Scalar& co
 	line(image, lastPoint, p0, color, this->lineWidth);
 }
 
-void Decorator::drawParabola(Mat& image, const Parabola& parabola, int xMin, int xMax, const Scalar& color) const
+void Decorator::drawParabola(Image& image, const Parabola& parabola, int xMin, int xMax, const Scalar& color) const
 {
 	if (xMin < 0) xMin = 1;
 	if (xMax < 0 || xMax >= image.cols) xMax = image.cols-1;
@@ -108,42 +108,24 @@ void Decorator::drawParabola(Mat& image, const Parabola& parabola, int xMin, int
 	}
 }
 
-void Decorator::drawTemplate(Mat& image, const IrisTemplate& irisTemplate)
+void Decorator::drawTemplate(Image& image, const IrisTemplate& irisTemplate, Point p0)
 {
-	Mat imgTemplate = irisTemplate.getTemplateImage();
-	Mat mask = irisTemplate.getUnpackedMask();
+	GrayscaleImage imgTemplate = irisTemplate.getTemplateImage();
 
-	mask.setTo(Scalar(255), mask);
-	bitwise_not(mask, mask);			// Hacky way to NOT the template
-	imgTemplate.setTo(Scalar(127), mask);
-
-	Mat decoratedTemplate;
-
-	if (imgTemplate.rows < 10) {
-		Mat tmp(3*imgTemplate.rows+2, imgTemplate.cols+2, CV_8U, Scalar(128));
-
-		for (int i = 0; i < imgTemplate.rows; i++) {
-			Mat r = tmp(Rect(1, 3*i+2, imgTemplate.cols, 1));
-			imgTemplate.row(i).copyTo(r);
-		}
-		resize(tmp, decoratedTemplate, Size(1.5*tmp.cols, 2.5*tmp.rows), 1, 1, CV_INTER_NN);
-	} else {
-		decoratedTemplate = imgTemplate.clone();
-	}
-
-	Rect templateRect(15, 15, decoratedTemplate.cols, decoratedTemplate.rows);
+	Rect templateRect(p0, Size(imgTemplate.cols, imgTemplate.rows));
 
 	if (image.channels() == 3) {
-		vector<Mat> channels(3, decoratedTemplate);
+		vector<Mat> channels(3, imgTemplate);
 		Mat part = image(templateRect);
 		merge(channels, part);
 	} else {
 		Mat m = image(templateRect);
-		decoratedTemplate.copyTo(m);
+		imgTemplate.copyTo(m);
 	}
-	Point p0(templateRect.x-1, templateRect.y-1);
-	Point p1(p0.x + templateRect.width+1, p0.y+templateRect.height+1);
-	rectangle(image, p0, p1, CV_RGB(0,0,0), 1);
+
+	Point ul(templateRect.x-1, templateRect.y-1);
+	Point lr(p0.x + templateRect.width+1, p0.y+templateRect.height+1);
+	rectangle(image, ul, lr, CV_RGB(0,0,0), 1);
 }
 
 void Decorator::setDrawingColors(Scalar pupilColor_, Scalar irisColor_, Scalar upperEyelidColor_, Scalar lowerEyelidColor_)
@@ -154,7 +136,7 @@ void Decorator::setDrawingColors(Scalar pupilColor_, Scalar irisColor_, Scalar u
 	this->lowerEyelidColor = lowerEyelidColor_;
 }
 
-void Decorator::drawFocusScores(const list<double>& focusScores, Mat image, Rect rect, double threshold)
+void Decorator::drawFocusScores(Mat& image, const list<double>& focusScores, Rect rect, double threshold)
 {
 	image(rect) = CV_RGB(255,255,255);
 
@@ -184,4 +166,26 @@ void Decorator::drawFocusScores(const list<double>& focusScores, Mat image, Rect
 		lastPoint = pimg;
 		i--;
 	}
+}
+
+void Decorator::drawIrisTexture(const Mat& imageSrc, Mat& imageDest, SegmentationResult segmentationResult)
+{
+	GrayscaleImage texture(imageDest.size()), mask(imageDest.size());
+	GrayscaleImage srcBW;
+
+	Tools::toGrayscale(imageSrc, srcBW, false);
+
+	IrisEncoder::normalizeIris(srcBW, texture, mask, segmentationResult);
+
+	//equalizeHist(texture, texture);
+	//texture = Tools::normalizeImage(texture, 50, 255-50);
+	Tools::stretchHistogram(texture, texture);
+
+	if (imageDest.type() == texture.type()) {
+		texture.copyTo(imageDest);
+	} else {
+		cvtColor(texture, imageDest, CV_GRAY2BGR);
+	}
+
+	rectangle(imageDest, Rect(0,0,imageDest.cols-1,imageDest.rows-1), CV_RGB(0,0,0), 1);
 }

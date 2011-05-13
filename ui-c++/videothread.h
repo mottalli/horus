@@ -15,7 +15,7 @@ public:
 	void stop() { qDebug() << "VideoThread::stop"; _stop = true; }
 
 signals:
-	void signalFrameAvailable(const Mat& frame);
+	void signalFrameAvailable(const ColorImage& frame);
 
 public slots:
 private:

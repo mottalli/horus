@@ -15,17 +15,17 @@ public:
 	LogGabor1DFilter(double f0, double sigmanOnF, FilterType type=FILTER_IMAG);
 	virtual ~LogGabor1DFilter();
 
-	void applyFilter(const Mat_<uint8_t>& image, Mat_<float>& dest, const Mat_<uint8_t>& mask, Mat_<uint8_t>& destMask);
+	void applyFilter(const GrayscaleImage& image, Mat_<float>& dest, const GrayscaleImage& mask, GrayscaleImage& destMask);
+
+	double f0, sigmaOnF;
+	FilterType type;
 
 private:
 	Mat_< complex<float> > filter;		// Filter in the frequency domain
 	Mat_< complex<float> > complexInput;
 	Mat_< complex<float> > filterResult;
 
-	double f0, sigmaOnF;
-	FilterType type;
-
-	void initializeFilter(const Mat_<uint8_t> image);		// Must release the result
+	void initializeFilter(const GrayscaleImage image);		// Must release the result
 };
 
 
@@ -37,16 +37,18 @@ public:
 
 	static Size getTemplateSize() { return IrisEncoder::getOptimumTemplateSize(256, 20); };
 
+	string getEncoderSignature() const;
+
 protected:
 	Mat_<float> filteredTexture;
-	Mat_<uint8_t> filteredMask;
-	/*Mat_<uint8_t> resizedTexture;
-	Mat_<uint8_t> resizedMask;*/
-	Mat_<uint8_t> resultTemplate;
-	Mat_<uint8_t> resultMask;
+	GrayscaleImage filteredMask;
+	/*GrayscaleImage resizedTexture;
+	GrayscaleImage resizedMask;*/
+	GrayscaleImage resultTemplate;
+	GrayscaleImage resultMask;
 
 	vector<LogGabor1DFilter> filterBank;
 
-	virtual IrisTemplate encodeTexture(const Mat_<uint8_t>& texture, const Mat_<uint8_t>& mask);
+	virtual IrisTemplate encodeTexture(const GrayscaleImage& texture, const GrayscaleImage& mask);
 	virtual Size getNormalizationSize() { return LogGaborEncoder::getTemplateSize(); };
 };

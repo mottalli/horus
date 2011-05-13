@@ -15,6 +15,7 @@ TemplateComparator::TemplateComparator(int nRots, int rotStep)
 {
 	this->nRots = nRots;
 	this->rotStep = rotStep;
+	this->minHDIdx = -1;
 }
 
 TemplateComparator::TemplateComparator(const IrisTemplate& irisTemplate, int nRots, int rotStep)
@@ -33,11 +34,18 @@ double TemplateComparator::compare(const IrisTemplate& otherTemplate)
 {
 	double minHD = 1.0;
 
-	for (std::vector<IrisTemplate>::const_iterator it = this->rotatedTemplates.begin(); it != this->rotatedTemplates.end(); it++) {
-		const IrisTemplate& rotatedTemplate = (*it);
+	assert(this->irisTemplate.encoderSignature == otherTemplate.encoderSignature);		// Must be the same "type" of template
+
+	//for (std::vector<IrisTemplate>::const_iterator it = this->rotatedTemplates.begin(); it != this->rotatedTemplates.end(); it++) {
+	for (size_t i = 0; i < this->rotatedTemplates.size(); i++) {
+		//const IrisTemplate& rotatedTemplate = (*it);
+		const IrisTemplate& rotatedTemplate = this->rotatedTemplates[i];
 		double hd = this->packedHammingDistance(rotatedTemplate.getPackedTemplate(), rotatedTemplate.getPackedMask(),
 				otherTemplate.getPackedTemplate(), otherTemplate.getPackedMask());
-		minHD = std::min(hd, minHD);
+		if (hd < minHD) {
+			minHD = hd;
+			this->minHDIdx = i;
+		}
 	}
 
 	return minHD;
@@ -60,10 +68,10 @@ std::vector<double> TemplateComparator::compareParts(const IrisTemplate& otherTe
 		for (int p = 0; p < nParts; p++) {
 			Rect r(p*partWidth, 0, partWidth, templateHeight);
 
-			Mat_<uint8_t> part1(rotatedTemplate.getPackedTemplate(), r);
-			Mat_<uint8_t> mask1(rotatedTemplate.getPackedMask(), r);
-			Mat_<uint8_t> part2(otherTemplate.getPackedTemplate(), r);
-			Mat_<uint8_t> mask2(otherTemplate.getPackedMask(), r);
+			GrayscaleImage part1(rotatedTemplate.getPackedTemplate(), r);
+			GrayscaleImage mask1(rotatedTemplate.getPackedMask(), r);
+			GrayscaleImage part2(otherTemplate.getPackedTemplate(), r);
+			GrayscaleImage mask2(otherTemplate.getPackedMask(), r);
 			
 			double hd = this->packedHammingDistance(part1, mask1, part2, mask2);
 			minHDs[p] = std::min(minHDs[p], hd);
@@ -75,6 +83,7 @@ std::vector<double> TemplateComparator::compareParts(const IrisTemplate& otherTe
 
 void TemplateComparator::setSrcTemplate(const IrisTemplate& irisTemplate)
 {
+	this->irisTemplate = irisTemplate;
 
 	Mat unpackedTemplate = irisTemplate.getUnpackedTemplate();
 	Mat unpackedMask = irisTemplate.getUnpackedMask();
@@ -98,11 +107,11 @@ void TemplateComparator::setSrcTemplate(const IrisTemplate& irisTemplate)
 	for (int r = this->rotStep; r <= this->nRots; r += this->rotStep) {
 		this->rotateMatrix(unpackedTemplate, rotatedTemplate, r);
 		this->rotateMatrix(unpackedMask, rotatedMask, r);
-		this->rotatedTemplates.push_back(IrisTemplate(rotatedTemplate, rotatedMask));
+		this->rotatedTemplates.push_back(IrisTemplate(rotatedTemplate, rotatedMask, irisTemplate.encoderSignature));
 
 		this->rotateMatrix(unpackedTemplate, rotatedTemplate, -r);
 		this->rotateMatrix(unpackedMask, rotatedMask, -r);
-		this->rotatedTemplates.push_back(IrisTemplate(rotatedTemplate, rotatedMask));
+		this->rotatedTemplates.push_back(IrisTemplate(rotatedTemplate, rotatedMask, irisTemplate.encoderSignature));
 	}
 }
 
@@ -140,7 +149,7 @@ void TemplateComparator::rotateMatrix(const Mat& src, Mat& dest, int step)
 	}
 }
 
-double TemplateComparator::packedHammingDistance(const Mat_<uint8_t>& template1, const Mat_<uint8_t>& mask1, const Mat_<uint8_t>& template2, const Mat_<uint8_t>& mask2)
+double TemplateComparator::packedHammingDistance(const GrayscaleImage& template1, const GrayscaleImage& mask1, const GrayscaleImage& template2, const GrayscaleImage& mask2)
 {
 	assert(template1.size() == mask1.size());
 	assert(template2.size() == mask2.size());
@@ -152,6 +161,14 @@ double TemplateComparator::packedHammingDistance(const Mat_<uint8_t>& template1,
 
 	int nonZeroBits = countNonZeroBits(xorBuffer);
 	int validBits = countNonZeroBits(maskIntersection);
+
+	/*//
+	int template1ValidBits = countNonZeroBits(mask1);
+	int template2ValidBits = countNonZeroBits(mask2);
+	cout << 100.0*double(template1ValidBits)/double(template1.cols*template1.rows*8) << '%' << " ";
+	cout << 100.0*double(template2ValidBits)/double(template1.cols*template1.rows*8) << '%' << " ";
+	cout << 100.0*double(validBits)/double(maskIntersection.cols*maskIntersection.rows*8) << '%' << endl;
+	//*/
 
 	if (validBits == 0) {
 		return 1.0;		// No bits to compare
@@ -224,4 +241,9 @@ int countNonZeroBits(const Mat& mat)
 		}
 	}
 	return res;
+}
+
+const IrisTemplate& TemplateComparator::getBestRotatedTemplate()
+{
+	return this->rotatedTemplates[this->minHDIdx];
 }

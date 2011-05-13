@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>776</width>
-    <height>523</height>
+    <height>551</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -22,7 +22,7 @@
       </property>
       <layout class="QGridLayout" name="gridLayout_3">
        <item row="0" column="0">
-        <widget class="ImageWidget" name="video" native="true">
+        <widget class="IrisVideoWidget" name="video" native="true">
          <property name="minimumSize">
           <size>
            <width>320</width>
@@ -62,7 +62,7 @@
           <item row="0" column="0">
            <layout class="QHBoxLayout" name="horizontalLayout">
             <item>
-             <widget class="QRadioButton" name="automaticaIdentificar">
+             <widget class="QRadioButton" name="autoIdentify">
               <property name="text">
                <string>Identificar</string>
               </property>
@@ -159,7 +159,7 @@
          </item>
         </layout>
        </item>
-       <item row="6" column="0">
+       <item row="7" column="0">
         <spacer name="verticalSpacer">
          <property name="orientation">
           <enum>Qt::Vertical</enum>
@@ -171,6 +171,13 @@
           </size>
          </property>
         </spacer>
+       </item>
+       <item row="6" column="0">
+        <widget class="QCheckBox" name="chkGuardarVideo">
+         <property name="text">
+          <string>Guardar video</string>
+         </property>
+        </widget>
        </item>
       </layout>
      </widget>
@@ -213,11 +220,6 @@
    </property>
   </widget>
   <widget class="QStatusBar" name="statusBar"/>
-  <action name="actionE_xit">
-   <property name="text">
-    <string>&amp;Salir</string>
-   </property>
-  </action>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
  <customwidgets>
@@ -225,6 +227,12 @@
    <class>ImageWidget</class>
    <extends>QWidget</extends>
    <header>imagewidget.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>IrisVideoWidget</class>
+   <extends>QWidget</extends>
+   <header>irisvideowidget.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>

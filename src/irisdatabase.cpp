@@ -95,6 +95,7 @@ void IrisDatabase::doAContrarioMatch(const IrisTemplate& irisTemplate, int nPart
 {
 	this->clock.start();
 	unsigned const int BINS = this->templates.size()/2;
+	assert(BINS >= 1);
 	const float BIN_MIN = 0.0f;
 	const float BIN_MAX = 0.7f;
 

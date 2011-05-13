@@ -10,13 +10,13 @@ IrisSegmentator::IrisSegmentator()
 IrisSegmentator::~IrisSegmentator() {
 }
 
-ContourAndCloseCircle IrisSegmentator::segmentIris(const Mat& image, const ContourAndCloseCircle& pupilSegmentation)
+ContourAndCloseCircle IrisSegmentator::segmentIris(const GrayscaleImage& image, const ContourAndCloseCircle& pupilSegmentation)
 {
 	assert(image.channels() == 1 && image.depth() == CV_8U);
-	return this->segmentIrisRecursive((const Mat_<uint8_t>&)image, pupilSegmentation, -1, -1);
+	return this->segmentIrisRecursive((const GrayscaleImage&)image, pupilSegmentation, -1, -1);
 }
 
-ContourAndCloseCircle IrisSegmentator::segmentIrisRecursive(const Mat_<uint8_t>& image, const ContourAndCloseCircle& pupilSegmentation, int radiusMax, int radiusMin)
+ContourAndCloseCircle IrisSegmentator::segmentIrisRecursive(const GrayscaleImage& image, const ContourAndCloseCircle& pupilSegmentation, int radiusMax, int radiusMin)
 {
 	this->setupBuffers(image);
 
@@ -62,7 +62,7 @@ ContourAndCloseCircle IrisSegmentator::segmentIrisRecursive(const Mat_<uint8_t>&
 		sumY2 = 0;
 
 		//int16_t* row = (int16_t*)(gradient->imageData + y*gradient->widthStep);
-		const int16_t* row = (const int16_t*)gradient.ptr(y);
+		const int16_t* row = gradient.ptr<int16_t>(y);
 
 		for (int x = x0; x < x1; x++) {
 			sumY1 += row[XIMAGE(x)];
@@ -148,7 +148,7 @@ ContourAndCloseCircle IrisSegmentator::segmentIrisRecursive(const Mat_<uint8_t>&
     return result;
 }
 
-void IrisSegmentator::setupBuffers(const Mat_<uint8_t>&)
+void IrisSegmentator::setupBuffers(const GrayscaleImage&)
 {
 	this->adjustmentSnake.create(1, this->parameters.irisAdjustmentRingWidth);
 	this->adjustmentRing.create(Size(this->parameters.irisAdjustmentRingWidth, this->parameters.irisAdjustmentRingHeight));

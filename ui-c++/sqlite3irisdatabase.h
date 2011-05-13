@@ -25,6 +25,7 @@ public:
 
 	IrisData getIrisData(int userId) const;
 	void addUser(string userName, const IrisTemplate& irisTemplate, const SegmentationResult& segmentationResult, const Mat image=Mat());
+	void addImage(int userId, const Mat& image);
 
 private:
 	string dbPath;

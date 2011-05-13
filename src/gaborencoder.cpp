@@ -28,12 +28,7 @@ GaborFilter::GaborFilter(int width, int height, float u0, float v0, float alpha,
 			float env = exp(-M_PI* ((x*x)/(alpha*alpha)  + (y*y)/(beta*beta)));		// Gaussian envelope
 			float f = 2.0*M_PI*(u0*x + v0*y);
 
-			float carrier;
-			if (type == FILTER_REAL) {
-				carrier = cos(f);
-			} else if (type == FILTER_IMAG) {
-				carrier = -sin(f);
-			}
+			float carrier = (type == FILTER_REAL) ? cos(f) : -sin(f);
 
 			this->filter(i, j) = env*carrier;
 		}
@@ -44,7 +39,7 @@ GaborFilter::~GaborFilter()
 {
 }
 
-void GaborFilter::applyFilter(const Mat_<float>& src, Mat_<float>& dest, const Mat_<uint8_t>& mask, Mat_<uint8_t>& destMask)
+void GaborFilter::applyFilter(const Mat_<float>& src, Mat_<float>& dest, const GrayscaleImage& mask, GrayscaleImage& destMask)
 {
 	assert(src.size() == dest.size());
 	assert(mask.size() == destMask.size());
@@ -56,7 +51,8 @@ void GaborFilter::applyFilter(const Mat_<float>& src, Mat_<float>& dest, const M
 
 GaborEncoder::GaborEncoder()
 {
-	this->filterBank.push_back(GaborFilter(15, 15, 0.5, 0.5, 2, 2, GaborFilter::FILTER_IMAG));
+	this->filterBank.push_back(GaborFilter(15, 15, 0.5, 0.0, 2, 2, GaborFilter::FILTER_IMAG));
+	//this->filterBank.push_back(GaborFilter(15, 15, 0.5, 0.5, 2, 2, GaborFilter::FILTER_IMAG));
 	//this->filterBank.push_back(GaborFilter(15, 15, 0.5, -0.5, 2, 2, GaborFilter::FILTER_IMAG));
 	//this->filterBank.push_back(GaborFilter(15, 15, 0.5, 1, 2, 2, GaborFilter::FILTER_IMAG));
 	//this->filterBank.push_back(GaborFilter(15, 15, -0.5, 1, 2, 2, GaborFilter::FILTER_IMAG));
@@ -66,7 +62,7 @@ GaborEncoder::~GaborEncoder()
 {
 }
 
-IrisTemplate GaborEncoder::encodeTexture(const Mat_<uint8_t>& texture, const Mat_<uint8_t>& mask)
+IrisTemplate GaborEncoder::encodeTexture(const GrayscaleImage& texture, const GrayscaleImage& mask)
 {
 	assert(texture.size() == mask.size());
 	assert(texture.channels() == 1 && mask.channels() == 1);
@@ -96,7 +92,7 @@ IrisTemplate GaborEncoder::encodeTexture(const Mat_<uint8_t>& texture, const Mat
 				int ytexture = (texture.rows/templateSize.height) * ytemplate;
 				assert(xtexture < this->filteredTexture.cols && ytexture < this->filteredTexture.rows);
 
-				unsigned char templateBit =  (this->filteredTexture(ytexture, xtexture)  >  0.0 ? 1 : 0);
+				unsigned char templateBit = (this->filteredTexture(ytexture, xtexture) >  0.0 ? 1 : 0);
 				this->resultTemplate(ytemplate, xtemplate) = templateBit;
 
 				unsigned char maskBit1 = (this->filteredMask(ytexture, xtexture) ? 1 : 0);
@@ -105,7 +101,19 @@ IrisTemplate GaborEncoder::encodeTexture(const Mat_<uint8_t>& texture, const Mat
 		}
 	}
 
-	IrisTemplate result(resultTemplate, resultMask);
+	IrisTemplate result(resultTemplate, resultMask, this->getEncoderSignature());
 
 	return result;
+}
+
+string GaborEncoder::getEncoderSignature() const
+{
+	ostringstream signature;
+	signature << "GF:" << this->filterBank.size() << ':';
+	for (vector<GaborFilter>::const_iterator it = this->filterBank.begin(); it != this->filterBank.end(); it++) {
+		const GaborFilter& f = (*it);
+		signature << f.width << '-' << f.height << '-' << f.u0 << '-' << f.v0<< '-';
+		signature << f.alpha << '-' << f.beta << '-' << f.type;
+	}
+	return signature.str();
 }

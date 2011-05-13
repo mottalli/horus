@@ -34,7 +34,6 @@ int main(int, char**)
 
 	namedWindow("video");
 	namedWindow("template");
-	videoProcessor.setWaitingFrames(0);
 
 	vector<double> focusScores;
 	vector<IrisTemplate> templates;

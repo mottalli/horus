@@ -4,27 +4,40 @@
 #include "qualitychecker.h"
 #include "segmentator.h"
 #include "loggaborencoder.h"
+#include "gaborencoder.h"
+
+#include "eyedetect.h"
 
 class VideoProcessorParameters
 {
 public:
-	int bestFrameWaitCount;
+	int templateWaitTimeout;
 	int focusThreshold;
 	bool interlacedVideo;
 	int correlationThreshold;
 	float segmentationScoreThreshold;
 	int minimumContourQuality;
 	bool segmentEyelids;
+	bool doEyeDetect;
+	bool pauseAfterCapture;
+	unsigned int pauseFrames;
+	unsigned int minCountForTemplateAveraging;
+	double minAverageTemplateQuality;
 
 	VideoProcessorParameters()
 	{
-		this->bestFrameWaitCount = 20;
-		this->focusThreshold = 50;
+		this->templateWaitTimeout = 20;
+		this->focusThreshold = 35;
 		this->interlacedVideo = true;
 		this->correlationThreshold = 92;
 		this->segmentationScoreThreshold = 1.7;
 		this->minimumContourQuality = 60;
 		this->segmentEyelids = false;
+		this->doEyeDetect = true;
+		this->pauseAfterCapture = true;
+		this->pauseFrames = 40;
+		this->minCountForTemplateAveraging = 20;
+		this->minAverageTemplateQuality = 70;
 	}
 };
 
@@ -37,16 +50,19 @@ public:
 		UNPROCESSED,
 		DEFOCUSED,
 		INTERLACED,
+		NO_EYE,
 		FOCUSED_NO_IRIS,
 		IRIS_LOW_QUALITY,
 		IRIS_TOO_CLOSE,
 		IRIS_TOO_FAR,
 		FOCUSED_IRIS,
+		BAD_TEMPLATE,
+		FINISHED_CAPTURE,
 		GOT_TEMPLATE
 	} VideoStatus;
 
 	typedef struct {
-		Mat_<uint8_t> image;
+		GrayscaleImage image;
 		SegmentationResult segmentationResult;
 		IrisTemplate irisTemplate;
 		double quality;
@@ -57,11 +73,10 @@ public:
 
 	VideoStatus processFrame(const Mat& frame);
 
-	void setWaitingFrames(int frames) { this->waitingFrames = frames; }
-
 	QualityChecker qualityChecker;
 	Segmentator segmentator;
 	LogGaborEncoder irisEncoder;
+	//GaborEncoder irisEncoder;
 
 	double lastFocusScore;
 	QualityChecker::ValidationHeuristics lastIrisHeuristics;
@@ -71,23 +86,41 @@ public:
 	IrisTemplate lastTemplate;
 	
 	IrisTemplate getAverageTemplate() const;
-	const Mat_<uint8_t>& getBestTemplateFrame() const;
+	GrayscaleImage getBestTemplateFrame() const;
 	const SegmentationResult& getBestTemplateSegmentation() const;
 	IrisTemplate getBestTemplate() const;
 
 	Mat lastFrame;
 
-private:
-	Mat_<uint8_t> lastFrameBW;
-	unsigned int waitingFrames;
+	Rect eyeROI;
 
-	VideoStatus doProcess(const Mat& frame);
+	vector<VideoProcessor::CapturedTemplate> templateBuffer;
+
+private:
+	GrayscaleImage lastFrameBW;
+
+	EyeDetect eyeDetect;
+
+	VideoStatus doProcess(const GrayscaleImage& image);
+	
+	Mat templateFrame;
+	SegmentationResult templateSegmentation;
+	double templateIrisQuality;
 	
 	int templateWaitCount;
 	int framesToSkip;
-	bool waitingBestTemplate;
+	bool waitingTemplate;
 	size_t bestTemplateIdx;
 
-	vector<CapturedTemplate> templateBuffer;
+	inline void resetCapture()
+	{
+		this->templateWaitCount = 0;
+		this->waitingTemplate = false;
+		this->bestTemplateIdx = -1;
+		this->templateBuffer.clear();
+	}
+
+	CascadeClassifier eyeClassifier;
+
 };
 

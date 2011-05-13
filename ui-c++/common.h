@@ -5,13 +5,12 @@
 #include <vector>
 #include <sstream>
 
-#include "segmentator.h"
-#include "loggaborencoder.h"
-#include "irisdatabase.h"
-#include "decorator.h"
-#include "videoprocessor.h"
-#include "irisdatabase.h"
-#include "serializer.h"
+#include "horus.h"
+
+#include <boost/lexical_cast.hpp>
+#include <boost/filesystem.hpp>
+#include <boost/format.hpp>
+#include <boost/foreach.hpp>
 
 using namespace cv;
 using namespace std;

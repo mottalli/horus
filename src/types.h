@@ -23,7 +23,9 @@ typedef struct {
 
 
 typedef pair<Contour, Circle> ContourAndCloseCircle;
-
+typedef Mat_<uint8_t> GrayscaleImage;
+typedef Mat_<Vec3b> ColorImage;
+typedef Mat Image;									// Either grayscale or color image
 
 class Parabola
 {

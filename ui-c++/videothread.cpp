@@ -7,9 +7,9 @@ VideoThread::VideoThread(int cam) :
 
 void VideoThread::run()
 {
-	//_cap.open(_cam);
+	_cap.open(_cam);
 	//_cap.open("/home/marcelo/iris/BBDD/Videos/norberto1/20080501-230608.mpg");
-	_cap.open("/home/marcelo/iris/BBDD/Videos/marta1/20080702-232946.mpg");
+	//_cap.open("/home/marcelo/iris/BBDD/Videos/marta1/20080702-232946.mpg");
 	//_cap.open("/home/marcelo/iris/BBDD/Videos/bursztyn1/20080501-230748.mpg");
 	//_cap.open("/home/marcelo/iris/BBDD/Videos/marcelo1/marcelo1.mpg");
 
@@ -29,10 +29,10 @@ void VideoThread::run()
 		flip(_frame, _frame, 1);		// El flip es para que el video no salga al revés (es anti-intuitivo para los usuarios)
 
 		// Extraigo una sub-ventana porque los bordes suelen venir negros
-		int dx = 20, dy = 10;
-		Mat subwindow = _frame(Rect(dx, dy, _frame.cols-2*dx, _frame.rows-2*dy));
+		Mat subwindow = _frame(Range(25, _frame.rows), Range(10, _frame.cols-62));
 
 		emit(signalFrameAvailable(subwindow));
+		//emit(signalFrameAvailable(_frame));
 		msleep(30);
 	}
 

@@ -15,11 +15,13 @@ SET_SOURCE_FILES_PROPERTIES(horus.i PROPERTIES CPLUSPLUS ON)
 
 SET(SOURCES ../src/clock.cpp ../src/decorator.cpp ../src/eyelidsegmentator.cpp ../src/irisdatabase.cpp ../src/irisencoder.cpp
 	../src/irissegmentator.cpp ../src/iristemplate.cpp ../src/loggaborencoder.cpp ../src/pupilsegmentator.cpp ../src/qualitychecker.cpp ../src/segmentationresult.cpp
-	../src/segmentator.cpp ../src/serializer.cpp ../src/templatecomparator.cpp ../src/tools.cpp ../src/videoprocessor.cpp ../src/gaborencoder.cpp)
+	../src/segmentator.cpp ../src/serializer.cpp ../src/templatecomparator.cpp ../src/tools.cpp ../src/videoprocessor.cpp ../src/gaborencoder.cpp
+	../src/external/base64.cpp ../src/eyedetect.cpp)
 
 SET(HEADERS ../src/clock.h ../src/decorator.h ../src/eyelidsegmentator.h ../src/irisdatabase.h ../src/irisencoder.h
 	../src/irissegmentator.h ../src/iristemplate.h ../src/loggaborencoder.h ../src/pupilsegmentator.h ../src/qualitychecker.h ../src/segmentationresult.h
-	../src/segmentator.h ../src/serializer.h ../src/templatecomparator.h ../src/tools.h ../src/videoprocessor.h ../src/gaborencoder.h)
+	../src/segmentator.h ../src/serializer.h ../src/templatecomparator.h ../src/tools.h ../src/videoprocessor.h ../src/gaborencoder.h 
+	../src/external/base64.h ../src/eyedetect.h)
 
 IF (USE_CUDA)
 	SET(SOURCES ${SOURCES} ../src/irisdatabasecuda.cpp)

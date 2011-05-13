@@ -18,7 +18,7 @@ PupilSegmentator::~PupilSegmentator()
 {
 }
 
-ContourAndCloseCircle PupilSegmentator::segmentPupil(const Mat& image)
+ContourAndCloseCircle PupilSegmentator::segmentPupil(const GrayscaleImage& image)
 {
 	assert(image.channels() == 1 && image.depth() == CV_8U);
 
@@ -38,13 +38,17 @@ ContourAndCloseCircle PupilSegmentator::segmentPupil(const Mat& image)
 
 }
 
-void PupilSegmentator::setupBuffers(const Mat& image)
+void PupilSegmentator::setupBuffers(const Image& image)
 {
 	// Initialize the working image
 	int bufferWidth = this->parameters.bufferWidth;
 	int width = image.cols;
 
-	this->resizeFactor = ((width > bufferWidth) ? double(bufferWidth) / double(width) : 1.0);
+	if (this->ROI.width) {
+		this->resizeFactor = 1.0;
+	} else {
+		this->resizeFactor = ((width > bufferWidth) ? double(bufferWidth) / double(width) : 1.0);
+	}
 
 	if (this->resizeFactor != 1.0) {
 		resize(image, this->workingImage, Size(), this->resizeFactor, this->resizeFactor);
@@ -64,22 +68,29 @@ void PupilSegmentator::setupBuffers(const Mat& image)
 	this->adjustmentSnake.create(Size(this->parameters.pupilAdjustmentRingWidth, 1));
 }
 
-Circle PupilSegmentator::approximatePupil(const Mat_<uint8_t>& image)
+Circle PupilSegmentator::approximatePupil(const GrayscaleImage& image)
 {
-	// First, equalize the image
+	// First, equalize the image and apply the similarity transform
 	equalizeHist(image, this->equalizedImage);
-	//image.copyTo(this->equalizedImage);
-
-	// Then apply the similarity transformation
 	this->similarityTransform();
-	blur(this->similarityImage, this->similarityImage, Size(3, 3));
+	blur(this->similarityImage, this->similarityImage, Size(7, 7));
 
-	// Now perform the cascaded integro-differential operator
-	Circle res = this->cascadedIntegroDifferentialOperator(this->similarityImage);
+	// Now perform the cascaded integro-differential operator (use the ROI if any)
+	GrayscaleImage searchArea;
+	bool useROI = (this->ROI.width > 0);
+	searchArea = (useROI ? this->similarityImage(this->ROI) : this->similarityImage);
+
+	Circle res = this->cascadedIntegroDifferentialOperator(searchArea);
+
+	if (useROI) {
+		res.xc += this->ROI.x;
+		res.yc += this->ROI.y;
+	}
+
 	return res;
 }
 
-Contour PupilSegmentator::adjustPupilContour(const Mat_<uint8_t>& image, const Circle& approximateCircle)
+Contour PupilSegmentator::adjustPupilContour(const GrayscaleImage& image, const Circle& approximateCircle)
 {
 	int radiusMin = approximateCircle.radius * 0.5, radiusMax =
 			approximateCircle.radius * 1.5;
@@ -217,18 +228,28 @@ Contour PupilSegmentator::adjustPupilContour(const Mat_<uint8_t>& image, const C
 	return result;
 }
 
-Circle PupilSegmentator::cascadedIntegroDifferentialOperator(const Mat_<uint8_t>& image)
+Circle PupilSegmentator::cascadedIntegroDifferentialOperator(const GrayscaleImage& image)
 {
 	int minradabs = this->parameters.minimumPupilRadius;
 	int minrad = minradabs;
 	int maxrad = this->parameters.maximumPupilRadius;
 
-	int dx = image.cols*0.2, dy = image.rows*0.2;			// Exclude the image borders
+	bool useROI = (this->ROI.width > 0);
+	int dx, dy;
 
-	/*int minx = dx, miny = dy;
-	int maxx = image.cols - dx, maxy = image.rows - dy;*/
-	int minx = this->workingROI.x+dx, miny = this->workingROI.y+dy;			// Detect the circle ONLY inside the ROI
-	int maxx = this->workingROI.x+this->workingROI.width-dx, maxy = this->workingROI.y+this->workingROI.height-dy;
+	if (useROI) {
+		dx = dy = 0;
+	} else {
+		// Exclude the image borders
+		dx = image.cols*0.2;
+		dy = image.rows*0.2;
+	}
+
+	int minx = dx, miny = dy;
+	int maxx = image.cols - dx, maxy = image.rows - dy;
+
+	//int minx = this->workingROI.x+dx, miny = this->workingROI.y+dy;			// Detect the circle ONLY inside the ROI
+	//int maxx = min(image.cols-1, this->workingROI.x+this->workingROI.width-dx), maxy = min(image.rows-1, this->workingROI.y+this->workingROI.height-dy);
 	int x, y;
 	//int maxStep = INT_MIN;
 	int bestX = 0, bestY = 0, bestRadius = 0;
@@ -245,8 +266,7 @@ Circle PupilSegmentator::cascadedIntegroDifferentialOperator(const Mat_<uint8_t>
 		int maxStep = INT_MIN;
 		for (x = minx; x < maxx; x += steps[i]) {
 			for (y = miny; y < maxy; y += steps[i]) {
-				MaxAvgRadiusResult res = this->maxAvgRadius(image, x, y,
-						minrad, maxrad, radiusSteps[i]);
+				MaxAvgRadiusResult res = this->maxAvgRadius(image, x, y, minrad, maxrad, radiusSteps[i]);
 				if (res.maxStep > maxStep) {
 					maxStep = res.maxStep;
 					bestX = x;
@@ -273,7 +293,7 @@ Circle PupilSegmentator::cascadedIntegroDifferentialOperator(const Mat_<uint8_t>
 	return bestCircle;
 }
 
-PupilSegmentator::MaxAvgRadiusResult PupilSegmentator::maxAvgRadius(const Mat_<uint8_t>& image, int x, int y, int radmin, int radmax, int radstep)
+PupilSegmentator::MaxAvgRadiusResult PupilSegmentator::maxAvgRadius(const GrayscaleImage& image, int x, int y, int radmin, int radmax, int radstep)
 {
 	int maxDifference, difference;
 	uint8_t actualAvg, nextAvg;
@@ -298,7 +318,7 @@ PupilSegmentator::MaxAvgRadiusResult PupilSegmentator::maxAvgRadius(const Mat_<u
 	return result;
 }
 
-uint8_t PupilSegmentator::circleAverage(const Mat_<uint8_t>& image, int xc, int yc, int rc)
+uint8_t PupilSegmentator::circleAverage(const GrayscaleImage& image, int xc, int yc, int rc)
 {
 	// Optimized Bresenham algorithm for circles
 	int x = 0;
@@ -454,7 +474,7 @@ void PupilSegmentator::similarityTransform()
 	LUT(this->equalizedImage, this->_LUT, this->similarityImage);
 }
 
-int PupilSegmentator::calculatePupilContourQuality(const Mat_<uint8_t>& region, const Mat_<uint16_t>& regionGradient, const Mat_<float>& contourSnake)
+int PupilSegmentator::calculatePupilContourQuality(const GrayscaleImage& region, const Mat_<uint16_t>& regionGradient, const Mat_<float>& contourSnake)
 {
 	assert(regionGradient.cols == contourSnake.cols);
 	assert(region.size() == regionGradient.size());
@@ -493,11 +513,11 @@ int PupilSegmentator::calculatePupilContourQuality(const Mat_<uint8_t>& region, 
 		}
 	}
 
-	if (!norm2) {
+	if (norm2 == 0.0) {
 		return 0;
 	}
 
-	assert(sum2 < norm2);
+	assert(sum2 <= norm2);
 	assert(norm2 > 0);
 
 	return int((100.0*sum2)/norm2);

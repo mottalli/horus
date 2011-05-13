@@ -10,27 +10,20 @@ const double IrisEncoder::RADIUS_TO_USE = 0.75;
 
 IrisEncoder::IrisEncoder()
 {
-	this->normalizedTexture = NULL;
-	this->normalizedNoiseMask = NULL;
 }
 
 IrisEncoder::~IrisEncoder()
 {
 }
 
-IrisTemplate IrisEncoder::generateTemplate(const Mat& image, const SegmentationResult& segmentationResult)
+IrisTemplate IrisEncoder::generateTemplate(const Image& image, const SegmentationResult& segmentationResult)
 {
+	assert(image.type() == CV_8UC1 || image.type() == CV_8UC3);
+
 	// We can only process grayscale images. If it's a color image, we need to convert it. Try to optimise whenever
 	// possible.
-	Mat_<uint8_t> bwimage;
-
-	assert(image.depth() == CV_8U && (image.channels() == 1 || image.channels() == 3));
-
-	if (image.channels() == 1) {
-		bwimage = image;
-	} else {
-		cvtColor(image, bwimage, CV_BGR2GRAY);
-	}
+	GrayscaleImage bwimage;
+	Tools::toGrayscale(image, bwimage, false);
 
 	Size normalizedSize = this->getNormalizationSize();
 
@@ -52,8 +45,8 @@ void IrisEncoder::extendMask()
 	meanStdDev(this->normalizedTexture, smean, sdev, this->normalizedNoiseMask);
 
 	double mean = smean.val[0], dev = sdev.val[0];
-	uint8_t uthresh = uint8_t(mean+dev);
-	uint8_t lthresh = uint8_t(mean-dev);
+	uint8_t uthresh = uint8_t(mean+1.5*dev);
+	uint8_t lthresh = uint8_t(mean-1.5*dev);
 
 	for (int y = 0; y < this->normalizedTexture.rows; y++) {
 		uint8_t* row = this->normalizedTexture.ptr(y);
@@ -66,9 +59,9 @@ void IrisEncoder::extendMask()
 	}
 }
 
-void IrisEncoder::normalizeIris(const Mat& image_, Mat& dest_, Mat& destMask_, const SegmentationResult& segmentationResult, double theta0, double theta1, double radius)
+void IrisEncoder::normalizeIris(const GrayscaleImage& image_, GrayscaleImage& dest_, GrayscaleImage& destMask_, const SegmentationResult& segmentationResult, double theta0, double theta1, double radius)
 {
-	Mat_<uint8_t> image = image_, dest = dest_, destMask = destMask_;
+	GrayscaleImage image = image_, dest = dest_, destMask = destMask_;
 
 	int normalizedWidth = dest.cols, normalizedHeight = dest.rows;
 
@@ -121,10 +114,10 @@ Size IrisEncoder::getNormalizationSize()
 IrisTemplate IrisEncoder::averageTemplates(const vector<const IrisTemplate*>& templates)
 {
 	assert(templates.size() >= 1);
-	Mat_<uint8_t> unpackedTemplate, unpackedMask;
-	Mat_<uint8_t> acum, acumMask;
+	GrayscaleImage unpackedTemplate, unpackedMask;
+	GrayscaleImage acum, acumMask;
 
-	for (int i = 0; i < templates.size(); i++) {
+	for (size_t i = 0; i < templates.size(); i++) {
 		unpackedTemplate = templates[i]->getUnpackedTemplate();
 		unpackedMask = templates[i]->getUnpackedMask();
 
@@ -148,17 +141,12 @@ IrisTemplate IrisEncoder::averageTemplates(const vector<const IrisTemplate*>& te
 	threshold(acumMask, zerosMask, templates.size()*0.25, 1, THRESH_BINARY_INV);
 	threshold(acumMask, onesMask, templates.size()*0.75, 1, THRESH_BINARY);
 
-	averageTemplate.setTo(Scalar(1,1,1), ones);
-	averageTemplate.setTo(Scalar(0,0,0), zeros);
+	averageTemplate.setTo(1, ones);
+	averageTemplate.setTo(0, zeros);
 
 	bitwise_xor(zeros, ones, averageMask);				// EITHER 0 or 1 => consistent => mark as valid in mask
 	averageMask.setTo(0, zerosMask);					// Disable the bits that are usually disabled in the mask
 
-	/*threshold(acum, averageTemplate, templates.size()/2, 1, CV_THRESH_BINARY);
-	averageTemplate.convertTo(averageTemplate, CV_8U);
 
-	//TODO: calculate average mask
-	Mat averageMask = templates[0]->getUnpackedMask();*/
-
-	return IrisTemplate(averageTemplate, averageMask);
+	return IrisTemplate(averageTemplate, averageMask, templates[0]->encoderSignature);
 }

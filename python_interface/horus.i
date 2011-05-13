@@ -19,6 +19,7 @@
 #include "../src/tools.h"
 #include "../src/types.h"
 #include "../src/videoprocessor.h"
+#include "../src/eyedetect.h"
 //#include "../src/irisdctencoder.h"
 #include "../src/gaborencoder.h"
 #ifdef USE_CUDA
@@ -100,15 +101,15 @@ namespace std
 %}
 
 %extend IrisEncoder {
-	static void normalizeIrisWRAP(const Mat& image, Mat& dest, Mat& destMask, const SegmentationResult& segmentationResult, double theta0, double theta1, double radius)
+	static void normalizeIrisWRAP(const GrayscaleImage& image, GrayscaleImage& dest, GrayscaleImage& destMask, const SegmentationResult& segmentationResult, double theta0, double theta1, double radius)
 	{
 		IrisEncoder::normalizeIris(image, dest, destMask, segmentationResult, theta0, theta1, radius);
 	};
 }
 
-void superimposeTextureWRAP(Mat& image, const Mat& texture, const SegmentationResult& segmentation, double theta0, double theta1, double radius, bool blend, double blendStart);
+void superimposeTextureWRAP(GrayscaleImage& image, const GrayscaleImage& texture, const SegmentationResult& segmentation, double theta0, double theta1, double radius, bool blend, double blendStart);
 %{
-void superimposeTextureWRAP(Mat& image, const Mat& texture, const SegmentationResult& segmentation, double theta0, double theta1, double radius, bool blend, double blendStart)
+void superimposeTextureWRAP(GrayscaleImage& image, const GrayscaleImage& texture, const SegmentationResult& segmentation, double theta0, double theta1, double radius, bool blend, double blendStart)
 {
 	Tools::superimposeTexture(image, texture, segmentation, theta0, theta1, radius, blend, blendStart);
 }
@@ -134,8 +135,17 @@ void superimposeTextureWRAP(Mat& image, const Mat& texture, const SegmentationRe
 %include "../src/tools.h"
 %include "../src/types.h"
 %include "../src/videoprocessor.h"
+%include "../src/eyedetect.h"
 //%include "../src/irisdctencoder.h"
 %include "../src/gaborencoder.h"
 #ifdef USE_CUDA
 %include "../src/irisdatabasecuda.h"
 #endif
+
+%extend Decorator {
+	void Decorator::drawTemplateWRAP(Image& image, const IrisTemplate& irisTemplate)
+	{
+		$self->drawTemplate(image, irisTemplate);
+	};
+}
+

@@ -8,13 +8,12 @@ QualityChecker::QualityChecker()
 QualityChecker::~QualityChecker(){
 }
 
-double QualityChecker::interlacedCorrelation(const Mat& frame)
+double QualityChecker::interlacedCorrelation(const GrayscaleImage& frame)
 {
-	assert(frame.channels() == 1 && frame.type() == CV_8U);
 	Size size = frame.size();
 
-	this->oddFrame.create(Size(size.width, size.height/2), CV_8U);
-	this->evenFrame.create(Size(size.width, size.height/2), CV_8U);
+	this->oddFrame.create(Size(size.width, size.height/2));
+	this->evenFrame.create(Size(size.width, size.height/2));
 
 	for (int i = 0; i < size.height/2; i++) {
 		Mat rdest = this->evenFrame.row(i);
@@ -41,7 +40,7 @@ double QualityChecker::interlacedCorrelation(const Mat& frame)
 
 }
 
-double QualityChecker::checkFocus(const Mat& image)
+double QualityChecker::checkFocus(const Image& image)
 {
 	Sobel(image, this->bufSobel, CV_32F, 0, 1, 3);
 	this->bufSobel = cv::abs(this->bufSobel);
@@ -56,13 +55,13 @@ double QualityChecker::checkFocus(const Mat& image)
 /**
  * Checks if there is an iris on the image and/or if the segmentation is correct (heuristics - not 100% reliable)
  */
-QualityChecker::ValidationHeuristics QualityChecker::validateIris(const Mat& image, const SegmentationResult& sr)
+QualityChecker::ValidationHeuristics QualityChecker::validateIris(const GrayscaleImage& image, const SegmentationResult& sr)
 {
 	double r = sr.irisCircle.radius;
 	int x0 = std::max(0.0, sr.irisCircle.xc-r);
-	int x1 = std::min(image.cols, int(sr.irisCircle.xc+r));
+	int x1 = std::min(image.cols-1, int(sr.irisCircle.xc+r));
 	int y0 = std::max(0, sr.irisCircle.yc-20);
-	int y1 = std::min(image.rows, sr.irisCircle.yc+20);
+	int y1 = std::min(image.rows-1, sr.irisCircle.yc+20);
 
 	const Mat portion = image(Rect(x0, y0, x1-x0, y1-y0));
 
@@ -156,7 +155,17 @@ QualityChecker::ValidationHeuristics QualityChecker::validateIris(const Mat& ima
 /**
  * Checks the quality of the image
  */
-double QualityChecker::getIrisQuality(const Mat&, const SegmentationResult& segmentationResult)
+double QualityChecker::getIrisQuality(const GrayscaleImage& /*image*/, const SegmentationResult& segmentationResult)
 {
 	return segmentationResult.pupilContourQuality;
+}
+
+double QualityChecker::irisTemplateQuality(const IrisTemplate& irisTemplate)
+{
+	return 100.0;
+}
+
+double QualityChecker::matchQuality(const TemplateComparator& comparator)
+{
+	return 100.0;
 }

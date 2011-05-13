@@ -21,7 +21,7 @@ namespace Serializer
 	Contour unserializeContour(std::istringstream& stream);
 	Parabola unserializeParabola(std::istringstream& stream);
 
-	std::string serializeIrisTemplate(const IrisTemplate& irisTemplate);
+	string serializeIrisTemplate(const IrisTemplate& irisTemplate);
 	IrisTemplate unserializeIrisTemplate(const std::string& serializedTemplate);
 };
 
