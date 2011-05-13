@@ -6,7 +6,6 @@
  */
 
 #include "tools.h"
-#include "external/base64.h"
 
 inline uint8_t setBit(uint8_t b, int bit, bool value);
 inline bool getBit(uint8_t b, int bit);
@@ -110,53 +109,6 @@ uint8_t setBit(uint8_t b, int bit, bool value)
 bool getBit(uint8_t b, int bit)
 {
 	return (b & BIT_MASK[bit]) ? true : false;
-}
-
-string Tools::base64EncodeMat(const Mat& mat)
-{
-	int width = mat.cols, height = mat.rows;
-	assert(mat.depth() == CV_8U);
-
-	uint8_t* buffer = new uint8_t[2*sizeof(int16_t) + width*height];		// Stores width, height and data
-
-	// Store width and height
-	int16_t* header = (int16_t*)buffer;
-	header[0] = width;
-	header[1] = height;
-
-	uint8_t* p = buffer + 2*sizeof(int16_t);		// Pointer to the actual data past the width and height
-
-	for (int y = 0; y < height; y++) {
-		memcpy(p + y*width, mat.ptr(y), width);		// Copy one line
-	}
-
-	string base64 = Tools::base64Encode(buffer, width*height+2*sizeof(int16_t));
-
-	delete[] buffer;
-
-	return base64;
-}
-
-Mat Tools::base64DecodeMat(const string &s)
-{
-	int width, height;
-
-	string decoded = Tools::base64Decode(s);
-	uint8_t* buffer = (uint8_t*)decoded.c_str();
-
-	int16_t* header = (int16_t*)buffer;
-	width = header[0];
-	height = header[1];
-
-	uint8_t* p = buffer + 2*sizeof(int16_t);		// Pointer to the actual data past the width and height
-
-	Mat res(height, width, CV_8U);
-
-	for (int y = 0; y < height; y++) {
-		memcpy(res.ptr(y), p + y*width, width);		// Copy one line
-	}
-
-	return res;
 }
 
 vector< pair<Point, Point> > Tools::iterateIris(const SegmentationResult& segmentation, int width, int height, double theta0, double theta1, double radius)

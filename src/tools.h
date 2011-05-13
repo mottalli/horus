@@ -9,6 +9,7 @@
 
 #include "common.h"
 #include "segmentationresult.h"
+#include "external/base64.h"
 
 namespace Tools
 {
@@ -22,8 +23,10 @@ namespace Tools
 	// Useful debugging functions
 	void drawHistogram(const IplImage* img);
 
+	template<class T>
 	std::string base64EncodeMat(const Mat& mat);
-	Mat base64DecodeMat(const std::string &s);
+	template<class T>
+	Mat_<T> base64DecodeMat(const std::string &s);
 
 	void stretchHistogram(const GrayscaleImage& image, GrayscaleImage& dest, float marginMin=0.0, float marginMax=0.0);
 
@@ -34,3 +37,51 @@ namespace Tools
 	void toGrayscale(const Image& src, GrayscaleImage& dest, bool cloneIfAlreadyGray);
 }
 
+template<class T>
+string Tools::base64EncodeMat(const Mat& mat)
+{
+	int width = mat.cols, height = mat.rows;
+	assert(mat.channels() == 1);
+
+	unsigned char* buffer = new unsigned char[2*sizeof(int16_t) + width*height*sizeof(T)];		// Stores width, height and data
+
+	// Store width and height
+	int16_t* header = (int16_t*)buffer;
+	header[0] = width;
+	header[1] = height;
+
+	T* p = (T*)(buffer + 2*sizeof(int16_t));		// Pointer to the actual data past the width and height
+
+	for (int y = 0; y < height; y++) {
+		memcpy((void*)(p + y*width), mat.ptr(y), width*sizeof(T));		// Copy one line
+	}
+
+	string base64 = Tools::base64Encode(buffer, 2*sizeof(int16_t) + width*height*sizeof(T));
+
+	delete[] buffer;
+
+	return base64;
+}
+
+template<class T>
+Mat_<T> Tools::base64DecodeMat(const string &s)
+{
+	int width, height;
+
+	string decoded = Tools::base64Decode(s);
+	const char* buffer = decoded.c_str();
+
+	int16_t* header = (int16_t*)buffer;
+	width = header[0];
+	height = header[1];
+
+	T* p = (T*)(buffer + 2*sizeof(int16_t));		// Pointer to the actual data past the width and height
+
+	Mat_<T> res(height, width);
+
+	for (int y = 0; y < height; y++) {
+		memcpy(res.ptr(y), p + y*width, width*sizeof(T));		// Copy one line
+	}
+
+	return res;
+}
