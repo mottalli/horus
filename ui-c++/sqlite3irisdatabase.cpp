@@ -110,18 +110,13 @@ void SQLite3IrisDatabase::addUser(string userName, const IrisTemplate& irisTempl
 
 	// Guardo la imagen
 	if (!image.empty()) {
-		string filename = (boost::format("%1%.jpg") % userId).str();			// foo.jpg
-		string relativePath = (boost::format("%1%/") % userId).str();			// foo/
-		string relativeFilename = relativePath + filename;						// foo/foo.jpg
-		string fullPath = this->dbPath + "/" + relativePath;					// /path/to/db/foo/
-		string fullFilename = this->dbPath + "/" + relativeFilename;			// /path/to/db/foo/foo.jpg
-
-		boost::filesystem::create_directories(fullPath);
+		string fileName = (boost::format("%i.jpg") % userId).str();
+		string fullFilename = (boost::format("%s/%s") % this->dbPath % fileName).str();			// /path/to/db/<id>.jpg
 		imwrite(fullFilename, image);
 
 		sql = "UPDATE usuarios SET imagen=? WHERE id_usuario=?";
 		VERIFY_SQL( sqlite3_prepare(this->db, sql.c_str(), -1, &stmt, NULL) );
-		VERIFY_SQL( sqlite3_bind_text(stmt, 1, relativeFilename.c_str(), -1, SQLITE_TRANSIENT) );
+		VERIFY_SQL( sqlite3_bind_text(stmt, 1, fileName.c_str(), -1, SQLITE_TRANSIENT) );
 		VERIFY_SQL( sqlite3_bind_int(stmt, 2, userId) );
 		sqlite3_step(stmt);
 	}
@@ -131,16 +126,8 @@ void SQLite3IrisDatabase::addUser(string userName, const IrisTemplate& irisTempl
 
 void SQLite3IrisDatabase::addImage(int userId, const Mat& image)
 {
-	string sUserId = boost::lexical_cast<string>(userId);
-	string relativePath = sUserId + "/";
-	string fullPath = this->dbPath + "/" + relativePath;
-
-	if (!boost::filesystem::is_directory(fullPath)) {
-		throw runtime_error(string("No existe el directorio para el usuario ") + sUserId);
-	}
-
 	for (int i = 1; ; i++) {
-		string fullFilename = (boost::format("%1%/%2%_%3%.jpg") % fullPath % userId % i).str();			// /path/to/db/foo/foo_{i}.jpg
+		string fullFilename = (boost::format("%s/%i_%i.jpg") % this->dbPath % userId % i).str();			// /path/to/db/<id>_<i>.jpg
 		if (!boost::filesystem::is_regular_file(fullFilename)) {			// Encontré un nombre disponible para el archivo
 			imwrite(fullFilename, image);
 			break;
