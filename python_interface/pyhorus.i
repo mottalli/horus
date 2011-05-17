@@ -1,4 +1,4 @@
-%module "horus"
+%module "pyhorus"
 
 %{
 #include "../src/common.h"
