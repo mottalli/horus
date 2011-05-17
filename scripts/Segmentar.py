@@ -1,5 +1,5 @@
 # -*- coding: UTF8 -*-
-import horus
+import pyhorus
 import Database
 import os
 from opencv import *
@@ -19,8 +19,8 @@ ACCION_MU_PUPILA_DEC = '-'
 ACCION_SIGMA_PUPILA_INC = '*'
 ACCION_SIGMA_PUPILA_DEC = '/'
 
-segmentator = horus.Segmentator()
-decorator = horus.Decorator()
+segmentator = pyhorus.Segmentator()
+decorator = pyhorus.Decorator()
 
 def segmentarBase(options):
 	BASE = Database.getDatabase(options.base)
@@ -62,7 +62,7 @@ def segmentarBase(options):
 			if not imagen:
 				raise Exception('No se pudo abrir la imagen ' + imagen)
 
-			resultadoSegmentacion = horus.unserializeSegmentationResult(str(segmentacion))
+			resultadoSegmentacion = pyhorus.unserializeSegmentationResult(str(segmentacion))
 			print 'Mostrando %i (%s)' % (idImagen, fullPathImagen)
 			decorada = mostrarSegmentada(imagen, resultadoSegmentacion)
 		else:
@@ -83,7 +83,7 @@ def segmentarBase(options):
 				buffer.append({
 						'id_imagen': idImagen,
 						'segmentacion_correcta': (accion == ACCION_SEGMENTACION_CORRECTA),
-						'segmentacion': horus.serializeSegmentationResult(resultadoSegmentacion)
+						'segmentacion': pyhorus.serializeSegmentationResult(resultadoSegmentacion)
 					})
 				i = i+1
 				break

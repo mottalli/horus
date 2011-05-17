@@ -1,5 +1,5 @@
 #!/usr/bin/python
-import horus
+import pyhorus
 import sqlite3
 import os
 from opencv import *
@@ -8,10 +8,10 @@ from opencv.highgui import *
 def testMatching(base):
 	rows = base.conn.execute('SELECT * FROM base_iris WHERE segmentacion_correcta=1')
 
-	if horus.HORUS_CUDA_SUPPORT:
-		irisDatabase = horus.IrisDatabaseCUDA()
+	if pyhorus.HORUS_CUDA_SUPPORT:
+		irisDatabase = pyhorus.IrisDatabaseCUDA()
 	else:
-		irisDatabase = horus.IrisDatabase()
+		irisDatabase = pyhorus.IrisDatabase()
 	
 	templates = {}
 	clases = {}
@@ -28,7 +28,7 @@ def testMatching(base):
 		if not len(serializedTemplate):
 			raise Exception('No se codificaron todas las imagenes! (correr iris.py con el parametro -c)')
 
-		templates[idImagen] = horus.unserializeIrisTemplate(serializedTemplate)
+		templates[idImagen] = pyhorus.unserializeIrisTemplate(serializedTemplate)
 		clases[idImagen] = idClase
 		
 		irisDatabase.addTemplate(idImagen, templates[idImagen])

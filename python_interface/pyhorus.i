@@ -1,32 +1,8 @@
 %module "pyhorus"
 
 %{
-#include "../src/common.h"
-#include "../src/clock.h"
-#include "../src/decorator.h"
-#include "../src/eyelidsegmentator.h"
-#include "../src/irisencoder.h"
-#include "../src/loggaborencoder.h"
-#include "../src/irissegmentator.h"
-#include "../src/iristemplate.h"
-#include "../src/irisdatabase.h"
-#include "../src/pupilsegmentator.h"
-#include "../src/qualitychecker.h"
-#include "../src/segmentationresult.h"
-#include "../src/segmentator.h"
-#include "../src/serializer.h"
-#include "../src/templatecomparator.h"
-#include "../src/tools.h"
-#include "../src/types.h"
-#include "../src/videoprocessor.h"
-#include "../src/eyedetect.h"
-//#include "../src/irisdctencoder.h"
-#include "../src/gaborencoder.h"
-#ifdef USE_CUDA
-#include "../src/irisdatabasecuda.h"
-#endif
+#include "../src/horus.h"
 %}
-
 
 %include "std_vector.i"
 %include "std_string.i"
@@ -36,19 +12,27 @@ namespace cv {
 };
 
 
-// This is just done to instantiante CvMat as a pointer in Swig
 %{
-CvMat __horus_swig_unused;
+// From OpenCV 2.2 Python interface
+struct cvmat_t {
+  PyObject_HEAD
+  CvMat *a;
+  PyObject *data;
+  size_t offset;
+};
 %}
-CvMat __horus_swig_unused;
-
 
 %typemap(in) Mat const & {
-	// From Python comes a CvMat*
+	// Depending on the OpenCV wrappers, $input could be 
+	// either a CvMat pointer (SWIG interface) or a cv.cvmat object (new Python interface)
+	
 	CvMat* arg = 0;
-	SWIG_ConvertPtr($input, (void**)&arg, SWIGTYPE_p_CvMat, 0);
-	Mat* inarg = new Mat(arg);
-	$1 = inarg;
+	if (strcmp($input->ob_type->tp_name, "cv.cvmat") == 0) {		// New python interface object
+		arg = ((cvmat_t*)$input)->a;
+	} else {	// Old SWIG interface (CvMat pointer)
+		SWIG_ConvertPtr($input, (void**)&arg, SWIGTYPE_p_CvMat, 0);
+	}
+	$1 = new Mat(arg);
 }
 
 %typemap(freearg) Mat const & {
@@ -56,15 +40,26 @@ CvMat __horus_swig_unused;
 }
 
 %typemap(in) Mat & {
-	// From Python comes a CvMat*
+	// Depending on the OpenCV wrappers, $input could be 
+	// either a CvMat pointer (SWIG interface) or a cv.cvmat object (new Python interface)
+
 	CvMat* arg = 0;
-	SWIG_ConvertPtr($input, (void**)&arg, SWIGTYPE_p_CvMat, 0);
-	Mat* inarg = new Mat(arg);
-	$1 = inarg;
+	if (strcmp($input->ob_type->tp_name, "cv.cvmat") == 0) {		// New python interface object
+		arg = ((cvmat_t*)$input)->a;
+	} else {	// Old SWIG interface (CvMat pointer)
+		SWIG_ConvertPtr($input, (void**)&arg, SWIGTYPE_p_CvMat, 0);
+	}
+	$1 = new Mat(arg);
 }
 
 %typemap(freearg) Mat & {
 	delete $1;
+}
+
+%typemap(out) Mat_<uint8_t> {
+	// TODO: Fix this memory leak (typemap(freearg) does not work)
+	CvMat* m = new CvMat($1);
+	$result = SWIG_NewPointerObj(m, SWIGTYPE_p_CvMat, 0);
 }
 
 
