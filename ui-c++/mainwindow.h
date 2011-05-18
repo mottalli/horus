@@ -6,6 +6,7 @@
 #include "common.h"
 #include "matchingdialog.h"
 #include "registerdialog.h"
+#include "debugdialog.h"
 
 namespace Ui {
     class MainWindow;
@@ -35,7 +36,7 @@ private slots:
 
 	void on_btnForzarIdentificacion_clicked();
 
-	void on_tabWidget_currentChanged(int index);
+	void on_debugWindow_clicked();
 
 private:
 	void identifyTemplate(const IrisTemplate& irisTemplate, const GrayscaleImage& image, const SegmentationResult& segmentationResult);
@@ -56,6 +57,7 @@ private:
 
 	MatchingDialog matchingDialog;
 	RegisterDialog registerDialog;
+	DebugDialog debugDialog;
 };
 
 #endif // MAINWINDOW_H

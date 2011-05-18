@@ -125,7 +125,7 @@ VideoProcessor::VideoStatus VideoProcessor::doProcess(const GrayscaleImage& imag
 		}
 		this->eyeROI = Rect(x, y, w, h);
 	} else {
-		this->eyeROI = Rect(0,0,image.cols, image.rows);
+		this->eyeROI = Rect();
 	}
 
 	if (this->parameters.interlacedVideo) {
@@ -167,9 +167,10 @@ IrisTemplate VideoProcessor::getBestTemplate() const
 
 IrisTemplate VideoProcessor::getAverageTemplate() const
 {
-	vector<const IrisTemplate*> templates;
-	for (vector<CapturedTemplate>::const_iterator it = this->templateBuffer.begin(); it != this->templateBuffer.end(); it++) {
-		templates.push_back( &((*it).irisTemplate) );
+	vector<VideoProcessor::CapturedTemplate> buffer = this->templateBuffer;			// Work with a copy
+	vector<const IrisTemplate*> templates(buffer.size());
+	for (size_t i = 0; i < buffer.size(); i++) {
+		templates[i] = &(buffer[i].irisTemplate);
 	}
 	return IrisEncoder::averageTemplates(templates);
 }

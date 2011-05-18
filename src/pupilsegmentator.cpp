@@ -12,6 +12,14 @@
 PupilSegmentator::PupilSegmentator()
 {
 	this->_lastSigma = this->_lastMu = -100.0;
+	uchar strel[] =  { 0, 0, 0, 0, 0, 0, \
+					  0, 0, 255, 255, 0, 0, \
+					  0, 255, 255, 255, 255, 0, \
+					  0, 255, 255, 255, 255, 0, \
+					  0, 0, 255, 255, 0, 0, \
+					  0, 0, 0, 0, 0, 0, \
+					};
+	this->matStructElem = GrayscaleImage(6, 6, strel).clone();
 }
 
 PupilSegmentator::~PupilSegmentator()
@@ -22,12 +30,6 @@ ContourAndCloseCircle PupilSegmentator::segmentPupil(const GrayscaleImage& image
 {
 	assert(image.channels() == 1 && image.depth() == CV_8U);
 
-	if (this->ROI.width) {
-		this->workingROI = this->ROI;
-	} else {
-		this->workingROI = Rect(0,0,image.cols,image.rows);
-	}
-
 	this->setupBuffers(image);
 	ContourAndCloseCircle result;
 
@@ -36,6 +38,11 @@ ContourAndCloseCircle PupilSegmentator::segmentPupil(const GrayscaleImage& image
 	pupilCircle.radius /= this->resizeFactor;
 	pupilCircle.xc /= this->resizeFactor;
 	pupilCircle.yc /= this->resizeFactor;
+
+	if (this->hasROI()) {
+		pupilCircle.xc += this->eyeROI.x;
+		pupilCircle.yc += this->eyeROI.y;
+	}
 
 	result.first = this->adjustPupilContour(image, pupilCircle);
 	result.second = Tools::approximateCircle(result.first);
@@ -50,16 +57,18 @@ void PupilSegmentator::setupBuffers(const Image& image)
 	int bufferWidth = this->parameters.bufferWidth;
 	int width = image.cols;
 
-	if (this->workingROI.width) {
+	if (width <= bufferWidth || this->hasROI()) {
 		this->resizeFactor = 1.0;
-	} else {
-		this->resizeFactor = ((width > bufferWidth) ? double(bufferWidth) / double(width) : 1.0);
-	}
-
-	if (this->resizeFactor != 1.0) {
-		resize(image, this->workingImage, Size(), this->resizeFactor, this->resizeFactor);
-	} else {
 		this->workingImage = image;
+		this->workingROI = this->eyeROI;
+	} else {
+		this->resizeFactor = double(bufferWidth) / double(width);
+		resize(image, this->workingImage, Size(), this->resizeFactor, this->resizeFactor);
+		int x = this->eyeROI.x*this->resizeFactor;
+		int y = this->eyeROI.y*this->resizeFactor;
+		int width = this->eyeROI.width*this->resizeFactor;
+		int height = this->eyeROI.height*this->resizeFactor;
+		this->workingROI = Rect(x,y,width,height);
 	}
 
 	this->adjustmentRing.create(Size(this->parameters.pupilAdjustmentRingWidth, this->parameters.pupilAdjustmentRingHeight));
@@ -70,9 +79,14 @@ void PupilSegmentator::setupBuffers(const Image& image)
 Circle PupilSegmentator::approximatePupil(const GrayscaleImage& image)
 {
 	// First, equalize the image and apply the similarity transform
-	equalizeHist(image, this->equalizedImage);
+	//equalizeHist(image, this->equalizedImage);
+	Tools::stretchHistogram(image, this->equalizedImage, 0.01, 0.0);
 	this->similarityTransform();
 	blur(this->similarityImage, this->similarityImage, Size(7, 7));
+
+	if (this->parameters.avoidPupilReflection) {
+		morphologyEx(this->similarityImage, this->similarityImage, MORPH_DILATE, matStructElem, Point(-1,-1), 4);
+	}
 
 	// Now perform the cascaded integro-differential operator (use the ROI if any)
 	Circle res = this->cascadedIntegroDifferentialOperator(this->similarityImage);
@@ -224,21 +238,24 @@ Circle PupilSegmentator::cascadedIntegroDifferentialOperator(const GrayscaleImag
 	int minrad = minradabs;
 	int maxrad = this->parameters.maximumPupilRadius;
 
-	bool useROI = (this->ROI.width > 0);		// Note that this->ROI isn't necessarily the same as this->workingROI (if this->ROI is empty, this->workingROI is the whole image)
-	int dx, dy;
+	bool useROI = this->hasROI();
+	int minx, miny, maxx, maxy;
 
 	if (useROI) {
-		dx = dy = 0;
+		minx = this->workingROI.x;
+		maxx = this->workingROI.x+this->workingROI.width;
+		miny = this->workingROI.y;
+		maxy = this->workingROI.y+this->workingROI.height;
 	} else {
 		// Exclude the image borders
-		dx = image.cols*0.2;
-		dy = image.rows*0.2;
-	}
+		int dx = image.cols*0.2;
+		int dy = image.rows*0.2;
 
-	int minx = this->workingROI.x+dx;
-	int miny = this->workingROI.y+dy;
-	int maxx = (this->workingROI.x+this->workingROI.width) - dx;
-	int maxy = (this->workingROI.y+this->workingROI.height) - dy;
+		minx = dx;
+		maxx = image.cols-dx;
+		miny = dy;
+		maxy = image.rows-dy;
+	}
 
 	int x, y;
 	//int maxStep = INT_MIN;

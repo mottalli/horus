@@ -31,6 +31,8 @@ void VideoThread::run()
 		// Extraigo una sub-ventana porque los bordes suelen venir negros
 		Mat subwindow = _frame(Range(25, _frame.rows), Range(10, _frame.cols-62));
 
+		//Tools::stretchHistogram(subwindow, subwindow, 0.01, 0);
+
 		emit(signalFrameAvailable(subwindow));
 		//emit(signalFrameAvailable(_frame));
 		msleep(30);

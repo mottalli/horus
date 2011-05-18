@@ -22,9 +22,7 @@ SegmentationResult Segmentator::segmentImage(const Image& image) {
 	GrayscaleImage imageBW;
 	Tools::toGrayscale(image, imageBW, false);
 
-	if (this->eyeROI.width > 0) {
-		this->pupilSegmentator.setROI(this->eyeROI);
-	}
+	this->pupilSegmentator.setROI(this->eyeROI);
 
 	ContourAndCloseCircle pupilResult = this->pupilSegmentator.segmentPupil(imageBW);
 	ContourAndCloseCircle irisResult = this->irisSegmentator.segmentIris(imageBW, pupilResult);

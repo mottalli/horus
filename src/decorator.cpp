@@ -47,31 +47,57 @@ void Decorator::drawEncodingZone(Image& image, const SegmentationResult& segment
 
 	const int width = 512, height = 80;
 
-	std::vector< std::pair<Point, Point> > irisPoints = Tools::iterateIris(segmentationResult,
+	vector< pair<Point, Point> > irisPoints = Tools::iterateIris(segmentationResult,
 		width, height, IrisEncoder::THETA0,
-		IrisEncoder::THETA1, IrisEncoder::RADIUS_TO_USE);
+		IrisEncoder::THETA1, IrisEncoder::MIN_RADIUS_TO_USE, IrisEncoder::MAX_RADIUS_TO_USE);
+
+	Contour outerContour(width), innerContour(width);
+	pair<Point, Point> firstBorder, secondBorder;
+
 
 	for (size_t i = 0; i < irisPoints.size(); i++) {
 		Point imagePoint = irisPoints[i].second;
 		Point coord = irisPoints[i].first;
-		int x = int(imagePoint.x), y = int(imagePoint.y);
+		int x = imagePoint.x, y = imagePoint.y;
 
 		if (x < 0 || x >= image.size().width  || y < 0 || y > image.size().height) {
 			continue;
 		}
 
-		if (fill || (coord.x == 0 || coord.x == width-1 || coord.y == 0 || coord.y == height-1)) {
-			if ( (stepCounter--) > 0) {
-				continue;
+		if (coord.y == 0) {
+			innerContour[coord.x] = imagePoint;
+			if (coord.x == 0) {
+				firstBorder.first = imagePoint;
+			} else if (coord.x == width-1) {
+				secondBorder.first = imagePoint;
 			}
-			
-			if (image.channels() == 1) {
-				image.at<uchar>(y,x) = 255;
-			} else if (image.channels() == 3) {
-				image.at<Vec3b>(y, x) = Vec3b(0,255,255);
+		} else if (coord.y == height-1) {
+			outerContour[coord.x] = imagePoint;
+			if (coord.x == 0) {
+				firstBorder.second= imagePoint;
+			} else if (coord.x == width-1) {
+				secondBorder.second = imagePoint;
 			}
-			stepCounter=step;
 		}
+
+		//TODO: fill
+	}
+
+	line(image, firstBorder.first, firstBorder.second, CV_RGB(255,255,0), this->lineWidth);
+	line(image, secondBorder.first, secondBorder.second, CV_RGB(255,255,0), this->lineWidth);
+
+	assert(innerContour.size() == outerContour.size());
+	Point ip0 = innerContour[0], op0 = outerContour[0];
+	Point ip1, op1;
+
+	for (size_t i = 1; i < innerContour.size(); i++) {
+		ip1 = innerContour[i];
+		op1 = outerContour[i];
+		line(image, ip0, ip1, CV_RGB(255,255,0), this->lineWidth);
+		line(image, op0, op1, CV_RGB(255,255,0), this->lineWidth);
+
+		ip0 = ip1;
+		op0 = op1;
 	}
 
 }
@@ -177,8 +203,6 @@ void Decorator::drawIrisTexture(const Mat& imageSrc, Mat& imageDest, Segmentatio
 
 	IrisEncoder::normalizeIris(srcBW, texture, mask, segmentationResult);
 
-	//equalizeHist(texture, texture);
-	//texture = Tools::normalizeImage(texture, 50, 255-50);
 	Tools::stretchHistogram(texture, texture);
 
 	if (imageDest.type() == texture.type()) {

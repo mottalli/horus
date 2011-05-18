@@ -23,7 +23,6 @@ SegmentationResult Serializer::unserializeSegmentationResult(const string& s)
 	SegmentationResult res;
 	istringstream stream(s);
 	char c;
-	int foo;
 
 	res.pupilContour = unserializeContour(stream);
 	stream >> c; assert(c == ',');

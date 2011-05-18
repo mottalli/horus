@@ -13,7 +13,8 @@ extern IrisVideoCapture IRIS_VIDEO_CAPTURE;
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
 	ui(new Ui::MainWindow),
-	lastFocusScores(1000, 0)
+	lastFocusScores(1000, 0),
+	debugDialog(this)
 {
 	this->ui->setupUi(this);
 
@@ -21,12 +22,12 @@ MainWindow::MainWindow(QWidget *parent) :
 	QObject::connect(this->ui->chkGuardarVideo, SIGNAL(stateChanged(int)), &::IRIS_VIDEO_CAPTURE, SLOT(setPause(int)));
 
 	qRegisterMetaType<VideoProcessor>("VideoProcessor");
-	QObject::connect(&::PROCESSING_THREAD, SIGNAL(signalFrameProcessed(VideoProcessor)), this->ui->video, SLOT(slotFrameProcessed(VideoProcessor)), Qt::BlockingQueuedConnection);
+
+	this->debugDialog.open();
 }
 
 MainWindow::~MainWindow()
 {
-	QObject::disconnect(&::PROCESSING_THREAD, SIGNAL(signalFrameProcessed(VideoProcessor)), this->ui->video, SLOT(slotFrameProcessed(VideoProcessor)));
     delete ui;
 }
 
@@ -37,6 +38,8 @@ void MainWindow::slotFrameAvailable(const ColorImage& /*frame*/)
 void MainWindow::slotFrameProcessed(const VideoProcessor& videoProcessor)
 {
 	VideoProcessor::VideoStatus status = videoProcessor.lastStatus;
+
+	this->ui->video->slotFrameProcessed(videoProcessor);
 
 	mostrarEnfoque(videoProcessor.lastFocusScore, videoProcessor.parameters.focusThreshold, videoProcessor.lastFrame.cols);
 
@@ -157,11 +160,6 @@ void MainWindow::on_btnForzarIdentificacion_clicked()
 	this->identifyTemplate(this->lastTemplate, this->lastIrisFrame, this->lastIrisFrameSegmentation);*/
 }
 
-void MainWindow::on_tabWidget_currentChanged(int index)
-{
-
-}
-
 QString MainWindow::statusToString(VideoProcessor::VideoStatus status)
 {
 	switch (status) {
@@ -192,4 +190,9 @@ QString MainWindow::statusToString(VideoProcessor::VideoStatus status)
 	}
 
 	return QString("");
+}
+
+void MainWindow::on_debugWindow_clicked()
+{
+	this->debugDialog.open();
 }

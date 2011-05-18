@@ -141,6 +141,9 @@ def segmentarYMostrar(imagen):
 	rs = segmentator.segmentImage(imagen)
 	#segmentator.segmentEyelids(imagen, rs)
 	imagenDecorada = mostrarSegmentada(imagen, rs)
+	cvNamedWindow("foo")
+	cvShowImage("foo", segmentator.pupilSegmentator.similarityImage)
+
 	return (rs, imagenDecorada)
 
 
@@ -154,6 +157,7 @@ def mostrarSegmentada(imagen, rs):
 	
 	cvNamedWindow("segmentada")
 	cvShowImage("segmentada", imagenDecorada)
+	
 	return imagenDecorada
 
 def obtenerAccion():

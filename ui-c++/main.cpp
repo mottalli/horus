@@ -10,7 +10,7 @@
 
 /******* Globales *******/
 //SQLite3IrisDatabase DB("/home/marcelo/iris/horus/ui-python/_base");
-SQLite3IrisDatabase DB("/home/marcelo/iris/horus/ui-c++/_base");
+SQLite3IrisDatabase DB("/home/marcelo/iris/BBDD/base-iris");
 VideoThread IRIS_VIDEO_THREAD(0);
 ProcessingThread PROCESSING_THREAD;
 IrisVideoCapture IRIS_VIDEO_CAPTURE("/tmp");

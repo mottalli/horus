@@ -111,7 +111,7 @@ bool getBit(uint8_t b, int bit)
 	return (b & BIT_MASK[bit]) ? true : false;
 }
 
-vector< pair<Point, Point> > Tools::iterateIris(const SegmentationResult& segmentation, int width, int height, double theta0, double theta1, double radius)
+vector< pair<Point, Point> > Tools::iterateIris(const SegmentationResult& segmentation, int width, int height, double theta0, double theta1, double radiusMin, double radiusMax)
 {
 	vector< pair<Point, Point> > res(width*height);
 	const Contour& pupilContour = segmentation.pupilContour;
@@ -140,7 +140,7 @@ vector< pair<Point, Point> > Tools::iterateIris(const SegmentationResult& segmen
 		double yto = double(p0.y) + double(p1.y-p0.y)*prop;
 
 		for (int y = 0; y < height; y++) {
-			w = (double(y)/double(height-1)) * radius;
+			w = (double(y)/double(height-1)) * (radiusMax-radiusMin) + radiusMin;
 			double ximage = xfrom + w*(xto-xfrom);
 			double yimage = yfrom + w*(yto-yfrom);
 
@@ -238,36 +238,49 @@ Circle Tools::approximateCircle(const Contour& contour)
 	return result;
 }
 
-void Tools::stretchHistogram(const GrayscaleImage& image, GrayscaleImage& dest, float marginMin, float marginMax)
+void Tools::stretchHistogram(const Image& image, Image& dest, float marginMin, float marginMax)
 {
-	if (dest.size() != image.size()) {
-		dest.create(image.size());
+	assert(image.depth() == CV_8U);
+
+	if (dest.size() != image.size() || image.type() != dest.type()) {
+		dest.create(image.size(), image.type());
 	}
 
-	// Quick & dirty way to calculate the histogram
-	vector<int> hist(256, 0);
+	vector<Mat> chansSrc(image.channels()), chansDest(dest.channels());
 
+	split(image, chansSrc);
+	split(dest, chansDest);
+
+	vector<int> hist(256, 0);
 	unsigned int total = image.rows*image.cols;
 
-	for (GrayscaleImage::const_iterator it = image.begin(); it != image.end(); it++) {
-		hist[*it]++;
+	for (size_t c = 0; c < chansSrc.size(); c++) {
+		GrayscaleImage chanSrc = chansSrc[c];
+		GrayscaleImage chanDest = chansDest[c];
+
+		// Quick & dirty way to calculate the histogram
+		for (GrayscaleImage::const_iterator it = chanSrc.begin(); it != chanSrc.end(); it++) {
+			hist[*it]++;
+		}
+
+		unsigned int sum;
+		unsigned char x0, x1;
+		for (x0 = 0, sum=0; sum <= marginMin*float(total); x0++) {
+			sum += hist[x0];
+		}
+
+		for (x1 = 255, sum=0; sum <= marginMax*float(total); x1--) {
+			sum += hist[x1];
+		}
+
+		for (GrayscaleImage::const_iterator it = chanSrc.begin(); it != chanSrc.end(); it++) {
+			int q = int((float((*it)- x0)/float(x1-x0))*255.0);
+			q = max(min(q,255), 0);
+			chanDest(it.pos()) = q;
+		}
 	}
 
-	unsigned int sum;
-	unsigned char x0, x1;
-	for (x0 = 0, sum=0; sum <= marginMin*float(total); x0++) {
-		sum += hist[x0];
-	}
-
-	for (x1 = 255, sum=0; sum <= marginMax*float(total); x1--) {
-		sum += hist[x1];
-	}
-
-	for (GrayscaleImage::const_iterator it = image.begin(); it != image.end(); it++) {
-		int q = int((float((*it)- x0)/float(x1-x0))*255.0);
-		q = max(min(q,255), 0);
-		dest(it.pos()) = q;
-	}
+	merge(chansDest, dest);
 }
 
 GrayscaleImage Tools::normalizeImage(const GrayscaleImage& image, uint8_t min, uint8_t max)

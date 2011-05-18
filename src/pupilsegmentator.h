@@ -20,6 +20,7 @@ public:
 	int pupilAdjustmentRingWidth;
 	int pupilAdjustmentRingHeight;
 	int infraredThreshold;
+	bool avoidPupilReflection;
 
 	PupilSegmentatorParameters()
 	{
@@ -31,6 +32,7 @@ public:
 		this->pupilAdjustmentRingWidth = 256;
 		this->pupilAdjustmentRingHeight = 100;
 		this->infraredThreshold = 200;
+		this->avoidPupilReflection = true;
 	}
 };
 
@@ -42,8 +44,9 @@ public:
 	ContourAndCloseCircle segmentPupil(const GrayscaleImage& image);
 	inline int getPupilContourQuality() const { return this->pupilContourQuality; }
 
-	inline void setROI(Rect ROI) { this->ROI = ROI; }
-	inline void unsetROI() { this->ROI = Rect(0,0,0,0); }
+	inline void setROI(Rect ROI) { this->eyeROI = ROI; }
+	inline void unsetROI() { this->eyeROI = Rect(0,0,0,0); }
+	inline bool hasROI() const { return this->eyeROI.width > 0; }
 
 	// Internal buffers
 	GrayscaleImage similarityImage;
@@ -51,12 +54,14 @@ public:
 	GrayscaleImage adjustmentRing;
 	Mat_<int16_t> adjustmentRingGradient;
 	GrayscaleImage workingImage;
-	Mat_<float> adjustmentSnake;
-	Mat_<float> originalAdjustmentSnake;
+	Mat1f adjustmentSnake;
+	Mat1f originalAdjustmentSnake;
 	GrayscaleImage _LUT;
 	double resizeFactor;
 
 	PupilSegmentatorParameters parameters;
+
+	Rect eyeROI, workingROI;
 
 private:
 	void setupBuffers(const Image& image);
@@ -77,8 +82,7 @@ private:
 	Contour adjustPupilContour(const GrayscaleImage& image, const Circle& approximateCircle);
 
 	double _lastSigma, _lastMu;
-
-	Rect ROI, workingROI;
+	GrayscaleImage matStructElem;
 };
 
 

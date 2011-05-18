@@ -6,7 +6,8 @@
 
 const double IrisEncoder::THETA0 = -M_PI/4.0;
 const double IrisEncoder::THETA1 = (5.0/4.0) * M_PI;
-const double IrisEncoder::RADIUS_TO_USE = 0.75;
+const double IrisEncoder::MIN_RADIUS_TO_USE = 0.1;
+const double IrisEncoder::MAX_RADIUS_TO_USE = 0.8;
 
 IrisEncoder::IrisEncoder()
 {
@@ -30,7 +31,7 @@ IrisTemplate IrisEncoder::generateTemplate(const Image& image, const Segmentatio
 	this->normalizedTexture.create(normalizedSize);
 	this->normalizedNoiseMask.create(normalizedSize);
 
-	IrisEncoder::normalizeIris(bwimage, this->normalizedTexture, this->normalizedNoiseMask, segmentationResult, IrisEncoder::THETA0, IrisEncoder::THETA1, IrisEncoder::RADIUS_TO_USE);
+	IrisEncoder::normalizeIris(bwimage, this->normalizedTexture, this->normalizedNoiseMask, segmentationResult, IrisEncoder::THETA0, IrisEncoder::THETA1, IrisEncoder::MIN_RADIUS_TO_USE, IrisEncoder::MAX_RADIUS_TO_USE);
 
 	// Improve the iris mask
 	this->extendMask();
@@ -59,14 +60,14 @@ void IrisEncoder::extendMask()
 	}
 }
 
-void IrisEncoder::normalizeIris(const GrayscaleImage& image_, GrayscaleImage& dest_, GrayscaleImage& destMask_, const SegmentationResult& segmentationResult, double theta0, double theta1, double radius)
+void IrisEncoder::normalizeIris(const GrayscaleImage& image_, GrayscaleImage& dest_, GrayscaleImage& destMask_, const SegmentationResult& segmentationResult, double theta0, double theta1, double radiusMin, double radiusMax)
 {
 	GrayscaleImage image = image_, dest = dest_, destMask = destMask_;
 
 	int normalizedWidth = dest.cols, normalizedHeight = dest.rows;
 
 	vector< pair<Point, Point> > irisPoints = Tools::iterateIris(segmentationResult,
-		normalizedWidth, normalizedHeight, theta0, theta1, radius);
+		normalizedWidth, normalizedHeight, theta0, theta1, radiusMin, radiusMax);
 
 	// Initialize the mask to 1 (all bits enabled)
 	destMask.setTo(Scalar(1));

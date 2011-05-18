@@ -31,7 +31,7 @@ void IrisVideoWidget::slotFrameProcessed(const VideoProcessor& videoProcessor)
 			vector< pair<Point, Point> > pts = Tools::iterateIris(videoProcessor.lastSegmentationResult, width, height, -M_PI/2, angle-M_PI/2);
 			for (size_t i = 0; i < pts.size(); i++) {
 				Point p = pts[i].second;
-				Vec3f val = this->decoratedFrame.at<Vec3b>(p);
+				Vec3f val = this->decoratedFrame(p);
 				Vec3f color;
 				double alpha;
 				if (status == VideoProcessor::FINISHED_CAPTURE) {
@@ -44,17 +44,13 @@ void IrisVideoWidget::slotFrameProcessed(const VideoProcessor& videoProcessor)
 				}
 				Vec3b final = Vec3f( val[0]*alpha+color[0]*(1.0-alpha), val[1]*alpha+color[1]*(1.0-alpha), val[2]*alpha+color[2]*(1.0-alpha) );
 
-				this->decoratedFrame.at<Vec3b>(p) = final;
+				this->decoratedFrame(p) = final;
 			}
 		}
 
-		/*if (status == VideoProcessor::FINISHED_CAPTURE) {
-			if (boost::filesystem::is_regular_file("./Ding.wav")) {
-				QSound::play("./Ding.wav");
-			} else {
-				//this->decoratedFrame.setTo(Scalar(255,255,255));
-			}
-		}*/
+		if (status >= VideoProcessor::FOCUSED_IRIS) {
+			decorator.drawTemplate(this->decoratedFrame, videoProcessor.lastTemplate);
+		}
 	}
 
 	this->drawCrosshair(this->decoratedFrame, Point(this->decoratedFrame.cols/2, this->decoratedFrame.rows/2), 2);

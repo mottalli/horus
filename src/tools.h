@@ -28,9 +28,9 @@ namespace Tools
 	template<class T>
 	Mat_<T> base64DecodeMat(const std::string &s);
 
-	void stretchHistogram(const GrayscaleImage& image, GrayscaleImage& dest, float marginMin=0.0, float marginMax=0.0);
+	void stretchHistogram(const Image& image, Image& dest, float marginMin=0.0, float marginMax=0.0);
 
-	std::vector< std::pair<Point, Point> > iterateIris(const SegmentationResult& segmentation, int width, int height, double theta0=0.0, double theta1=2.0*M_PI, double radius=1.0);
+	std::vector< std::pair<Point, Point> > iterateIris(const SegmentationResult& segmentation, int width, int height, double theta0=0.0, double theta1=2.0*M_PI, double radiusMin = 0.0, double radiusMax=1.0);
 	void superimposeTexture(GrayscaleImage& image, const GrayscaleImage& texture, const SegmentationResult& segmentation, double theta0=0.0, double theta1=2.0*M_PI, double radius=1.0, bool blend=true, double blendStart = 0.7);
 
 	GrayscaleImage normalizeImage(const GrayscaleImage& image, uint8_t min=0, uint8_t max=255);	// Normalizes an image to the given range
@@ -42,6 +42,7 @@ string Tools::base64EncodeMat(const Mat& mat)
 {
 	int width = mat.cols, height = mat.rows;
 	assert(mat.channels() == 1);
+	assert(mat.isContinuous());
 
 	unsigned char* buffer = new unsigned char[2*sizeof(int16_t) + width*height*sizeof(T)];		// Stores width, height and data
 
