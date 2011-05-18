@@ -54,6 +54,8 @@ void IrisDatabase::doMatch(const IrisTemplate& irisTemplate, void (*statusCallba
 
 	this->resultDistances = vector<double>(n);
 
+	size_t bestIdx;
+
 	for (size_t i = 0; i < n; i++) {
 		double hammingDistance = comparator.compare(*(this->templates[i]));
 		this->resultDistances[i] = hammingDistance;
@@ -62,6 +64,7 @@ void IrisDatabase::doMatch(const IrisTemplate& irisTemplate, void (*statusCallba
 		if (matchId != this->ignoreId && hammingDistance < this->minDistance) {
 			this->minDistance = hammingDistance;
 			this->minDistanceId = matchId;
+			bestIdx = i;
 		}
 
 		int percentage = (100*i)/n;
@@ -69,6 +72,9 @@ void IrisDatabase::doMatch(const IrisTemplate& irisTemplate, void (*statusCallba
 	}
 
 	this->matchingTime = this->clock.stop();
+
+	comparator.compare(*(this->templates[bestIdx]));
+	this->comparationImage = comparator.getComparationImage();
 }
 
 void IrisDatabase::calculatePartsDistances(const IrisTemplate& irisTemplate, unsigned int nParts, unsigned int nRots, unsigned int rotStep)
@@ -146,6 +152,7 @@ void IrisDatabase::doAContrarioMatch(const IrisTemplate& irisTemplate, int nPart
 	this->minNFA = INT_MAX;
 
 
+	size_t bestIdx = 0;
 	for (unsigned int i = 0; i < n; i++) {
 		this->resultNFAs[i] = log10(double(n));
 
@@ -162,6 +169,7 @@ void IrisDatabase::doAContrarioMatch(const IrisTemplate& irisTemplate, int nPart
 		if (matchId != this->ignoreId && this->resultNFAs[i] < this->minNFA) {
 			this->minNFA = this->resultNFAs[i];
 			this->minNFAId = matchId;
+			bestIdx = i;
 		}
 	}
 
@@ -177,4 +185,9 @@ void IrisDatabase::doAContrarioMatch(const IrisTemplate& irisTemplate, int nPart
 	delete[] cumhists;
 
 	this->matchingTime = this->clock.stop();
+
+	// Generate the comparation image
+	TemplateComparator comparator(irisTemplate, nRots, rotStep);
+	comparator.compare(*(this->templates[bestIdx]));
+	this->comparationImage = comparator.getComparationImage();
 }

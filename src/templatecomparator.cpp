@@ -247,3 +247,29 @@ const IrisTemplate& TemplateComparator::getBestRotatedTemplate()
 {
 	return this->rotatedTemplates[this->minHDIdx];
 }
+
+GrayscaleImage TemplateComparator::getComparationImage()
+{
+	IrisTemplate t1 = this->irisTemplate;
+	IrisTemplate t2 = this->getBestRotatedTemplate();
+
+	GrayscaleImage i1 = t1.getUnpackedTemplate();
+	GrayscaleImage i2 = t2.getUnpackedTemplate();
+	GrayscaleImage m1 = t1.getUnpackedMask();
+	GrayscaleImage m2 = t2.getUnpackedMask();
+
+
+	GrayscaleImage res;
+	i1.setTo(255, i1);
+	i2.setTo(255, i2);
+	m1.setTo(255, m1);
+	m2.setTo(255, m2);
+
+	bitwise_not(m1, m1);
+	bitwise_not(m2, m2);
+
+	bitwise_xor(i1, i2, res);
+	res.setTo(128, m1);
+	res.setTo(128, m2);
+	return res;
+}

@@ -38,6 +38,7 @@ public:
 	vector< vector<double> > resultPartsDistances;
 	vector<double> resultNFAs;
 
+	GrayscaleImage comparationImage;
 
 	int ignoreId;
 

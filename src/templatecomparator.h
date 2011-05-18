@@ -26,6 +26,8 @@ public:
 
 	const IrisTemplate& getBestRotatedTemplate();
 
+	GrayscaleImage getComparationImage();
+
 private:
 	static void rotateMatrix(const Mat& src, Mat& dest, int step);
 	IrisTemplate irisTemplate;

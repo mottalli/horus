@@ -66,13 +66,13 @@ GrayscaleImage IrisTemplate::getUnpackedTemplate() const
 {
 	GrayscaleImage unpacked;
 	Tools::unpackBits(this->irisTemplate, unpacked);
-	return Mat(unpacked);
+	return unpacked;
 }
 
 GrayscaleImage IrisTemplate::getUnpackedMask() const
 {
 	GrayscaleImage unpacked;
 	Tools::unpackBits(this->mask, unpacked);
-	return Mat(unpacked);
+	return unpacked;
 }
 

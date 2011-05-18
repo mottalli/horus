@@ -36,7 +36,6 @@ void MatchingDialog::doMatch(IrisTemplate irisTemplate, const GrayscaleImage& im
 
 	this->lastMatch = irisData;
 
-
 	// Mostrar las imágenes
 	ColorImage decorated, decoratedSmall;
 	Decorator decorator;
@@ -76,10 +75,6 @@ void MatchingDialog::doMatch(IrisTemplate irisTemplate, const GrayscaleImage& im
 	this->ui->lblIdentification->setText(identificacion);
 
 	this->show();
-
-	/*BOOST_FOREACH(double d, DB.resultDistances) {
-		qDebug() << d;
-	}*/
 }
 
 void MatchingDialog::on_btnConfirmarIdentificacion_clicked()

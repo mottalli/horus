@@ -23,7 +23,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
 	qRegisterMetaType<VideoProcessor>("VideoProcessor");
 
-	this->debugDialog.open();
+	//this->debugDialog.open();
 }
 
 MainWindow::~MainWindow()
