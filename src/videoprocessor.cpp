@@ -5,10 +5,6 @@
  *      Author: marcelo
  */
 
-#include <stdexcept>
-#include <iostream>
-#include <cmath>
-
 #include "videoprocessor.h"
 #include "tools.h"
 
