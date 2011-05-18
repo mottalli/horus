@@ -36,13 +36,13 @@ void LogGabor1DFilter::applyFilter(const GrayscaleImage& image, Mat1d& dest, con
 	dft(imageFloat, this->filterResult, DFT_ROWS + DFT_COMPLEX_OUTPUT, imageFloat.rows);
 
 
-	vector<Mat1d> ps;
+	/*vector<Mat1d> ps;
 	split(this->filterResult, ps);
 	assert(ps.size() == 2);
 	Mat1d& preal = ps[0];
 	Mat1d& pimag = ps[1];
 	imshow("real", Tools::normalizeImage(preal));
-	imshow("imag", Tools::normalizeImage(pimag));
+	imshow("imag", Tools::normalizeImage(pimag));*/
 
 
 	// Convolve each row of the image with the filter by multiplying the spectrums
