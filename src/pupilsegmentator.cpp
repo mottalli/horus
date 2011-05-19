@@ -39,11 +39,6 @@ ContourAndCloseCircle PupilSegmentator::segmentPupil(const GrayscaleImage& image
 	pupilCircle.xc /= this->resizeFactor;
 	pupilCircle.yc /= this->resizeFactor;
 
-	if (this->hasROI()) {
-		pupilCircle.xc += this->eyeROI.x;
-		pupilCircle.yc += this->eyeROI.y;
-	}
-
 	result.first = this->adjustPupilContour(image, pupilCircle);
 	result.second = Tools::approximateCircle(result.first);
 

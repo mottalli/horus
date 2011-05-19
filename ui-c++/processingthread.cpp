@@ -7,7 +7,6 @@ ProcessingThread::ProcessingThread(QObject *parent) :
 
 void ProcessingThread::run()
 {
-	this->videoProcessor.parameters.doEyeDetect = false;
 	VideoProcessor::VideoStatus status = this->videoProcessor.processFrame(_frame);
 	signalFrameProcessed(this->videoProcessor);
 
