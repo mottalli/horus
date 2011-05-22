@@ -9,7 +9,7 @@ QT       += core gui
 TARGET = ui-c++
 TEMPLATE = app
 
-LIBS += -lml -lcvaux -lhighgui -lcv -lcxcore -lboost_system -lboost_filesystem
+LIBS += -lml -lcvaux -lhighgui -lcv -lcxcore -lboost_system -lboost_filesystem -lboost_date_time
 
 INCLUDEPATH += ../src
 

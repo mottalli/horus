@@ -1,62 +1,61 @@
 #include "irisvideocapture.h"
 
-IrisVideoCapture::IrisVideoCapture(QObject *parent) :
-    QObject(parent)
-{
-	_path = "/tmp";
-}
+#include <boost/date_time/posix_time/posix_time.hpp>
 
-IrisVideoCapture::IrisVideoCapture(const string path)
+const int IrisVideoCapture::VIDEO_FORMAT = CV_FOURCC('D','I','V','X');
+
+IrisVideoCapture::IrisVideoCapture(const string path_)
 {
-	_path = path;
-	_imageNumber = 1;
-	_capturing = false;
-	_writer = NULL;
-	_paused = true;
+	this->path = path_;
+	this->capturing = false;
+	this->writer = NULL;
+	this->paused = true;
 }
 
 void IrisVideoCapture::slotFrameProcessed(const VideoProcessor& videoProcessor)
 {
-	if (_paused) return;
+	if (this->paused) return;
 
 
 	VideoProcessor::VideoStatus status = videoProcessor.lastStatus;
 
-	if (status >= VideoProcessor::IRIS_LOW_QUALITY && !_capturing) {
+	if (status >= VideoProcessor::IRIS_LOW_QUALITY && !this->capturing) {
 		// Inicializo la captura
-		_writer = new VideoWriter(this->getNextFilename(), VIDEO_FORMAT, FPS, videoProcessor.lastFrame.size(), true);
-		if (!_writer->isOpened()) {
+		this->writer = new VideoWriter(this->getNextFilename(), VIDEO_FORMAT, FPS, videoProcessor.lastFrame.size(), true);
+		if (!this->writer->isOpened()) {
 			qDebug() << "No se pudo inicializar capturador de video";
-			delete _writer;
-			_writer = NULL;
+			delete this->writer;
+			this->writer = NULL;
 			return;
 		}
 
-		_capturing = true;
-		_framesLeft = 8*FPS;
-		_gotTemplate = false;
+		this->capturing = true;
+		this->framesLeft = 8*FPS;
+		this->gotTemplate = false;
 	}
 
 	if (status == VideoProcessor::GOT_TEMPLATE) {
-		_framesLeft = 1.5*FPS;
-		_gotTemplate = true;
+		this->framesLeft = 1.5*FPS;
+		this->gotTemplate = true;
 	}
 
 
-	if (_capturing) {
-		assert(_writer != NULL);
-		(*_writer) << videoProcessor.lastFrame;
+	if (this->capturing) {
+		assert(this->writer != NULL);
+		(*this->writer) << videoProcessor.lastFrame;
 
-		_framesLeft--;
-		if (!_framesLeft) {
-			delete _writer;
-			_writer = NULL;
-			_capturing = false;
+		this->framesLeft--;
+		if (!this->framesLeft) {
+			delete this->writer;
+			this->writer = NULL;
+			this->capturing = false;
 
-			if (!_gotTemplate) {
+			if (!this->gotTemplate) {
 				// En la ráfaga de video no hubo un iris - borro el video
-				qDebug() << "Iris no detectado -- borrando" << this->getCurrentFilename().c_str();
-				boost::filesystem::remove(this->getCurrentFilename());
+				qDebug() << "Iris no detectado -- borrando" << this->currentFilename.c_str();
+				filesystem::remove(this->currentFilename);
+			} else {
+				qDebug() << "Video guardado.";
 			}
 		}
 	}
@@ -64,31 +63,29 @@ void IrisVideoCapture::slotFrameProcessed(const VideoProcessor& videoProcessor)
 
 string IrisVideoCapture::getNextFilename()
 {
-	while (true) {
-		string fileName = (boost::format("%1%/irisvideo%2%.avi") % _path % _imageNumber).str();
+	// Mierda que esto es complicado...
+	using namespace posix_time;
+	ptime now = second_clock::local_time();
+	gregorian::date_facet* df = new gregorian::date_facet("%Y-%m-%d");
 
-		if (!boost::filesystem::is_regular_file(fileName)) {
-			return fileName;
-		}
+	ostringstream filename;
+	filename.imbue(locale(filename.getloc(), df));
+	filename << this->path << '/' << now.date() << ' ' << now.time_of_day() << ".avi";
 
-		_imageNumber++;
-	}
+	this->currentFilename = filename.str();
+	return this->currentFilename;
 }
 
-string IrisVideoCapture::getCurrentFilename() const
-{
-	return (boost::format("%1%/irisvideo%2%.avi") % _path % _imageNumber).str();
-}
 
 void IrisVideoCapture::setPause(int p)
 {
 	if (p == 0) {
-		_paused = true;
-		if (_writer != NULL) {
-			delete _writer;
-			_writer = NULL;
+		this->paused = true;
+		if (this->writer != NULL) {
+			delete this->writer;
+			this->writer = NULL;
 		}
 	} else {
-		_paused = false;
+		this->paused = false;
 	}
 }

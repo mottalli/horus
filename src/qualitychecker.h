@@ -3,6 +3,7 @@
 #include "common.h"
 #include "segmentationresult.h"
 #include "iristemplate.h"
+#include "templatecomparator.h"
 
 class QualityCheckerParameters
 {

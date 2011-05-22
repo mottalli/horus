@@ -11,3 +11,4 @@ horus_wrap.cxx
 CMakeFiles/
 CMakeCache.txt
 *.user
+base-iris

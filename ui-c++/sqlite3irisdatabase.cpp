@@ -1,5 +1,8 @@
-#include "sqlite3irisdatabase.h"
 #include <sys/stat.h>
+#include "sqlite3irisdatabase.h"
+#include "processingthread.h"
+
+extern ProcessingThread PROCESSING_THREAD;
 
 SQLite3IrisDatabase::SQLite3IrisDatabase(const string& dbPath) :
 	dbPath(dbPath), db(NULL)
@@ -12,7 +15,7 @@ SQLite3IrisDatabase::SQLite3IrisDatabase(const string& dbPath) :
 
 	qDebug() << "Cargando base de datos...";
 
-	sql = "SELECT id_usuario, codigo_gabor FROM usuarios";
+	sql = "SELECT id_usuario, iris_template FROM usuarios NATURAL JOIN base_iris WHERE imagen_primaria=1";
 	VERIFY_SQL( sqlite3_prepare(this->db, sql.c_str(), -1, &rows, NULL) );
 	while (sqlite3_step(rows) == SQLITE_ROW) {
 		int idUsuario = sqlite3_column_int(rows, 0);
@@ -51,7 +54,7 @@ SQLite3IrisDatabase::IrisData SQLite3IrisDatabase::getIrisData(int userId) const
 
 	res.userId = -1;
 
-	string sql = "SELECT nombre,segmentacion,codigo_gabor,imagen FROM usuarios WHERE id_usuario=?";
+	string sql = "SELECT nombre,segmentacion,iris_template FROM usuarios NATURAL JOIN base_iris WHERE id_usuario=? AND imagen_primaria=1";
 	VERIFY_SQL( sqlite3_prepare(this->db, sql.c_str(), -1, &stmt, NULL) );
 	VERIFY_SQL( sqlite3_bind_int(stmt, 1, userId) );
 
@@ -59,10 +62,7 @@ SQLite3IrisDatabase::IrisData SQLite3IrisDatabase::getIrisData(int userId) const
 		// Match
 		string serializedSegmentation = (const char*)sqlite3_column_text(stmt, 1);
 		string serializedTemplate = (const char*)sqlite3_column_text(stmt, 2);
-		string imagePath = (const char*)sqlite3_column_text(stmt, 3);
-		if (imagePath[0] != '/') {				// Es un path relativo a la base de datos
-			imagePath = this->dbPath + "/" + imagePath;
-		}
+		string imagePath = this->getImagePathForUser(userId);
 
 		res.userId = userId;
 		res.userName = (const char*)sqlite3_column_text(stmt, 0);
@@ -74,7 +74,7 @@ SQLite3IrisDatabase::IrisData SQLite3IrisDatabase::getIrisData(int userId) const
 	return res;
 }
 
-void SQLite3IrisDatabase::addUser(string userName, const IrisTemplate& irisTemplate, const SegmentationResult& segmentationResult, const Mat image)
+void SQLite3IrisDatabase::addUser(string userName, const IrisTemplate& irisTemplate, const SegmentationResult& segmentationResult, const Image& image)
 {
 	if (userName.empty()) {
 		throw runtime_error("El nombre no puede estar vacío");
@@ -90,17 +90,10 @@ void SQLite3IrisDatabase::addUser(string userName, const IrisTemplate& irisTempl
 		throw runtime_error("Ya existe un usuario en la base de datos con ese nombre");
 	}
 
-	string serializedTemplate = Serializer::serializeIrisTemplate(irisTemplate);
-	string serializedSegmentation = Serializer::serializeSegmentationResult(segmentationResult);
-	string fullImagePath = "-x-";		// Valor temporario
-
 	// Inserto
-	sql = "INSERT INTO usuarios(nombre,imagen,segmentacion,codigo_gabor) VALUES(?,?,?,?)";
+	sql = "INSERT INTO usuarios(nombre) VALUES(?)";
 	VERIFY_SQL( sqlite3_prepare(this->db, sql.c_str(), -1, &stmt, NULL) );
 	VERIFY_SQL( sqlite3_bind_text(stmt, 1, userName.c_str(), -1, SQLITE_TRANSIENT) );
-	VERIFY_SQL( sqlite3_bind_text(stmt, 2, fullImagePath.c_str(), -1, SQLITE_TRANSIENT) );
-	VERIFY_SQL( sqlite3_bind_text(stmt, 3, serializedSegmentation.c_str(), -1, SQLITE_TRANSIENT) );
-	VERIFY_SQL( sqlite3_bind_text(stmt, 4, serializedTemplate.c_str(), -1, SQLITE_TRANSIENT) );
 	if (sqlite3_step(stmt) != SQLITE_DONE) {
 		throw runtime_error(string("No se pudo insertar el registro en la base [") + sqlite3_errmsg(this->db) + string("]"));
 	}
@@ -108,29 +101,57 @@ void SQLite3IrisDatabase::addUser(string userName, const IrisTemplate& irisTempl
 	// Obtengo el ID insertado
 	sqlite3_int64 userId = sqlite3_last_insert_rowid(this->db);
 
-	// Guardo la imagen
-	if (!image.empty()) {
-		string fileName = (boost::format("%i.jpg") % userId).str();
-		string fullFilename = (boost::format("%s/%s") % this->dbPath % fileName).str();			// /path/to/db/<id>.jpg
-		imwrite(fullFilename, image);
+	sqlite3_finalize(stmt);
 
-		sql = "UPDATE usuarios SET imagen=? WHERE id_usuario=?";
-		VERIFY_SQL( sqlite3_prepare(this->db, sql.c_str(), -1, &stmt, NULL) );
-		VERIFY_SQL( sqlite3_bind_text(stmt, 1, fileName.c_str(), -1, SQLITE_TRANSIENT) );
-		VERIFY_SQL( sqlite3_bind_int(stmt, 2, userId) );
-		sqlite3_step(stmt);
-	}
+	// Guardo la imagen
+	this->addImage(userId, image, segmentationResult, irisTemplate);
 
 	this->addTemplate(userId, irisTemplate);
 }
 
-void SQLite3IrisDatabase::addImage(int userId, const Mat& image)
+void SQLite3IrisDatabase::addImage(int userId, const Image& image, const SegmentationResult& segmentationResult, optional<IrisTemplate> averageTemplate)
 {
+	string filename, sql;
+	sqlite3_stmt* stmt;
+
 	for (int i = 1; ; i++) {
-		string fullFilename = (boost::format("%s/%i_%i.jpg") % this->dbPath % userId % i).str();			// /path/to/db/<id>_<i>.jpg
-		if (!boost::filesystem::is_regular_file(fullFilename)) {			// Encontré un nombre disponible para el archivo
+		filename = (boost::format("%i_%i.jpg") % userId % i).str();
+		string fullFilename = (boost::format("%s/%s") % this->dbPath % filename).str();			// /path/to/db/<id>_<i>.jpg
+		if (!filesystem::is_regular_file(fullFilename)) {			// Encontré un nombre disponible para el archivo
 			imwrite(fullFilename, image);
 			break;
 		}
 	}
+
+	IrisTemplate imageTemplate = ::PROCESSING_THREAD.videoProcessor.irisEncoder.generateTemplate(image, segmentationResult);
+
+	// Chequeo si es la primer imagen
+	sql = "SELECT COUNT(*) FROM base_iris WHERE id_usuario=? AND imagen_primaria=?";
+	VERIFY_SQL( sqlite3_prepare(this->db, sql.c_str(), -1, &stmt, NULL) );
+	VERIFY_SQL( sqlite3_bind_int(stmt,  1, userId) );
+	VERIFY_SQL( sqlite3_bind_int(stmt,  2, 1) );
+	if (sqlite3_step(stmt) != SQLITE_ROW) {
+		throw runtime_error(string("Error en consulta [") + sqlite3_errmsg(this->db) + "]");
+	}
+	int imagenPrimaria = (sqlite3_column_int(stmt, 0) == 0) ? 1 : 0;
+	sqlite3_finalize(stmt);
+
+	string serializedImageTemplate = Serializer::serializeIrisTemplate(imageTemplate);
+	string serializedAverageTemplate = ( (averageTemplate) ? Serializer::serializeIrisTemplate(*averageTemplate) : "");
+	string serializedSegmentationResult = Serializer::serializeSegmentationResult(segmentationResult);
+
+	sql = "INSERT INTO base_iris(id_usuario,imagen_primaria,imagen,segmentacion,segmentacion_correcta,iris_template,average_template) \
+						VALUES (?,?,?,?,?,?,?)";
+	VERIFY_SQL( sqlite3_prepare(this->db, sql.c_str(), -1, &stmt, NULL) );
+	VERIFY_SQL( sqlite3_bind_int(stmt,  1, userId) );
+	VERIFY_SQL( sqlite3_bind_int(stmt,  2, imagenPrimaria) );
+	VERIFY_SQL( sqlite3_bind_text(stmt, 3, filename.c_str(), -1, SQLITE_TRANSIENT) );
+	VERIFY_SQL( sqlite3_bind_text(stmt, 4, serializedSegmentationResult.c_str(), -1, SQLITE_TRANSIENT) );
+	VERIFY_SQL( sqlite3_bind_int(stmt,  5, 1) );
+	VERIFY_SQL( sqlite3_bind_text(stmt, 6, serializedImageTemplate.c_str(), -1, SQLITE_TRANSIENT) );
+	VERIFY_SQL( sqlite3_bind_text(stmt, 7, serializedAverageTemplate.c_str(), -1, SQLITE_TRANSIENT) );
+	if (sqlite3_step(stmt) != SQLITE_DONE) {
+		throw runtime_error(string("No se pudo insertar el registro en la base [") + sqlite3_errmsg(this->db) + string("]"));
+	}
+	sqlite3_finalize(stmt);
 }

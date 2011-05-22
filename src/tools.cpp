@@ -144,7 +144,7 @@ vector< pair<Point, Point> > Tools::iterateIris(const SegmentationResult& segmen
 			double ximage = xfrom + w*(xto-xfrom);
 			double yimage = yfrom + w*(yto-yfrom);
 
-			//res[y*width+x] = pair<Point, Point>(Point(x, y), Point(ximage, yimage));			// This causes some weird issues!
+			//res[x*height+y] = pair<Point, Point>(Point(x, y), Point(ximage, yimage));			// This causes some weird issues! (Ubuntu 11.04, gcc 4.5)
 			res.push_back(pair<Point, Point>(Point(x, y), Point(ximage, yimage)));
 		}
 	}

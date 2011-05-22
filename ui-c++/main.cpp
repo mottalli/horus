@@ -9,11 +9,13 @@
 #include "irisvideocapture.h"
 
 /******* Globales *******/
-//SQLite3IrisDatabase DB("/home/marcelo/iris/horus/ui-python/_base");
-SQLite3IrisDatabase DB("/home/marcelo/iris/BBDD/base-iris");
+
+const string pathBase = "/home/marcelo/iris/horus/base-iris";
+
+SQLite3IrisDatabase DB(pathBase);
 VideoThread IRIS_VIDEO_THREAD(0);
 ProcessingThread PROCESSING_THREAD;
-IrisVideoCapture IRIS_VIDEO_CAPTURE("/tmp");
+IrisVideoCapture IRIS_VIDEO_CAPTURE(pathBase);
 
 int main(int argc, char *argv[])
 {

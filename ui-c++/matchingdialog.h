@@ -27,6 +27,8 @@ private:
 
 	GrayscaleImage lastQueryImage;
 	SQLite3IrisDatabase::IrisData lastMatch;
+	IrisTemplate lastTemplate;
+	SegmentationResult lastSegmentationResult;
 };
 
 #endif // MATCHINGDIALOG_H

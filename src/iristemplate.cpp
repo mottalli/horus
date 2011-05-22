@@ -76,3 +76,9 @@ GrayscaleImage IrisTemplate::getUnpackedMask() const
 	return unpacked;
 }
 
+void IrisTemplate::setPackedData(const GrayscaleImage& packedTemplate, const GrayscaleImage& packedMask, string algorithmSignature)
+{
+	this->irisTemplate = packedTemplate;
+	this->mask = packedMask;
+	this->encoderSignature = algorithmSignature;
+}

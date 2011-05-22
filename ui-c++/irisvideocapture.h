@@ -8,13 +8,12 @@ class IrisVideoCapture : public QObject
 {
     Q_OBJECT
 public:
-    explicit IrisVideoCapture(QObject *parent = 0);
 	IrisVideoCapture(const string path = "/tmp");
 
-	static const int VIDEO_FORMAT = CV_FOURCC('D','I','V','X');
+	static const int VIDEO_FORMAT;
 	static const int FPS = 15;
 
-	bool isPaused() { return _paused; }
+	bool isPaused() { return this->paused; }
 
 signals:
 
@@ -23,16 +22,17 @@ public slots:
 	void setPause(int p);
 
 private:
-	string _path;
-	VideoWriter* _writer;
-	unsigned _imageNumber;
-	unsigned _framesLeft;
+	string path;
+	VideoWriter* writer;
+	unsigned framesLeft;
 
 	string getNextFilename();
-	string getCurrentFilename() const;
-	bool _capturing;
-	bool _gotTemplate;
-	bool _paused;
+
+	string currentFilename;
+
+	bool capturing;
+	bool gotTemplate;
+	bool paused;
 
 };
 

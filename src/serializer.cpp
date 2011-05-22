@@ -110,8 +110,8 @@ Parabola Serializer::unserializeParabola(istringstream& stream)
 string Serializer::serializeIrisTemplate(const IrisTemplate& irisTemplate)
 {
 	ostringstream stream;
-	string serializedTemplate = Tools::base64EncodeMat<uint8_t>(irisTemplate.irisTemplate);
-	string serializedMask = Tools::base64EncodeMat<uint8_t>(irisTemplate.mask);
+	string serializedTemplate = Tools::base64EncodeMat<uint8_t>(irisTemplate.getPackedTemplate());
+	string serializedMask = Tools::base64EncodeMat<uint8_t>(irisTemplate.getPackedMask());
 	string signature = irisTemplate.encoderSignature;
 
 	assert(find(signature.begin(), signature.end(), ',') == signature.end());	// Signature must not contain a comma
@@ -145,11 +145,7 @@ IrisTemplate Serializer::unserializeIrisTemplate(const string& serializedTemplat
 	Mat_<uint8_t> packedMask = Tools::base64DecodeMat<uint8_t>(encodedMat);
 
 	IrisTemplate res;
-	// Note that by doing this, irisTemplate takes posession of the template and the mask
-	res.irisTemplate = packedTemplate;
-	res.mask = packedMask;
-	res.encoderSignature = signature;
-
+	res.setPackedData(packedTemplate, packedMask, signature);
 	return res;
 }
 

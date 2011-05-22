@@ -10,6 +10,9 @@
 #include "common.h"
 #include "segmentationresult.h"
 #include "external/base64.h"
+#include "segmentator.h"
+#include "iristemplate.h"
+#include "irisencoder.h"
 
 namespace Tools
 {
@@ -36,6 +39,8 @@ namespace Tools
 	GrayscaleImage normalizeImage(const GrayscaleImage& image, uint8_t min=0, uint8_t max=255);	// Normalizes an image to the given range
 	void toGrayscale(const Image& src, GrayscaleImage& dest, bool cloneIfAlreadyGray);
 }
+
+
 
 template<class T>
 string Tools::base64EncodeMat(const Mat& mat)
