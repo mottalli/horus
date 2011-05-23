@@ -54,7 +54,7 @@ void IrisDatabase::doMatch(const IrisTemplate& irisTemplate, void (*statusCallba
 
 	this->resultDistances = vector<double>(n);
 
-	size_t bestIdx;
+	size_t bestIdx = -1;
 
 	for (size_t i = 0; i < n; i++) {
 		double hammingDistance = comparator.compare(*(this->templates[i]));

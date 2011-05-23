@@ -7,7 +7,7 @@
 #include <boost/optional.hpp>
 
 #include "common.h"
-#include "external/sqlite3/sqlite3.h"
+#include "sqlite3wrapper.h"
 
 #ifdef HORUS_CUDA_SUPPORT
 class SQLite3IrisDatabase : public IrisDatabaseCUDA
@@ -34,11 +34,7 @@ public:
 
 private:
 	string dbPath;
-	mutable sqlite3* db;
-
-	inline string getImagePathForUser(int userId) const { return (boost::format("%s/%i.jpg") % this->dbPath % userId).str(); }
-
-	void VERIFY_SQL(int status, const string msgError = "") const;
+	mutable SQlite3Database db;
 };
 
 #endif // SQLITE3IRISDATABASE_H

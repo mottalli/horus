@@ -25,7 +25,8 @@ SOURCES += main.cpp\
     irisvideocapture.cpp \
     ../src/eyedetect.cpp \
     irisvideowidget.cpp \
-    debugdialog.cpp
+    debugdialog.cpp \
+    sqlite3wrapper.cpp
 
 SOURCES += ../src/clock.cpp              ../src/loggaborencoder.cpp     ../src/segmentator.cpp \
 	../src/decorator.cpp          ../src/serializer.cpp \
@@ -53,7 +54,8 @@ HEADERS  += mainwindow.h \
     ../src/eyedetect_haarcascades.h \
     ../src/eyedetect.h \
     irisvideowidget.h \
-    debugdialog.h
+    debugdialog.h \
+    sqlite3wrapper.h
 
 FORMS    += mainwindow.ui \
     registerdialog.ui \
