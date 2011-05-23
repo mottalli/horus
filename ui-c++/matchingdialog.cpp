@@ -57,6 +57,9 @@ void MatchingDialog::doMatch(IrisTemplate irisTemplate, const GrayscaleImage& im
 
 	bool hasMatch = (matchingHD < 0.34);
 
+	QString textoCant = (boost::format("Sobre un total de %i iris - Tiempo de busqueda: %.2f miliseg.") % DB.databaseSize() % totalTime).str().c_str();
+	this->ui->lblCantidadImagenes->setText(textoCant);
+
 	if (!image.empty()) {
 		cvtColor(image, decorated, CV_GRAY2RGB);
 		decorator.drawSegmentationResult(decorated, segmentationResult);
@@ -65,22 +68,25 @@ void MatchingDialog::doMatch(IrisTemplate irisTemplate, const GrayscaleImage& im
 		this->ui->capturedImage->showImage(decoratedSmall);
 	}
 
-	if (!irisData.image.empty()) {
-		decorated = irisData.image.clone();
-		decorator.drawSegmentationResult(decorated, irisData.segmentation);
-		cv::resize(decorated, decoratedSmall, Size(480, 360));
-		decorator.drawTemplate(decoratedSmall, irisData.irisTemplate);
-		this->ui->dbImage->showImage(decoratedSmall);
+	if (hasMatch) {
+		if (!irisData.image.empty()) {
+			decorated = irisData.image.clone();
+			decorator.drawSegmentationResult(decorated, irisData.segmentation);
+			cv::resize(decorated, decoratedSmall, Size(480, 360));
+			decorator.drawTemplate(decoratedSmall, irisData.irisTemplate);
+			this->ui->dbImage->showImage(decoratedSmall);
+		}
+
+		this->ui->lblHammingDistance->setText( (boost::format("%.5f") % matchingHD).str().c_str() );
+		this->ui->lblUsername->setText(irisData.userName.c_str());
+		this->ui->lblIdentification->setText("<font color='green'>Positiva</font>");
+	} else {
+		this->ui->dbImage->showImage(MatchingDialog::getNoMatchImage());
+		this->ui->lblHammingDistance->setText( (boost::format("%.5f (mas cercana)") % matchingHD).str().c_str() );
+		this->ui->lblUsername->setText("(Ninguna)");
+		this->ui->lblIdentification->setText("<font color='red'>Negativa</font>");
 	}
 
-	QString textoCant = (boost::format("Sobre un total de %i iris - Tiempo de busqueda: %.2f miliseg.") % DB.databaseSize() % totalTime).str().c_str();
-
-	this->ui->lblHammingDistance->setText( (boost::format("%.5f") % matchingHD).str().c_str() );
-	this->ui->lblCantidadImagenes->setText(textoCant);
-	this->ui->lblUsername->setText(irisData.userName.c_str());
-
-	QString identificacion = (hasMatch ? "<font color='green'>Positiva</font>" : "<font color='red'>Negativa</font>");
-	this->ui->lblIdentification->setText(identificacion);
 
 	this->show();
 }
@@ -92,4 +98,15 @@ void MatchingDialog::on_btnConfirmarIdentificacion_clicked()
 		DB.addImage(this->lastMatch.userId, this->lastQueryImage, this->lastSegmentationResult, this->lastTemplate);
 	}
 	this->accept();
+}
+
+Image MatchingDialog::getNoMatchImage(Size size)
+{
+	ColorImage image(size);
+	image.setTo(CV_RGB(0,0,0));
+
+	line(image, Point(0,0), Point(image.cols-1,image.rows-1), CV_RGB(255,255,255), 1);
+	line(image, Point(image.cols-1,0), Point(0,image.rows-1), CV_RGB(255,255,255), 1);
+
+	return image;
 }
