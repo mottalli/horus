@@ -46,6 +46,36 @@ SegmentationResult Serializer::unserializeSegmentationResult(const string& s)
 	return res;
 }
 
+SegmentationResult Serializer::unserializeSegmentationResultOLD(const string& s)
+{
+	SegmentationResult res;
+	istringstream stream(s);
+	char c;
+	int foo;
+
+	res.pupilContour = unserializeContourOLD(stream);
+	res.irisContour = unserializeContourOLD(stream);
+
+	stream >> c; assert(c == ',');
+	stream >> foo;          // UNUSED
+	stream >> c; assert(c == ',');
+	stream >> c;            // Either '1' or '0'
+
+	res.eyelidsSegmented = (c == '1');
+
+	if (res.eyelidsSegmented) {
+		stream >> c; assert(c == ',');
+		res.upperEyelid = unserializeParabola(stream);
+		stream >> c; assert(c == ',');
+		res.lowerEyelid = unserializeParabola(stream);
+	}
+
+	res.irisCircle = Tools::approximateCircle(res.irisContour);
+	res.pupilCircle = Tools::approximateCircle(res.pupilContour);
+
+	return res;
+}
+
 string Serializer::serializeContour(const Contour& contour)
 {
 	ostringstream stream;

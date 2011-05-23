@@ -19,5 +19,10 @@ template<> int SQlite3Database::Recordset::at(int idx)
 
 template<> std::string SQlite3Database::Recordset::at(int idx)
 {
-	return (const char*)sqlite3_column_text(this->stmt, idx);
+	const char* p = (const char*)sqlite3_column_text(this->stmt, idx);
+	if (p) {
+		return string(p);
+	} else {
+		return "";
+	}
 }

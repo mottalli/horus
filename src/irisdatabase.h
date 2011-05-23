@@ -7,6 +7,8 @@
 
 using namespace std;
 
+typedef pair<int, double> MatchDistance;
+
 class IrisDatabase
 {
 public:
@@ -22,7 +24,8 @@ public:
 
 	inline int getMinDistanceId() const { return this->minDistanceId; }
 	inline double getMinDistance() const { return this->minDistance; }
-	inline double getDistanceFor(int templateId) { return this->resultDistances[this->positions[templateId]]; }
+	inline double getDistanceFor(int templateId) { return this->distances[this->positions[templateId]]; }
+	inline const vector<MatchDistance>& getMatchingDistances() const { return this->matchingDistances; }
 
 	inline int getMinNFAId() const { return this->minNFAId; }
 	inline double getMinNFA() const { return this->minNFA; }
@@ -32,8 +35,6 @@ public:
 	double getMatchingTime() const { return this->matchingTime; }
 
 	vector<int> ids;
-
-	vector<double> resultDistances;
 
 	vector< vector<double> > resultPartsDistances;
 	vector<double> resultNFAs;
@@ -48,6 +49,10 @@ protected:
 	vector<IrisTemplate*> templates;
 	map<int, int> positions;
 
+	vector<MatchDistance> matchingDistances;
+	vector<double> distances;
+	static bool matchingDistanceComparator(MatchDistance d1, MatchDistance d2) { return d1.first < d2.first; }
+
 	int minDistanceId;
 	double minDistance;
 	Clock clock;
@@ -55,5 +60,7 @@ protected:
 
 	double minNFA;
 	int minNFAId;
+
+
 };
 

@@ -52,14 +52,16 @@ void IrisDatabase::doMatch(const IrisTemplate& irisTemplate, void (*statusCallba
 	this->minDistanceId = 0;
 	this->minDistance = 1.0;
 
-	this->resultDistances = vector<double>(n);
+	this->matchingDistances = vector<MatchDistance>(n);
+	this->distances = vector<double>(n);
 
 	size_t bestIdx = -1;
 
 	for (size_t i = 0; i < n; i++) {
 		double hammingDistance = comparator.compare(*(this->templates[i]));
-		this->resultDistances[i] = hammingDistance;
 		int matchId = this->ids[i];
+		this->matchingDistances[i] = MatchDistance(matchId, hammingDistance);
+		this->distances[i] = hammingDistance;
 
 		if (matchId != this->ignoreId && hammingDistance < this->minDistance) {
 			this->minDistance = hammingDistance;
@@ -67,14 +69,17 @@ void IrisDatabase::doMatch(const IrisTemplate& irisTemplate, void (*statusCallba
 			bestIdx = i;
 		}
 
-		int percentage = (100*i)/n;
-		if (statusCallback) statusCallback(percentage);
+		int percentage = (90*i)/n;			// The extra 10% is for sorting
+		if (statusCallback && ((i % ((n/10)+1)) == 0)) statusCallback(percentage);
 	}
 
 	this->matchingTime = this->clock.stop();
 
-	comparator.compare(*(this->templates[bestIdx]));
-	this->comparationImage = comparator.getComparationImage();
+	// Sort the results from minimum to maximum distance
+	sort(this->matchingDistances.begin(), this->matchingDistances.end(), IrisDatabase::matchingDistanceComparator);
+
+	//comparator.compare(*(this->templates[bestIdx]));
+	//this->comparationImage = comparator.getComparationImage();
 }
 
 void IrisDatabase::calculatePartsDistances(const IrisTemplate& irisTemplate, unsigned int nParts, unsigned int nRots, unsigned int rotStep)

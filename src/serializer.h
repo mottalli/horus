@@ -19,8 +19,10 @@ namespace Serializer
 
 	SegmentationResult unserializeSegmentationResult(const std::string& s);
 	Contour unserializeContour(std::istringstream& stream);
-	Contour unserializeContourOLD(std::istringstream& stream);
 	Parabola unserializeParabola(std::istringstream& stream);
+
+	SegmentationResult unserializeSegmentationResultOLD(const std::string& s);
+	Contour unserializeContourOLD(std::istringstream& stream);
 
 	string serializeIrisTemplate(const IrisTemplate& irisTemplate);
 	IrisTemplate unserializeIrisTemplate(const std::string& serializedTemplate);

@@ -45,10 +45,10 @@ bool EyeDetect::detectEye(const GrayscaleImage& image)
 	}
 
 	Rect c = classifications[0];
-	int x = c.x;
-	int y = c.y;
-	int w = 4*c.width;
-	int h = 4*c.height;
+	int x = 2*c.x;
+	int y = 2*c.y;
+	int w = 2*c.width;
+	int h = 2*c.height;
 	if (x+w >= image.cols) w = image.cols-x-1;
 	if (y+h >= image.rows) h = image.rows-y-1;
 

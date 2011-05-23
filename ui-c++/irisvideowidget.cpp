@@ -20,7 +20,7 @@ void IrisVideoWidget::slotFrameProcessed(const VideoProcessor& videoProcessor)
 
 		this->drawCrosshair(this->decoratedFrame, Point(videoProcessor.lastSegmentationResult.irisCircle.xc, videoProcessor.lastSegmentationResult.irisCircle.yc), 1);
 
-		rectangle(this->decoratedFrame, videoProcessor.eyeROI, CV_RGB(255,255,255));
+		//rectangle(this->decoratedFrame, videoProcessor.eyeROI, CV_RGB(255,255,255));
 
 		if (status >= VideoProcessor::FOCUSED_IRIS) {
 			// Efecto ciencia ficción!
@@ -35,7 +35,6 @@ void IrisVideoWidget::slotFrameProcessed(const VideoProcessor& videoProcessor)
 				Vec3f color;
 				double alpha;
 				if (status == VideoProcessor::FINISHED_CAPTURE) {
-					//color =  Vec3f(0,0,255);
 					color =  Vec3f(0,128,0);
 					alpha = 0.2;
 				} else {

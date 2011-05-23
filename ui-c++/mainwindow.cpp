@@ -1,5 +1,6 @@
 #include <QFileDialog>
 #include <QSound>
+#include <QMessageBox>
 
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
@@ -92,7 +93,16 @@ void MainWindow::on_btnRegistrar_clicked()
 
 void MainWindow::on_btnGuardarImagen_clicked()
 {
-	ofrecerGuardarImagen(this->lastIrisFrame);
+	int ans = QMessageBox::question(this, "Guardar imagen", "Decorar la imagen a guardar?", QMessageBox::Yes, QMessageBox::No);
+	if (ans = QMessageBox::Yes) {
+		ColorImage decorated;
+		cvtColor(this->lastIrisFrame, decorated, CV_GRAY2BGR);
+		this->decorator.drawSegmentationResult(decorated, this->lastIrisFrameSegmentation);
+		this->decorator.drawTemplate(decorated, this->lastTemplate);
+		ofrecerGuardarImagen(decorated);
+	} else {
+		ofrecerGuardarImagen(this->lastIrisFrame);
+	}
 }
 
 void MainWindow::on_btnCapturar_clicked()
@@ -113,11 +123,6 @@ void MainWindow::ofrecerGuardarImagen(const Image& imagen)
 
 void MainWindow::on_btnForzarRegistracion_clicked()
 {
-	//Mat imagen = this->lastFrame.clone();
-
-	// Genera un template a partir de la imagen
-	Segmentator segmentator;
-
 }
 
 void MainWindow::identifyTemplate(const IrisTemplate& irisTemplate, const GrayscaleImage& image, const SegmentationResult& segmentationResult)
