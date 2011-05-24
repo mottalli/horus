@@ -26,6 +26,7 @@ public:
 	inline double getMinDistance() const { return this->minDistance; }
 	inline double getDistanceFor(int templateId) { return this->distances[this->positions[templateId]]; }
 	inline const vector<MatchDistance>& getMatchingDistances() const { return this->matchingDistances; }
+	inline const vector<double>& getDistances() const { return this->distances; }
 
 	inline int getMinNFAId() const { return this->minNFAId; }
 	inline double getMinNFA() const { return this->minNFA; }
@@ -51,7 +52,7 @@ protected:
 
 	vector<MatchDistance> matchingDistances;
 	vector<double> distances;
-	static bool matchingDistanceComparator(MatchDistance d1, MatchDistance d2) { return d1.first < d2.first; }
+	static inline bool matchingDistanceComparator(MatchDistance d1, MatchDistance d2) { return d1.second < d2.second; }
 
 	int minDistanceId;
 	double minDistance;

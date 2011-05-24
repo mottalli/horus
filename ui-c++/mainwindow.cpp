@@ -23,8 +23,6 @@ MainWindow::MainWindow(QWidget *parent) :
 	QObject::connect(this->ui->chkGuardarVideo, SIGNAL(stateChanged(int)), &::IRIS_VIDEO_CAPTURE, SLOT(setPause(int)));
 
 	qRegisterMetaType<VideoProcessor>("VideoProcessor");
-
-	//this->debugDialog.open();
 }
 
 MainWindow::~MainWindow()

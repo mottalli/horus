@@ -19,30 +19,33 @@ CREATE VIEW vw_base_iris AS
 
 -- Tablas para correr los scripts de comparación
 
+DROP TABLE comparaciones;
 CREATE TABLE comparaciones (
-	id_imagen1 INTEGER NOT NULL,
-	id_imagen2 INTEGER NOT NULL,
+	id_iris1 INTEGER NOT NULL,
+	id_iris2 INTEGER NOT NULL,
 	distancia FLOAT NOT NULL,
 	intra_clase INTEGER NOT NULL,
-	PRIMARY KEY(id_imagen1, id_imagen2)
+	PRIMARY KEY(id_iris1, id_iris2)
 );
 
+DROP TABLE comparaciones_a_contrario;
 CREATE TABLE comparaciones_a_contrario (
-	id_imagen1 INTEGER NOT NULL,
-	id_imagen2 INTEGER NOT NULL,
+	id_iris1 INTEGER NOT NULL,
+	id_iris2 INTEGER NOT NULL,
 	distancia FLOAT NOT NULL,
 	parte INTEGER NOT NULL,
 	intra_clase INTEGER NOT NULL,
-	PRIMARY KEY(id_imagen1, id_imagen2, parte)
+	PRIMARY KEY(id_iris1, id_iris2, parte)
 );
 
-CREATE INDEX caa_idx ON comparaciones_a_contrario(id_imagen1);
+CREATE INDEX caa_idx ON comparaciones_a_contrario(id_iris1);
 
+DROP TABLE nfa_a_contrario;
 CREATE TABLE nfa_a_contrario (
-	id_imagen1 INTEGER NOT NULL,
-	id_imagen2 INTEGER NOT NULL,
+	id_iris1 INTEGER NOT NULL,
+	id_iris2 INTEGER NOT NULL,
 	nfa FLOAT NOT NULL,
 	intra_clase INTEGER NOT NULL,
-	PRIMARY KEY(id_imagen1, id_imagen2)
+	PRIMARY KEY(id_iris1, id_iris2)
 );
 

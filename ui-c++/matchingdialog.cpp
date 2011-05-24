@@ -87,6 +87,9 @@ void MatchingDialog::doMatch(IrisTemplate irisTemplate, const GrayscaleImage& im
 		this->ui->lblIdentification->setText("<font color='red'>Negativa</font>");
 	}
 
+	/*BOOST_FOREACH(MatchDistance d, DB.getMatchingDistances()) {
+		qDebug() << d.first << d.second;
+	}*/
 
 	this->show();
 }

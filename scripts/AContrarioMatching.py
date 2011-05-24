@@ -17,7 +17,7 @@ def correrMatchAContrario(base):
 	else:
 		irisDatabase = pyhorus.IrisDatabase()
 
-	rows = base.conn.execute('SELECT * FROM base_iris WHERE segmentacion_correcta=1')
+	rows = base.conn.execute('SELECT id_iris,id_usuario,imagen,segmentacion,image_template FROM base_iris WHERE entrada_valida=1')
 	
 	templates = {}
 	clases = {}
@@ -27,7 +27,7 @@ def correrMatchAContrario(base):
 		idClase = int(row[1])
 		imagePath = base.fullPath(row[2])
 		serializedSegmentationResult = str(row[3])
-		serializedTemplate = str(row[6])
+		serializedTemplate = str(row[4])
 		
 		print "Cargando %i..." % idImagen
 

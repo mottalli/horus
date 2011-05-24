@@ -17,7 +17,6 @@ SQLite3IrisDatabase::SQLite3IrisDatabase(const string& dbPath) :
 	SQlite3Database::Recordset rs = this->db.prepareStatement("SELECT id_iris,template FROM vw_base_iris WHERE entrada_valida=1").getRecordset();
 	while (rs.next()) {
 		int idTemplate = rs.at<int>(0);
-		qDebug() << idTemplate;
 		string serializedTemplate = rs.at<string>(1);
 
 		if (serializedTemplate.length() == 0) {

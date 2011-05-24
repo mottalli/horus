@@ -207,7 +207,7 @@ def estadisticasFull(base):
 	print 'Calculando estadisticas a contrario...'
 	(separabilidadAC, thresholdOptimoAC, EERAC, tablaFARAC, FRRFAR0AC, FARsAC, FRRsAC) = estadisticasAContrario(base, False)
 	
-	N = (base.conn.execute('SELECT COUNT(*) FROM base_iris WHERE segmentacion_correcta=1').fetchone())[0]
+	N = (base.conn.execute('SELECT COUNT(*) FROM base_iris WHERE entrada_valida=1').fetchone())[0]
 	
 	print 'Metodo clásico'
 	print '-------------'
