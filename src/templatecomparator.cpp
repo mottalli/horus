@@ -68,10 +68,10 @@ std::vector<double> TemplateComparator::compareParts(const IrisTemplate& otherTe
 		for (int p = 0; p < nParts; p++) {
 			Rect r(p*partWidth, 0, partWidth, templateHeight);
 
-			GrayscaleImage part1(rotatedTemplate.getPackedTemplate(), r);
-			GrayscaleImage mask1(rotatedTemplate.getPackedMask(), r);
-			GrayscaleImage part2(otherTemplate.getPackedTemplate(), r);
-			GrayscaleImage mask2(otherTemplate.getPackedMask(), r);
+			GrayscaleImage part1 = TemplateComparator::getPart(rotatedTemplate, p, nParts, false);
+			GrayscaleImage mask1 = TemplateComparator::getPart(rotatedTemplate, p, nParts, true);
+			GrayscaleImage part2 = TemplateComparator::getPart(otherTemplate, p, nParts, false);
+			GrayscaleImage mask2 = TemplateComparator::getPart(otherTemplate, p, nParts, true);
 			
 			double hd = this->packedHammingDistance(part1, mask1, part2, mask2);
 			minHDs[p] = std::min(minHDs[p], hd);
@@ -271,5 +271,29 @@ GrayscaleImage TemplateComparator::getComparationImage()
 	bitwise_xor(i1, i2, res);
 	res.setTo(128, m1);
 	res.setTo(128, m2);
+	return res;
+}
+
+const GrayscaleImage TemplateComparator::getPart(const IrisTemplate& irisTemplate, int part, int nParts, bool fromMask)
+{
+	const GrayscaleImage& packedMat = (fromMask ? irisTemplate.getPackedMask() : irisTemplate.getPackedTemplate());
+	const int width = packedMat.cols;
+	const int height = packedMat.rows;
+
+	assert(width % nParts == 0);
+	const int partWidth = width / nParts;
+
+	/*
+	// Faster version of the algorithm (using entire blocks) but less reliable
+	Rect r(part*partWidth, 0, partWidth, height);
+	return packedMat(r);
+	*/
+	// Slower version: interleave the columns in each part. More reliable.
+	//TODO: Apply this in the CUDA version
+	GrayscaleImage res(height, partWidth);
+	for (int i = 0; i < partWidth; i++) {
+		Mat dest = res.col(i);
+		packedMat.col(i*nParts+part).copyTo(dest);
+	}
 	return res;
 }

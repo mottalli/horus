@@ -30,6 +30,7 @@ public:
 
 private:
 	static void rotateMatrix(const Mat& src, Mat& dest, int step);
+	static inline const GrayscaleImage getPart(const IrisTemplate& irisTemplate, int part, int nParts, bool fromMask);
 	IrisTemplate irisTemplate;
 
 	GrayscaleImage maskIntersection;
