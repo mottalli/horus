@@ -28,6 +28,8 @@ public:
 	double getIrisQuality(const GrayscaleImage& image, const SegmentationResult& segmentationResult);
 
 	typedef enum {
+		OUTSIDE_IMAGE,
+		PUPIL_TOO_BIG,
 		NO_COUNT,
 		LOW_CONTRAST,
 		LOW_ZSCORE,

@@ -57,7 +57,25 @@ double QualityChecker::checkFocus(const Image& image)
  */
 QualityChecker::ValidationHeuristics QualityChecker::validateIris(const GrayscaleImage& image, const SegmentationResult& sr)
 {
-	double r = sr.irisCircle.radius;
+	const Circle& irisCircle = sr.irisCircle;
+	double r = irisCircle.radius;
+
+	// Check if the iris is outside the image (or very close to the border)
+	int delta = image.cols/20;
+	bool outside = false;
+	outside = outside || (irisCircle.xc-r < delta);
+	outside = outside || (irisCircle.xc+r > image.cols-delta);
+	outside = outside || (irisCircle.yc-r < delta);
+	outside = outside || (irisCircle.yc+r > image.rows-delta);
+	if (outside) {
+		return OUTSIDE_IMAGE;
+	}
+
+	double pupilRatio = double(sr.pupilCircle.radius)/double(sr.irisCircle.radius);
+	if (pupilRatio > 0.65) {		// An unusually large pupil usually means a segmentation error. Happens when the iris is close to the
+		return PUPIL_TOO_BIG;		// edge of the image
+	}
+
 	int x0 = std::max(0.0, sr.irisCircle.xc-r);
 	int x1 = std::min(image.cols-1, int(sr.irisCircle.xc+r));
 	int y0 = std::max(0, sr.irisCircle.yc-20);
@@ -160,12 +178,14 @@ double QualityChecker::getIrisQuality(const GrayscaleImage& /*image*/, const Seg
 	return segmentationResult.pupilContourQuality;
 }
 
-double QualityChecker::irisTemplateQuality(const IrisTemplate& irisTemplate)
+double QualityChecker::irisTemplateQuality(const IrisTemplate& /*irisTemplate*/)
 {
+	// TODO
 	return 100.0;
 }
 
-double QualityChecker::matchQuality(const TemplateComparator& comparator)
+double QualityChecker::matchQuality(const TemplateComparator& /*comparator*/)
 {
+	// TODO
 	return 100.0;
 }

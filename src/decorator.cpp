@@ -42,9 +42,6 @@ void Decorator::drawSegmentationResult(Image& image, const SegmentationResult& s
 
 void Decorator::drawEncodingZone(Image& image, const SegmentationResult& segmentationResult)
 {
-	bool fill = false;
-	int step = 5, stepCounter = step;
-
 	const int width = 512, height = 80;
 
 	vector< pair<Point, Point> > irisPoints = Tools::iterateIris(segmentationResult,

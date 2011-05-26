@@ -23,71 +23,79 @@ VideoProcessor::~VideoProcessor()
 
 VideoProcessor::VideoStatus VideoProcessor::processFrame(const Mat& frame)
 {
-	frame.copyTo(this->lastFrame);
+	try {
+		frame.copyTo(this->lastFrame);
 
-	if (this->framesToSkip > 0) {
-		this->framesToSkip--;
-		this->lastStatus = UNPROCESSED;
-		return UNPROCESSED;
-	}
-
-	Tools::toGrayscale(this->lastFrame, this->lastFrameBW, false);
-	
-	this->lastStatus = this->doProcess(this->lastFrameBW);
-	
-	if (this->lastStatus == FOCUSED_IRIS && !this->waitingTemplate) {		// A new iris has been detected. Start the template generation process
-		this->resetCapture();
-		this->waitingTemplate = true;
-	}
-
-	if (this->waitingTemplate) {
-		this->templateWaitCount++;
-
-		if (this->lastStatus == FOCUSED_IRIS) {
-			CapturedTemplate capturedTemplate;
-			capturedTemplate.image = this->lastFrameBW.clone();
-			capturedTemplate.irisTemplate = this->irisEncoder.generateTemplate(this->lastFrameBW, this->lastSegmentationResult);
-			capturedTemplate.quality = this->lastIrisQuality;
-			capturedTemplate.segmentationResult = this->lastSegmentationResult;
-
-			this->templateBuffer.push_back(capturedTemplate);
-
-			if (this->templateBuffer.size() == 1) {
-				this->bestTemplateIdx = 0;
-			} else if (this->lastIrisQuality > this->templateBuffer[this->bestTemplateIdx].quality) {		// Got a better quality image
-				this->bestTemplateIdx = templateBuffer.size()-1;
-			}
-
-			this->lastTemplate = capturedTemplate.irisTemplate;
-
-			if (this->templateBuffer.size() < this->parameters.minCountForTemplateAveraging) {
-				this->templateWaitCount = 0;			// Reset the wait count (still capturing)
-			} else {
-				this->lastStatus = FINISHED_CAPTURE;
-			}
+		if (this->framesToSkip > 0) {
+			this->framesToSkip--;
+			this->lastStatus = UNPROCESSED;
+			return UNPROCESSED;
 		}
 
-		if (this->templateWaitCount >= this->parameters.templateWaitTimeout) {		// Finished the burst
-			if (this->templateBuffer.size() >= this->parameters.minCountForTemplateAveraging) {
-				// Enough templates - Can calculate average!
-				// Check if we have a "good" template
-				IrisTemplate irisTemplate = this->getAverageTemplate();
-				if (this->qualityChecker.irisTemplateQuality(irisTemplate) < this->parameters.minAverageTemplateQuality) {
-					// Bad template - try another one
-					this->resetCapture();
-				} else {
-					this->lastStatus = GOT_TEMPLATE;
-					this->waitingTemplate = false;
-					this->templateWaitCount = 0;
-					// Wait before processing more images (if enabled)
-					this->framesToSkip = (this->parameters.pauseAfterCapture ? this->parameters.pauseFrames : 0);
+		Tools::toGrayscale(this->lastFrame, this->lastFrameBW, false);
+
+		this->lastStatus = this->doProcess(this->lastFrameBW);
+
+		if (this->lastStatus == FOCUSED_IRIS && !this->waitingTemplate) {		// A new iris has been detected. Start the template generation process
+			this->resetCapture();
+			this->waitingTemplate = true;
+		}
+
+		if (this->waitingTemplate) {
+			this->templateWaitCount++;
+
+			if (this->lastStatus == FOCUSED_IRIS) {
+				CapturedTemplate capturedTemplate;
+				capturedTemplate.image = this->lastFrameBW.clone();
+				capturedTemplate.irisTemplate = this->irisEncoder.generateTemplate(this->lastFrameBW, this->lastSegmentationResult);
+				capturedTemplate.quality = this->lastIrisQuality;
+				capturedTemplate.segmentationResult = this->lastSegmentationResult;
+
+				this->templateBuffer.push_back(capturedTemplate);
+
+				if (this->templateBuffer.size() == 1) {
+					this->bestTemplateIdx = 0;
+				} else if (this->lastIrisQuality > this->templateBuffer[this->bestTemplateIdx].quality) {		// Got a better quality image
+					this->bestTemplateIdx = templateBuffer.size()-1;
 				}
-			} else {
-				this->resetCapture();		// Didn't get enough images -- restart the capture process
+
+				this->lastTemplate = capturedTemplate.irisTemplate;
+
+				if (this->templateBuffer.size() < this->parameters.minCountForTemplateAveraging) {
+					this->templateWaitCount = 0;			// Reset the wait count (still capturing)
+				} else {
+					this->lastStatus = FINISHED_CAPTURE;
+				}
+			}
+
+			if (this->templateWaitCount >= this->parameters.templateWaitTimeout) {		// Finished the burst
+				if (this->templateBuffer.size() >= this->parameters.minCountForTemplateAveraging) {
+					// Enough templates - Can calculate average!
+					// Check if we have a "good" template
+					IrisTemplate irisTemplate = this->getAverageTemplate();
+					if (this->qualityChecker.irisTemplateQuality(irisTemplate) < this->parameters.minAverageTemplateQuality) {
+						// Bad template - try another one
+						this->resetCapture();
+					} else {
+						this->lastStatus = GOT_TEMPLATE;
+						this->waitingTemplate = false;
+						this->templateWaitCount = 0;
+						// Wait before processing more images (if enabled)
+						this->framesToSkip = (this->parameters.pauseAfterCapture ? this->parameters.pauseFrames : 0);
+					}
+				} else {
+					this->resetCapture();		// Didn't get enough images -- restart the capture process
+				}
 			}
 		}
+	} catch (runtime_error ex) {
+		this->lastStatus = UNKNOWN_ERROR;
+		cerr << ex.what() << endl;
+	} catch (exception ex) {
+		this->lastStatus = UNKNOWN_ERROR;
+		cerr << ex.what() << endl;
 	}
-	
+
 	return this->lastStatus;
 }
 

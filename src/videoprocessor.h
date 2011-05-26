@@ -47,6 +47,7 @@ public:
 	virtual ~VideoProcessor();
 	
 	typedef enum {
+		UNKNOWN_ERROR,
 		UNPROCESSED,
 		DEFOCUSED,
 		INTERLACED,
