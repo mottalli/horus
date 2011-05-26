@@ -113,3 +113,11 @@ Image MatchingDialog::getNoMatchImage(Size size)
 
 	return image;
 }
+
+void MatchingDialog::on_btnVerSimilares_clicked()
+{
+	//TODO
+	BOOST_FOREACH(MatchDistance d, DB.getMatchingDistances()) {
+		qDebug() << d.first << d.second;
+	}
+}

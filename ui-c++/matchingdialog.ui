@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>670</width>
-    <height>442</height>
+    <height>443</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -45,7 +45,7 @@
      </item>
     </layout>
    </item>
-   <item row="0" column="1" colspan="3">
+   <item row="0" column="1" colspan="4">
     <layout class="QVBoxLayout" name="verticalLayout_2">
      <item>
       <widget class="QLabel" name="label_2">
@@ -76,7 +76,7 @@
      </item>
     </layout>
    </item>
-   <item row="1" column="0" colspan="4">
+   <item row="1" column="0" colspan="5">
     <widget class="QLabel" name="lblCantidadImagenes">
      <property name="font">
       <font>
@@ -90,7 +90,7 @@
      </property>
     </widget>
    </item>
-   <item row="2" column="0" colspan="4">
+   <item row="2" column="0" colspan="5">
     <layout class="QVBoxLayout" name="verticalLayout_3">
      <item>
       <layout class="QHBoxLayout" name="horizontalLayout">
@@ -210,10 +210,17 @@
      </property>
     </widget>
    </item>
-   <item row="3" column="3">
+   <item row="3" column="4">
     <widget class="QPushButton" name="btnCerrar">
      <property name="text">
       <string>Cerrar</string>
+     </property>
+    </widget>
+   </item>
+   <item row="3" column="3">
+    <widget class="QPushButton" name="btnVerSimilares">
+     <property name="text">
+      <string>Ver similares</string>
      </property>
     </widget>
    </item>

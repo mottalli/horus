@@ -55,6 +55,15 @@ void MainWindow::slotGotTemplate(const VideoProcessor& videoProcessor)
 	this->lastIrisFrameSegmentation = videoProcessor.getBestTemplateSegmentation();
 	this->lastIrisFrame = videoProcessor.getBestTemplateFrame().clone();
 
+	this->showTemplateImage();
+
+	if (this->ui->autoIdentify->isChecked()) {
+		this->identifyTemplate(this->lastTemplate, this->lastIrisFrame, this->lastIrisFrameSegmentation);
+	}
+}
+
+void MainWindow::showTemplateImage()
+{
 	cvtColor(this->lastIrisFrame, this->decoratedFrame, CV_GRAY2RGB);
 
 	this->decorator.setDrawingColors();
@@ -70,10 +79,6 @@ void MainWindow::slotGotTemplate(const VideoProcessor& videoProcessor)
 	decorator.drawIrisTexture(this->lastIrisFrame, region, this->lastIrisFrameSegmentation);
 
 	this->ui->capturedImage->showImage(this->resizedFrame);
-
-	if (this->ui->autoIdentify->isChecked()) {
-		this->identifyTemplate(this->lastTemplate, this->lastIrisFrame, this->lastIrisFrameSegmentation);
-	}
 }
 
 void MainWindow::on_btnIdentificar_clicked()
@@ -93,7 +98,7 @@ void MainWindow::on_btnRegistrar_clicked()
 void MainWindow::on_btnGuardarImagen_clicked()
 {
 	int ans = QMessageBox::question(this, "Guardar imagen", "Decorar la imagen a guardar?", QMessageBox::Yes, QMessageBox::No);
-	if (ans = QMessageBox::Yes) {
+	if (ans == QMessageBox::Yes) {
 		ColorImage decorated;
 		cvtColor(this->lastIrisFrame, decorated, CV_GRAY2BGR);
 		this->decorator.drawSegmentationResult(decorated, this->lastIrisFrameSegmentation);
@@ -161,12 +166,17 @@ void MainWindow::on_btnForzarIdentificacion_clicked()
 
 	this->lastIrisFrameSegmentation = ::PROCESSING_THREAD.videoProcessor.segmentator.segmentImage(this->lastIrisFrame);
 	this->lastTemplate = ::PROCESSING_THREAD.videoProcessor.irisEncoder.generateTemplate(this->lastIrisFrame, this->lastIrisFrameSegmentation);
+
+	this->showTemplateImage();
+
 	this->identifyTemplate(this->lastTemplate, this->lastIrisFrame, this->lastIrisFrameSegmentation);
 }
 
 QString MainWindow::statusToString(VideoProcessor::VideoStatus status)
 {
 	switch (status) {
+	case VideoProcessor::UNKNOWN_ERROR:
+		return QString("Error en tiempo de ejecución");
 	case VideoProcessor::UNPROCESSED:
 		return QString("Esperando...");
 	case VideoProcessor::DEFOCUSED:

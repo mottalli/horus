@@ -42,6 +42,7 @@ private:
 	void identifyTemplate(const IrisTemplate& irisTemplate, const GrayscaleImage& image, const SegmentationResult& segmentationResult);
 	void registerTemplate(const IrisTemplate& irisTemplate, const GrayscaleImage& image, const SegmentationResult& segmentationResult);
 	void mostrarEnfoque(double enfoque, double threshold, int width);
+	void showTemplateImage();
 
 	static QString statusToString(VideoProcessor::VideoStatus status);
 

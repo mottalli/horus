@@ -23,6 +23,8 @@ private slots:
 	void on_btnConfirmarIdentificacion_clicked();
 	static Image getNoMatchImage(Size size = Size(480, 360));
 
+	void on_btnVerSimilares_clicked();
+
 private:
     Ui::MatchingDialog *ui;
 
