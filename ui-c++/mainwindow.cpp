@@ -38,6 +38,7 @@ void MainWindow::slotFrameProcessed(const VideoProcessor& videoProcessor)
 {
 	VideoProcessor::VideoStatus status = videoProcessor.lastStatus;
 
+	this->lastProcessedFrame = videoProcessor.lastFrame;		// Note: this does not make a copy (faster)
 	this->ui->video->slotFrameProcessed(videoProcessor);
 
 	mostrarEnfoque(videoProcessor.lastFocusScore, videoProcessor.parameters.focusThreshold, videoProcessor.lastFrame.cols);
@@ -105,7 +106,7 @@ void MainWindow::on_btnGuardarImagen_clicked()
 
 void MainWindow::on_btnCapturar_clicked()
 {
-	//ofrecerGuardarImagen(this->lastFrame);
+	ofrecerGuardarImagen(this->lastProcessedFrame);
 }
 
 void MainWindow::ofrecerGuardarImagen(const Image& imagen)
@@ -154,13 +155,13 @@ void MainWindow::mostrarEnfoque(double enfoque, double threshold, int width)
 
 void MainWindow::on_btnForzarIdentificacion_clicked()
 {
-	/*if (this->lastFrame.empty()) return;
+	if (this->lastProcessedFrame.empty()) return;
 
-	cvtColor(this->lastFrame, this->lastIrisFrame, CV_BGR2GRAY);
+	cvtColor(this->lastProcessedFrame, this->lastIrisFrame, CV_BGR2GRAY);
 
 	this->lastIrisFrameSegmentation = ::PROCESSING_THREAD.videoProcessor.segmentator.segmentImage(this->lastIrisFrame);
 	this->lastTemplate = ::PROCESSING_THREAD.videoProcessor.irisEncoder.generateTemplate(this->lastIrisFrame, this->lastIrisFrameSegmentation);
-	this->identifyTemplate(this->lastTemplate, this->lastIrisFrame, this->lastIrisFrameSegmentation);*/
+	this->identifyTemplate(this->lastTemplate, this->lastIrisFrame, this->lastIrisFrameSegmentation);
 }
 
 QString MainWindow::statusToString(VideoProcessor::VideoStatus status)

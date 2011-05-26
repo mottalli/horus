@@ -45,6 +45,8 @@ private:
 
 	static QString statusToString(VideoProcessor::VideoStatus status);
 
+	Image lastProcessedFrame;
+
     Ui::MainWindow *ui;
 	Decorator decorator;
 

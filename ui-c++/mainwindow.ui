@@ -94,13 +94,6 @@
              </widget>
             </item>
             <item>
-             <widget class="QRadioButton" name="automaticaRegistrar">
-              <property name="text">
-               <string>Registrar</string>
-              </property>
-             </widget>
-            </item>
-            <item>
              <widget class="QRadioButton" name="automaticaNada">
               <property name="text">
                <string>Ninguna</string>
