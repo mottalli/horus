@@ -18,7 +18,7 @@ void IrisVideoWidget::slotFrameProcessed(const VideoProcessor& videoProcessor)
 		this->decorator.setDrawingColors(pupilColor, irisColor);
 		this->decorator.drawSegmentationResult(this->decoratedFrame, videoProcessor.lastSegmentationResult);
 
-		this->drawCrosshair(this->decoratedFrame, Point(videoProcessor.lastSegmentationResult.irisCircle.xc, videoProcessor.lastSegmentationResult.irisCircle.yc), 1);
+		this->drawCrosshair(this->decoratedFrame, videoProcessor.lastSegmentationResult.irisCircle.center, 1);
 
 		//rectangle(this->decoratedFrame, videoProcessor.eyeROI, CV_RGB(255,255,255));
 
