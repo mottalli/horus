@@ -28,8 +28,8 @@ public:
 
 	double segmentationTime;
 
-	void setEyeROI(const Rect& ROI) { this->eyeROI = ROI; };
-	void unsetEyeROI() { this->eyeROI = Rect(0,0,0,0); };
+    void setEyeROI(const Rect& ROI) { this->eyeROI = ROI; }
+    void unsetEyeROI() { this->eyeROI = Rect(0,0,0,0); }
 
 private:
 	Mat workingImage;

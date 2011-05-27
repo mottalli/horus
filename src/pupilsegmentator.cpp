@@ -55,16 +55,11 @@ void PupilSegmentator::setupBuffers(const Image& image)
 	if (width <= bufferWidth || this->hasROI()) {
 		this->resizeFactor = 1.0;
 		this->workingImage = image;
-		this->workingROI = this->eyeROI;
 	} else {
 		this->resizeFactor = double(bufferWidth) / double(width);
 		resize(image, this->workingImage, Size(), this->resizeFactor, this->resizeFactor);
-		int x = this->eyeROI.x*this->resizeFactor;
-		int y = this->eyeROI.y*this->resizeFactor;
-		int width = this->eyeROI.width*this->resizeFactor;
-		int height = this->eyeROI.height*this->resizeFactor;
-		this->workingROI = Rect(x,y,width,height);
 	}
+    this->workingROI = this->eyeROI;
 
 	this->adjustmentRing.create(Size(this->parameters.pupilAdjustmentRingWidth, this->parameters.pupilAdjustmentRingHeight));
 	this->adjustmentRingGradient.create(Size(this->parameters.pupilAdjustmentRingWidth, this->parameters.pupilAdjustmentRingHeight));
@@ -243,8 +238,8 @@ Circle PupilSegmentator::cascadedIntegroDifferentialOperator(const GrayscaleImag
 		maxy = this->workingROI.y+this->workingROI.height;
 	} else {
 		// Exclude the image borders
-		int dx = image.cols*0.2;
-		int dy = image.rows*0.2;
+        int dx = image.cols/10;
+        int dy = image.rows/10;
 
 		minx = dx;
 		maxx = image.cols-dx;
