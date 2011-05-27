@@ -18,7 +18,8 @@ using namespace cv;
 typedef vector<Point> Contour;
 
 typedef struct {
-    int xc, yc, radius;
+	Point center;
+	int radius;
 } Circle;
 
 

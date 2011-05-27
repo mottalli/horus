@@ -36,8 +36,8 @@ ContourAndCloseCircle PupilSegmentator::segmentPupil(const GrayscaleImage& image
 	Circle pupilCircle = this->approximatePupil(this->workingImage);
 
 	pupilCircle.radius /= this->resizeFactor;
-	pupilCircle.xc /= this->resizeFactor;
-	pupilCircle.yc /= this->resizeFactor;
+	pupilCircle.center.x /= this->resizeFactor;
+	pupilCircle.center.y /= this->resizeFactor;
 
 	result.first = this->adjustPupilContour(image, pupilCircle);
 	result.second = Tools::approximateCircle(result.first);
@@ -89,7 +89,7 @@ Contour PupilSegmentator::adjustPupilContour(const GrayscaleImage& image, const 
 	int radiusMin = approximateCircle.radius * 0.5, radiusMax =
 			approximateCircle.radius * 1.5;
 	Tools::extractRing(image, this->adjustmentRing,
-			approximateCircle.xc, approximateCircle.yc, radiusMin, radiusMax);
+			approximateCircle.center.x, approximateCircle.center.y, radiusMin, radiusMax);
 
 	int infraredThreshold = this->parameters.infraredThreshold;
 
@@ -213,8 +213,8 @@ Contour PupilSegmentator::adjustPupilContour(const GrayscaleImage& image, const 
 				* double(radiusMax - radiusMin) + double(radiusMin);
 		radius += 1;
 
-		int ximag = int(double(approximateCircle.xc) + cos(theta) * radius);
-		int yimag = int(double(approximateCircle.yc) + sin(theta) * radius);
+		int ximag = int(double(approximateCircle.center.x) + cos(theta) * radius);
+		int yimag = int(double(approximateCircle.center.y) + sin(theta) * radius);
 
 		result[x] = Point(ximag, yimag);
 	}
@@ -283,8 +283,8 @@ Circle PupilSegmentator::cascadedIntegroDifferentialOperator(const GrayscaleImag
 	}
 
 	Circle bestCircle;
-	bestCircle.xc = bestX;
-	bestCircle.yc = bestY;
+	bestCircle.center.x = bestX;
+	bestCircle.center.y = bestY;
 	bestCircle.radius = bestRadius;
 
 	return bestCircle;

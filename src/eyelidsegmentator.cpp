@@ -11,12 +11,12 @@ EyelidSegmentator::~EyelidSegmentator()
 std::pair<Parabola, Parabola> EyelidSegmentator::segmentEyelids(const GrayscaleImage& image, const Circle& pupilCircle, const Circle& irisCircle)
 {
 	int r = irisCircle.radius * 1.5;
-	int x0 = max(0, irisCircle.xc-r);
-	int x1 = min(image.cols-1, irisCircle.xc+r);
-	int y0upper = max(0, irisCircle.yc-r);
-	int y1upper = irisCircle.yc;
-	int y0lower= irisCircle.yc;
-	int y1lower = min(image.rows-1, irisCircle.yc+r);
+	int x0 = max(0, irisCircle.center.x-r);
+	int x1 = min(image.cols-1, irisCircle.center.x+r);
+	int y0upper = max(0, irisCircle.center.y-r);
+	int y1upper = irisCircle.center.y;
+	int y0lower= irisCircle.center.y;
+	int y1lower = min(image.rows-1, irisCircle.center.y+r);
 
 	Sobel(image, this->gradient, this->gradient.type(), 0, 1, 3);
 	blur(this->gradient, this->gradient, Size(7,7));

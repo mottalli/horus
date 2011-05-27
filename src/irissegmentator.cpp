@@ -29,7 +29,7 @@ ContourAndCloseCircle IrisSegmentator::segmentIrisRecursive(const GrayscaleImage
 	    radiusMax = pupilCircle.radius * 5.0;
 	}
 
-	Tools::extractRing(image, this->adjustmentRing, pupilCircle.xc, pupilCircle.yc, radiusMin, radiusMax);
+	Tools::extractRing(image, this->adjustmentRing, pupilCircle.center.x, pupilCircle.center.y, radiusMin, radiusMax);
 
 	blur(this->adjustmentRing, this->adjustmentRing, Size(3, 7));
 	Sobel(this->adjustmentRing, this->adjustmentRingGradient, CV_16S, 0, 1, 3);
@@ -135,8 +135,8 @@ ContourAndCloseCircle IrisSegmentator::segmentIrisRecursive(const GrayscaleImage
 	for (int x = 0; x < snake.cols; x++) {
 		double theta = (double(x)/double(snake.cols))*2.0*M_PI;
 		double radius = ((double(snake(0,x))/double(gradient.rows-1))*double(radiusMax-radiusMin)) + double(radiusMin);
-		int ximage = int(double(pupilCircle.xc) + cos(theta) * radius);
-		int yimage = int(double(pupilCircle.yc) + sin(theta) * radius);
+		int ximage = int(double(pupilCircle.center.x) + cos(theta) * radius);
+		int yimage = int(double(pupilCircle.center.y) + sin(theta) * radius);
 		irisContour[x] = Point(ximage, yimage);
 	}
 

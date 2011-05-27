@@ -63,10 +63,10 @@ QualityChecker::ValidationHeuristics QualityChecker::validateIris(const Grayscal
 	// Check if the iris is outside the image (or very close to the border)
 	int delta = image.cols/20;
 	bool outside = false;
-	outside = outside || (irisCircle.xc-r < delta);
-	outside = outside || (irisCircle.xc+r > image.cols-delta);
-	outside = outside || (irisCircle.yc-r < delta);
-	outside = outside || (irisCircle.yc+r > image.rows-delta);
+	outside = outside || (irisCircle.center.x-r < delta);
+	outside = outside || (irisCircle.center.x+r > image.cols-delta);
+	outside = outside || (irisCircle.center.y-r < delta);
+	outside = outside || (irisCircle.center.y+r > image.rows-delta);
 	if (outside) {
 		return OUTSIDE_IMAGE;
 	}
@@ -76,15 +76,15 @@ QualityChecker::ValidationHeuristics QualityChecker::validateIris(const Grayscal
 		return PUPIL_TOO_BIG;		// edge of the image
 	}
 
-	int x0 = std::max(0.0, sr.irisCircle.xc-r);
-	int x1 = std::min(image.cols-1, int(sr.irisCircle.xc+r));
-	int y0 = std::max(0, sr.irisCircle.yc-20);
-	int y1 = std::min(image.rows-1, sr.irisCircle.yc+20);
+	int x0 = std::max(0.0, sr.irisCircle.center.x-r);
+	int x1 = std::min(image.cols-1, int(sr.irisCircle.center.x+r));
+	int y0 = std::max(0, sr.irisCircle.center.y-20);
+	int y1 = std::min(image.rows-1, sr.irisCircle.center.y+20);
 
 	const Mat portion = image(Rect(x0, y0, x1-x0, y1-y0));
 
-	int xpupil = sr.pupilCircle.xc-x0, ypupil = sr.pupilCircle.yc-y0;
-	int xiris = sr.irisCircle.xc-x0, yiris = sr.irisCircle.yc-y0;
+	int xpupil = sr.pupilCircle.center.x-x0, ypupil = sr.pupilCircle.center.y-y0;
+	int xiris = sr.irisCircle.center.x-x0, yiris = sr.irisCircle.center.y-y0;
 	int rpupil2 = sr.pupilCircle.radius*sr.pupilCircle.radius;
 	int riris2 = sr.irisCircle.radius*sr.irisCircle.radius;
 

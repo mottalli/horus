@@ -221,16 +221,16 @@ Circle Tools::approximateCircle(const Contour& contour)
 		sumX += (*it).x;
 		sumY += (*it).y;
 	}
-	result.xc = sumX/n;
-	result.yc = sumY/n;
+	result.center.x = sumX/n;
+	result.center.y = sumY/n;
 
 	int bestRadius = 0;
 	int x,y;
 	for (Contour::const_iterator it = contour.begin(); it != contour.end(); it++) {
 		x = (*it).x;
 		y = (*it).y;
-		if ( (x-result.xc)*(x-result.xc)+(y-result.yc)*(y-result.yc) > bestRadius*bestRadius) {
-			bestRadius = int(sqrt((float)(x-result.xc)*(x-result.xc)+(y-result.yc)*(y-result.yc)));
+		if ( (x-result.center.x)*(x-result.center.x)+(y-result.center.y)*(y-result.center.y) > bestRadius*bestRadius) {
+			bestRadius = int(sqrt((float)(x-result.center.x)*(x-result.center.x)+(y-result.center.y)*(y-result.center.y)));
 		}
 	}
 

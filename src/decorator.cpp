@@ -33,8 +33,8 @@ void Decorator::drawSegmentationResult(Image& image, const SegmentationResult& s
 	//const Circle& irisCircle = segmentationResult.irisCircle;
 
 	if (segmentationResult.eyelidsSegmented) {
-		int xMin = segmentationResult.irisCircle.xc-segmentationResult.irisCircle.radius;
-		int xMax = segmentationResult.irisCircle.xc+segmentationResult.irisCircle.radius;
+		int xMin = segmentationResult.irisCircle.center.x-segmentationResult.irisCircle.radius;
+		int xMax = segmentationResult.irisCircle.center.x+segmentationResult.irisCircle.radius;
 		this->drawParabola(image, segmentationResult.upperEyelid, xMin, xMax, this->upperEyelidColor);
 		this->drawParabola(image, segmentationResult.lowerEyelid, xMin, xMax, this->lowerEyelidColor);
 	}
