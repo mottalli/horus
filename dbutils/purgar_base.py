@@ -1,4 +1,5 @@
 #!/usr/bin/python
+# -*- coding: UTF8 -*-
 import os, os.path
 import sqlite3
 import re
@@ -21,6 +22,7 @@ for row in base.execute('SELECT id_usuario,nombre FROM usuarios'):
 for id_usuario in aBorrar:
 	print "Borrando ID", id_usuario
 	base.execute('DELETE FROM usuarios WHERE id_usuario=?', (id_usuario,))
+	base.execute('DELETE FROM base_iris WHERE id_usuario=?', (id_usuario,))
 base.commit()
 
 # Ahora acomodo los IDs

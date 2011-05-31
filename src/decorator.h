@@ -3,6 +3,7 @@
 #include "common.h"
 #include "segmentationresult.h"
 #include "iristemplate.h"
+#include "videoprocessor.h"
 
 class Decorator {
 public:
@@ -26,6 +27,7 @@ public:
 						  );
 	void drawFocusScores(Image& image, const list<double>& focusScores, Rect rect, double threshold);
 	void drawIrisTexture(const Image& imageSrc, Image& imageDest, SegmentationResult segmentationResult);
+	void drawCaptureStatus(Image& image, const VideoProcessor& videoProcessor);
 
 	int lineWidth;
 

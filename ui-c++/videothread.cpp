@@ -8,7 +8,7 @@ VideoThread::VideoThread(int cam) :
 void VideoThread::run()
 {
 	_cap.open(_cam);
-	//_cap.open("/home/marcelo/iris/BBDD/Videos/norberto1/20080501-230608.mpg");
+	_cap.open("/home/marcelo/iris/BBDD/Videos/norberto1/20080501-230608.mpg");
 	//_cap.open("/home/marcelo/iris/BBDD/Videos/marta1/20080702-232946.mpg");
 	//_cap.open("/home/marcelo/iris/BBDD/Videos/bursztyn1/20080501-230748.mpg");
 	//_cap.open("/home/marcelo/iris/BBDD/Videos/marcelo1/marcelo1.mpg");

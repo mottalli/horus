@@ -20,32 +20,8 @@ void IrisVideoWidget::slotFrameProcessed(const VideoProcessor& videoProcessor)
 
 		this->drawCrosshair(this->decoratedFrame, videoProcessor.lastSegmentationResult.irisCircle.center, 1);
 
-		//rectangle(this->decoratedFrame, videoProcessor.eyeROI, CV_RGB(255,255,255));
+		this->decorator.drawCaptureStatus(this->decoratedFrame, videoProcessor);
 
-		if (status >= VideoProcessor::FOCUSED_IRIS) {
-			// Efecto ciencia ficción!
-			double q = min<double>(1.0, double(videoProcessor.templateBuffer.size()) / double(videoProcessor.parameters.minCountForTemplateAveraging));
-			double angle = q*2*M_PI;
-			int width = int(400.0*q);
-			int height = (videoProcessor.lastSegmentationResult.irisCircle.radius-videoProcessor.lastSegmentationResult.pupilCircle.radius)/2 + 1;
-			vector< pair<Point, Point> > pts = Tools::iterateIris(videoProcessor.lastSegmentationResult, width, height, -M_PI/2, angle-M_PI/2);
-			for (size_t i = 0; i < pts.size(); i++) {
-				Point p = pts[i].second;
-				Vec3f val = this->decoratedFrame(p);
-				Vec3f color;
-				double alpha;
-				if (status == VideoProcessor::FINISHED_CAPTURE) {
-					color =  Vec3f(0,128,0);
-					alpha = 0.2;
-				} else {
-					alpha = 0.8;
-					color = Vec3f(0,255,255);
-				}
-				Vec3b final = Vec3f( val[0]*alpha+color[0]*(1.0-alpha), val[1]*alpha+color[1]*(1.0-alpha), val[2]*alpha+color[2]*(1.0-alpha) );
-
-				this->decoratedFrame(p) = final;
-			}
-		}
 
 		if (status >= VideoProcessor::FOCUSED_IRIS) {
 			//decorator.drawTemplate(this->decoratedFrame, videoProcessor.lastTemplate);
