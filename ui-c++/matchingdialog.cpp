@@ -30,6 +30,7 @@ void MatchingDialog::doMatch(IrisTemplate irisTemplate, const GrayscaleImage& im
 	double hdTime = DB.getMatchingTime();
 	int hdMatch = DB.getMinDistanceId();
 	double matchingHD = DB.getMinDistance();
+	const GrayscaleImage& comparationImage = DB.getComparationImage();
 
 	double totalTime;
 

@@ -132,21 +132,7 @@ void Decorator::drawParabola(Image& image, const Parabola& parabola, int xMin, i
 void Decorator::drawTemplate(Image& image, const IrisTemplate& irisTemplate, Point p0)
 {
 	GrayscaleImage imgTemplate = irisTemplate.getTemplateImage();
-
-	Rect templateRect(p0, Size(imgTemplate.cols, imgTemplate.rows));
-
-	if (image.channels() == 3) {
-		vector<Mat> channels(3, imgTemplate);
-		Mat part = image(templateRect);
-		merge(channels, part);
-	} else {
-		Mat m = image(templateRect);
-		imgTemplate.copyTo(m);
-	}
-
-	Point ul(templateRect.x-1, templateRect.y-1);
-	Point lr(p0.x + templateRect.width+1, p0.y+templateRect.height+1);
-	rectangle(image, ul, lr, CV_RGB(0,0,0), 1);
+	Decorator::superimposeImage(imgTemplate, image, p0, true);
 }
 
 void Decorator::setDrawingColors(Scalar pupilColor_, Scalar irisColor_, Scalar upperEyelidColor_, Scalar lowerEyelidColor_)
@@ -199,14 +185,32 @@ void Decorator::drawIrisTexture(const Mat& imageSrc, Mat& imageDest, Segmentatio
 	IrisEncoder::normalizeIris(srcBW, texture, mask, segmentationResult);
 
 	Tools::stretchHistogram(texture, texture);
+	Decorator::superimposeImage(texture, imageDest, Point(0,0), false);
+}
 
-	if (imageDest.type() == texture.type()) {
-		texture.copyTo(imageDest);
+void Decorator::superimposeImage(const Image& imageSrc, Image& imageDest, Point p, bool drawBorder)
+{
+	Rect r = Rect(p.x, p.y, imageSrc.cols, imageSrc.rows);
+	assert(r.br().x < imageDest.cols && r.br().y < imageDest.rows);		// Inside the image
+
+	Image destRect = imageDest(r);
+
+	if (imageSrc.type() == imageDest.type()) {
+		imageSrc.copyTo(destRect);
+	} else if (imageSrc.channels() == 3) {
+		assert(imageDest.channels() == 1);
+		vector<Mat> channels(3, imageSrc);
+		merge(channels, destRect);
 	} else {
-		cvtColor(texture, imageDest, CV_GRAY2BGR);
+		assert(imageSrc.channels() == 1 && imageDest.channels() == 3);
+		cvtColor(imageSrc, destRect, CV_GRAY2BGR);
 	}
 
-	rectangle(imageDest, Rect(0,0,imageDest.cols-1,imageDest.rows-1), CV_RGB(0,0,0), 1);
+	if (drawBorder) {
+		Point tl(r.tl().x-1, r.tl().y-1);
+		Point br(r.br().x+1, r.br().y+1);
+		rectangle(imageDest, tl, br, CV_RGB(0,0,0), 1);
+	}
 }
 
 void Decorator::drawCaptureStatus(Image& image, const VideoProcessor& videoProcessor)

@@ -14,7 +14,6 @@ SET(HORUS_LIB_SOURCES
 		${PROJECT_SOURCE_DIR}/src/loggaborencoder.cpp 
 		${PROJECT_SOURCE_DIR}/src/pupilsegmentator.cpp 
 		${PROJECT_SOURCE_DIR}/src/qualitychecker.cpp 
-		${PROJECT_SOURCE_DIR}/src/segmentationresult.cpp 
 		${PROJECT_SOURCE_DIR}/src/segmentator.cpp 
 		${PROJECT_SOURCE_DIR}/src/serializer.cpp 
 		${PROJECT_SOURCE_DIR}/src/templatecomparator.cpp 
@@ -37,7 +36,6 @@ SET(HORUS_LIB_HEADERS
 		${PROJECT_SOURCE_DIR}/src/loggaborencoder.h
 		${PROJECT_SOURCE_DIR}/src/pupilsegmentator.h
 		${PROJECT_SOURCE_DIR}/src/qualitychecker.h
-		${PROJECT_SOURCE_DIR}/src/segmentationresult.h
 		${PROJECT_SOURCE_DIR}/src/segmentator.h
 		${PROJECT_SOURCE_DIR}/src/serializer.h
 		${PROJECT_SOURCE_DIR}/src/templatecomparator.h

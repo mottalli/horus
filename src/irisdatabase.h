@@ -27,6 +27,7 @@ public:
 	inline double getDistanceFor(int templateId) { return this->distances[this->positions[templateId]]; }
 	inline const vector<MatchDistance>& getMatchingDistances() const { return this->matchingDistances; }
 	inline const vector<double>& getDistances() const { return this->distances; }
+	inline const GrayscaleImage& getComparationImage() const { return this->comparationImage; }
 
 	inline int getMinNFAId() const { return this->minNFAId; }
 	inline double getMinNFA() const { return this->minNFA; }

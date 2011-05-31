@@ -76,7 +76,7 @@ void MainWindow::showTemplateImage()
 	this->decorator.drawTemplate(this->resizedFrame, this->lastTemplate);
 
 	Mat region = this->resizedFrame(Range(this->resizedFrame.rows-30, this->resizedFrame.rows), Range::all());
-	decorator.drawIrisTexture(this->lastIrisFrame, region, this->lastIrisFrameSegmentation);
+	//decorator.superimposeImage(this->lastIrisFrame, region, this->lastIrisFrameSegmentation);
 
 	this->ui->capturedImage->showImage(this->resizedFrame);
 }
