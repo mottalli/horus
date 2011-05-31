@@ -8,7 +8,6 @@
 #pragma once
 
 #include "common.h"
-#include "segmentationresult.h"
 #include "iristemplate.h"
 
 namespace Serializer

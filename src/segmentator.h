@@ -11,7 +11,6 @@
 #include "pupilsegmentator.h"
 #include "irissegmentator.h"
 #include "eyelidsegmentator.h"
-#include "segmentationresult.h"
 #include "clock.h"
 
 class Segmentator {

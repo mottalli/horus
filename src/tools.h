@@ -8,7 +8,6 @@
 #pragma once
 
 #include "common.h"
-#include "segmentationresult.h"
 #include "external/base64.h"
 #include "segmentator.h"
 #include "iristemplate.h"

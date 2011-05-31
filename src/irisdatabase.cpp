@@ -10,9 +10,6 @@ IrisDatabase::IrisDatabase()
 
 IrisDatabase::~IrisDatabase()
 {
-	for (vector<IrisTemplate*>::iterator it = this->templates.begin(); it != this->templates.end(); it++) {
-		delete (*it);			// Free the memory allocated in addTemplate
-	}
 }
 
 void IrisDatabase::addTemplate(int templateId, const IrisTemplate& irisTemplate)
@@ -22,8 +19,7 @@ void IrisDatabase::addTemplate(int templateId, const IrisTemplate& irisTemplate)
 		this->deleteTemplate(templateId);
 	}
 
-	IrisTemplate* newTemplate = new IrisTemplate(irisTemplate);
-	this->templates.push_back(newTemplate);
+	this->templates.push_back(irisTemplate);			// Note that this creates a copy of the template
 	this->ids.push_back(templateId);
 	this->positions[templateId] = this->ids.size()-1;
 }
@@ -31,7 +27,7 @@ void IrisDatabase::addTemplate(int templateId, const IrisTemplate& irisTemplate)
 void IrisDatabase::deleteTemplate(int templateId)
 {
 	vector<int>::iterator it1;
-	vector<IrisTemplate*>::iterator it2;
+	vector<IrisTemplate>::iterator it2;
 
 	for (it1 = this->ids.begin(), it2 = this->templates.begin(); it1 != this->ids.end(); it1++, it2++) {
 		if (*it1 == templateId) {
@@ -49,25 +45,15 @@ void IrisDatabase::doMatch(const IrisTemplate& irisTemplate, void (*statusCallba
 	TemplateComparator comparator(irisTemplate, nRots, rotStep);
 
 	size_t n = this->templates.size();
-	this->minDistanceId = 0;
-	this->minDistance = 1.0;
 
 	this->matchingDistances = vector<MatchDistance>(n);
 	this->distances = vector<double>(n);
 
-	size_t bestIdx = -1;
-
 	for (size_t i = 0; i < n; i++) {
-		double hammingDistance = comparator.compare(*(this->templates[i]));
+		double hammingDistance = comparator.compare(this->templates[i]);
 		int matchId = this->ids[i];
 		this->matchingDistances[i] = MatchDistance(matchId, hammingDistance);
 		this->distances[i] = hammingDistance;
-
-		if (matchId != this->ignoreId && hammingDistance < this->minDistance) {
-			this->minDistance = hammingDistance;
-			this->minDistanceId = matchId;
-			bestIdx = i;
-		}
 
 		int percentage = (90*i)/n;			// The extra 10% is for sorting
 		if (statusCallback && ((i % ((n/10)+1)) == 0)) statusCallback(percentage);
@@ -93,7 +79,7 @@ void IrisDatabase::calculatePartsDistances(const IrisTemplate& irisTemplate, uns
 
 	// Calculate the distances between the parts
 	for (size_t i = 0; i < n; i++) {
-		vector<double> partsDistances = comparator.compareParts(*(this->templates[i]), nParts);
+		vector<double> partsDistances = comparator.compareParts(this->templates[i], nParts);
 		assert(partsDistances.size() == nParts);
 
 		for (unsigned int p = 0; p < nParts; p++) {
@@ -193,6 +179,6 @@ void IrisDatabase::doAContrarioMatch(const IrisTemplate& irisTemplate, int nPart
 
 	// Generate the comparation image
 	TemplateComparator comparator(irisTemplate, nRots, rotStep);
-	comparator.compare(*(this->templates[bestIdx]));
+	comparator.compare(this->templates[bestIdx]);
 	this->comparationImage = comparator.getComparationImage();
 }

@@ -32,7 +32,7 @@ SOURCES += ../src/clock.cpp              ../src/loggaborencoder.cpp     ../src/s
 	../src/decorator.cpp          ../src/serializer.cpp \
 	../src/eyelidsegmentator.cpp  ../src/irisencoder.cpp       ../src/pupilsegmentator.cpp    ../src/templatecomparator.cpp \
 	../src/gaborencoder.cpp       ../src/irissegmentator.cpp   ../src/qualitychecker.cpp      ../src/tools.cpp \
-	../src/irisdatabase.cpp       ../src/iristemplate.cpp      ../src/segmentationresult.cpp  ../src/videoprocessor.cpp \
+	../src/irisdatabase.cpp       ../src/iristemplate.cpp       ../src/videoprocessor.cpp \
 	../src/external/base64.cpp
 
 HEADERS  += mainwindow.h \
@@ -45,7 +45,7 @@ HEADERS  += mainwindow.h \
 	external/sqlite3/sqlite3.h \
 	external/sqlite3/sqlite3ext.h \
 	sqlite3irisdatabase.h \
-	../src/clock.h              ../src/gaborencoder.h      ../src/irissegmentator.h   ../src/segmentationresult.h  ../src/types.h \
+	../src/clock.h              ../src/gaborencoder.h      ../src/irissegmentator.h    ../src/types.h \
 	../src/common.h             ../src/iristemplate.h      ../src/segmentator.h         ../src/videoprocessor.h \
 	../src/irisdatabase.h      ../src/loggaborencoder.h   ../src/serializer.h \
 	../src/decorator.h          ../src/pupilsegmentator.h  ../src/templatecomparator.h \

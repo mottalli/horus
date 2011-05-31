@@ -15,7 +15,6 @@
 #include "loggaborencoder.h"
 #include "pupilsegmentator.h"
 #include "qualitychecker.h"
-#include "segmentationresult.h"
 #include "segmentator.h"
 #include "serializer.h"
 #include "templatecomparator.h"
