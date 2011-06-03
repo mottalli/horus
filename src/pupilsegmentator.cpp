@@ -9,6 +9,8 @@
 #include "tools.h"
 #include "tools.h"
 
+using namespace horus;
+
 PupilSegmentator::PupilSegmentator()
 {
 	this->_lastSigma = this->_lastMu = -100.0;
@@ -40,7 +42,7 @@ ContourAndCloseCircle PupilSegmentator::segmentPupil(const GrayscaleImage& image
 	pupilCircle.center.y /= this->resizeFactor;
 
 	result.first = this->adjustPupilContour(image, pupilCircle);
-	result.second = Tools::approximateCircle(result.first);
+	result.second = tools::approximateCircle(result.first);
 
 	return result;
 
@@ -70,7 +72,7 @@ Circle PupilSegmentator::approximatePupil(const GrayscaleImage& image)
 {
 	// First, equalize the image and apply the similarity transform
 	//equalizeHist(image, this->equalizedImage);
-	Tools::stretchHistogram(image, this->equalizedImage, 0.01, 0.0);
+	tools::stretchHistogram(image, this->equalizedImage, 0.01, 0.0);
 	this->similarityTransform();
 	blur(this->similarityImage, this->similarityImage, Size(7, 7));
 
@@ -88,7 +90,7 @@ Contour PupilSegmentator::adjustPupilContour(const GrayscaleImage& image, const 
 {
 	int radiusMin = approximateCircle.radius * 0.5, radiusMax =
 			approximateCircle.radius * 1.5;
-	Tools::extractRing(image, this->adjustmentRing,
+	tools::extractRing(image, this->adjustmentRing,
 			approximateCircle.center.x, approximateCircle.center.y, radiusMin, radiusMax);
 
 	int infraredThreshold = this->parameters.infraredThreshold;
@@ -176,7 +178,7 @@ Contour PupilSegmentator::adjustPupilContour(const GrayscaleImage& image, const 
 	}
 
 	// Smooth the snake
-	Tools::smoothSnakeFourier(snake, 5);
+	tools::smoothSnakeFourier(snake, 5);
 
 	/*Tools::smoothSnakeFourier(snake, 3);
 	int delta = gradient.rows * 0.1;

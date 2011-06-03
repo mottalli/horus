@@ -5,7 +5,7 @@
 #include "iristemplate.h"
 #include "clock.h"
 
-using namespace std;
+namespace horus {
 
 typedef pair<int, double> MatchDistance;
 
@@ -61,3 +61,4 @@ protected:
 	int ignoreId;
 };
 
+}

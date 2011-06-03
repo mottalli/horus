@@ -6,6 +6,9 @@
 /**
  * Abstract class -- must implement texture encoding algorithm
  */
+
+namespace horus {
+
 class IrisEncoder {
 public:
 	static const double THETA0;
@@ -39,3 +42,4 @@ protected:
 	virtual Size getNormalizationSize();
 };
 
+}

@@ -10,6 +10,8 @@
 #include "iristemplate.h"
 #include "tools.h"
 
+using namespace horus;
+
 IrisTemplate::IrisTemplate()
 {
 }
@@ -24,8 +26,8 @@ IrisTemplate::IrisTemplate(const GrayscaleImage& binaryTemplate, const Grayscale
 
 	assert(binaryTemplate.cols % 8 == 0);
 
-	Tools::packBits(binaryTemplate, this->irisTemplate);
-	Tools::packBits(binaryMask, this->mask);
+	tools::packBits(binaryTemplate, this->irisTemplate);
+	tools::packBits(binaryMask, this->mask);
 
 	this->encoderSignature = encoderSignature_;
 }
@@ -53,8 +55,8 @@ IrisTemplate::~IrisTemplate()
 GrayscaleImage IrisTemplate::getTemplateImage() const
 {
 	GrayscaleImage imgTemplate, imgMask;
-	Tools::unpackBits(this->irisTemplate, imgTemplate, 255);
-	Tools::unpackBits(this->mask, imgMask, 255);
+	tools::unpackBits(this->irisTemplate, imgTemplate, 255);
+	tools::unpackBits(this->mask, imgMask, 255);
 
 	bitwise_not(imgMask, imgMask);			// Hacky way to NOT the template
 	imgTemplate.setTo(127, imgMask);
@@ -65,14 +67,14 @@ GrayscaleImage IrisTemplate::getTemplateImage() const
 GrayscaleImage IrisTemplate::getUnpackedTemplate() const
 {
 	GrayscaleImage unpacked;
-	Tools::unpackBits(this->irisTemplate, unpacked);
+	tools::unpackBits(this->irisTemplate, unpacked);
 	return unpacked;
 }
 
 GrayscaleImage IrisTemplate::getUnpackedMask() const
 {
 	GrayscaleImage unpacked;
-	Tools::unpackBits(this->mask, unpacked);
+	tools::unpackBits(this->mask, unpacked);
 	return unpacked;
 }
 

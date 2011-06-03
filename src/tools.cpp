@@ -7,11 +7,11 @@
 
 #include "tools.h"
 
-inline uint8_t setBit(uint8_t b, int bit, bool value);
-inline bool getBit(uint8_t b, int bit);
+using namespace horus;
+using namespace horus::tools;
 
 // Pack the binary in src into bits
-void Tools::packBits(const GrayscaleImage& src, GrayscaleImage& dest)
+void horus::tools::packBits(const GrayscaleImage& src, GrayscaleImage& dest)
 {
 	assert( (src.cols % 8) == 0);
 	dest.create(src.rows, src.cols/8);
@@ -33,7 +33,7 @@ void Tools::packBits(const GrayscaleImage& src, GrayscaleImage& dest)
 	}
 }
 
-void Tools::unpackBits(const GrayscaleImage& src, GrayscaleImage& dest, int trueval)
+void horus::tools::unpackBits(const GrayscaleImage& src, GrayscaleImage& dest, int trueval)
 {
 	dest.create(src.rows, src.cols*8);
 
@@ -49,7 +49,7 @@ void Tools::unpackBits(const GrayscaleImage& src, GrayscaleImage& dest, int true
 	}
 }
 
-void Tools::drawHistogram(const IplImage* img)
+void horus::tools::drawHistogram(const IplImage* img)
 {
 	int bins = 256;
 	int hsize[] = { bins };
@@ -82,20 +82,7 @@ void Tools::drawHistogram(const IplImage* img)
 	cvReleaseImage(&copy);
 }
 
-/*
- 10000000: 128
- 01000000: 64
- 00100000: 32
- 00010000: 16
- 00001000: 8
- 00000100: 4
- 00000010: 2
- 00000001: 1
- */
-
-static uint8_t BIT_MASK[] = {0x80, 0x40, 0x20, 0x10, 0x08, 0x04, 0x02, 0x01 };
-
-uint8_t setBit(uint8_t b, int bit, bool value)
+uint8_t horus::tools::setBit(uint8_t b, int bit, bool value)
 {
 	if (value) {
 		// Set to 1
@@ -106,12 +93,12 @@ uint8_t setBit(uint8_t b, int bit, bool value)
 	}
 }
 
-bool getBit(uint8_t b, int bit)
+bool horus::tools::getBit(uint8_t b, int bit)
 {
 	return (b & BIT_MASK[bit]) ? true : false;
 }
 
-vector< pair<Point, Point> > Tools::iterateIris(const SegmentationResult& segmentation, int width, int height, double theta0, double theta1, double radiusMin, double radiusMax)
+vector< pair<Point, Point> > horus::tools::iterateIris(const SegmentationResult& segmentation, int width, int height, double theta0, double theta1, double radiusMin, double radiusMax)
 {
 	vector< pair<Point, Point> > res(width*height);
 	const Contour& pupilContour = segmentation.pupilContour;
@@ -152,12 +139,12 @@ vector< pair<Point, Point> > Tools::iterateIris(const SegmentationResult& segmen
 	return res;
 }
 
-void Tools::superimposeTexture(GrayscaleImage& image, const GrayscaleImage& texture, const SegmentationResult& segmentation, double theta0, double theta1, double radius, bool blend, double blendStart)
+void horus::tools::superimposeTexture(GrayscaleImage& image, const GrayscaleImage& texture, const SegmentationResult& segmentation, double theta0, double theta1, double radius, bool blend, double blendStart)
 {
 	assert(texture.type() == CV_8U);
 	assert(image.type() == CV_8U);
 
-	vector< pair<Point, Point> > irisIt = Tools::iterateIris(segmentation, texture.cols, texture.rows, theta0, theta1, radius);
+	vector< pair<Point, Point> > irisIt = iterateIris(segmentation, texture.cols, texture.rows, theta0, theta1, radius);
 	for (size_t i = 0; i < irisIt.size(); i++) {
 		int xsrc = irisIt[i].first.x, ysrc = irisIt[i].first.y;
 		int xdest = floor(irisIt[i].second.x + 0.5), ydest = floor(irisIt[i].second.y + 0.5);
@@ -175,7 +162,7 @@ void Tools::superimposeTexture(GrayscaleImage& image, const GrayscaleImage& text
 	}
 }
 
-void Tools::extractRing(const GrayscaleImage& src, GrayscaleImage& dest, int x0, int y0, int radiusMin, int radiusMax)
+void horus::tools::extractRing(const GrayscaleImage& src, GrayscaleImage& dest, int x0, int y0, int radiusMin, int radiusMax)
 {
 	assert(src.channels() == 1 && dest.channels() == 1);
 	assert(radiusMin < radiusMax);
@@ -201,7 +188,7 @@ void Tools::extractRing(const GrayscaleImage& src, GrayscaleImage& dest, int x0,
 	}
 }
 
-void Tools::smoothSnakeFourier(Mat_<float>& snake, int coefficients)
+void horus::tools::smoothSnakeFourier(Mat_<float>& snake, int coefficients)
 {
 	dft(snake, snake, CV_DXT_FORWARD);
 	for (int u = coefficients; u < snake.cols-coefficients; u++) {
@@ -210,7 +197,7 @@ void Tools::smoothSnakeFourier(Mat_<float>& snake, int coefficients)
 	dft(snake, snake, CV_DXT_INV_SCALE);
 }
 
-Circle Tools::approximateCircle(const Contour& contour)
+Circle horus::tools::approximateCircle(const Contour& contour)
 {
 	Circle result;
 
@@ -239,7 +226,7 @@ Circle Tools::approximateCircle(const Contour& contour)
 	return result;
 }
 
-void Tools::stretchHistogram(const Image& image, Image& dest, float marginMin, float marginMax)
+void horus::tools::stretchHistogram(const Image& image, Image& dest, float marginMin, float marginMax)
 {
 	assert(image.depth() == CV_8U);
 
@@ -284,14 +271,14 @@ void Tools::stretchHistogram(const Image& image, Image& dest, float marginMin, f
 	merge(chansDest, dest);
 }
 
-GrayscaleImage Tools::normalizeImage(const GrayscaleImage& image, uint8_t min, uint8_t max)
+GrayscaleImage horus::tools::normalizeImage(const GrayscaleImage& image, uint8_t min, uint8_t max)
 {
 	GrayscaleImage res;
 	normalize(image, res, min, max, NORM_MINMAX);
 	return res;
 }
 
-void Tools::toGrayscale(const Image& src, GrayscaleImage& dest, bool cloneIfAlreadyGray) {
+void horus::tools::toGrayscale(const Image& src, GrayscaleImage& dest, bool cloneIfAlreadyGray) {
 	assert(src.type() == CV_8UC1 || src.type() == CV_8UC3);
 
 	if (src.type() == CV_8UC1) {

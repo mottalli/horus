@@ -6,20 +6,22 @@
 #include <sys/time.h>
 #endif
 
+namespace horus {
+
 class Clock {
 public:
-    Clock();
-    virtual ~Clock();
+	Clock();
+	virtual ~Clock();
 
-    void start();
-    double stop();
+	void start();
+	double stop();
 	inline double time() const { return _time; };
 private:
-    double _time;
+	double _time;
 #if !defined(_MSC_VER)
 	timeval _tic, _toc;
 #endif
 
 };
 
-
+}

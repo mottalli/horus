@@ -1,7 +1,7 @@
 #include "loggaborencoder.h"
 #include "tools.h"
 
-#include <cmath>
+using namespace horus;
 
 LogGabor1DFilter::LogGabor1DFilter()
 {

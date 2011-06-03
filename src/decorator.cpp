@@ -4,11 +4,13 @@
  *  Created on: Jun 4, 2009
  *      Author: marcelo
  */
+#include <cmath>
 
 #include "decorator.h"
 #include "irisencoder.h"
 #include "tools.h"
-#include <cmath>
+
+using namespace horus;
 
 const Scalar Decorator::DEFAULT_PUPIL_COLOR = CV_RGB(255,0,0);
 const Scalar Decorator::DEFAULT_IRIS_COLOR = CV_RGB(0,255,0);
@@ -42,7 +44,7 @@ void Decorator::drawEncodingZone(Image& image, const SegmentationResult& segment
 {
 	const int width = 512, height = 80;
 
-	vector< pair<Point, Point> > irisPoints = Tools::iterateIris(segmentationResult,
+	vector< pair<Point, Point> > irisPoints = tools::iterateIris(segmentationResult,
 		width, height, IrisEncoder::THETA0,
 		IrisEncoder::THETA1, IrisEncoder::MIN_RADIUS_TO_USE, IrisEncoder::MAX_RADIUS_TO_USE);
 
@@ -180,11 +182,11 @@ void Decorator::drawIrisTexture(const Mat& imageSrc, Mat& imageDest, Segmentatio
 	GrayscaleImage texture(imageDest.size()), mask(imageDest.size());
 	GrayscaleImage srcBW;
 
-	Tools::toGrayscale(imageSrc, srcBW, false);
+	tools::toGrayscale(imageSrc, srcBW, false);
 
 	IrisEncoder::normalizeIris(srcBW, texture, mask, segmentationResult);
 
-	Tools::stretchHistogram(texture, texture);
+	tools::stretchHistogram(texture, texture);
 	Decorator::superimposeImage(texture, imageDest, Point(0,0), false);
 }
 
@@ -226,7 +228,7 @@ void Decorator::drawCaptureStatus(Image& image, const VideoProcessor& videoProce
 		double angle = q*2*M_PI;
 		int width = int(400.0*q);
 		int height = (videoProcessor.lastSegmentationResult.irisCircle.radius-videoProcessor.lastSegmentationResult.pupilCircle.radius)/2 + 1;
-		vector< pair<Point, Point> > pts = Tools::iterateIris(videoProcessor.lastSegmentationResult, width, height, -M_PI/2, angle-M_PI/2);
+		vector< pair<Point, Point> > pts = tools::iterateIris(videoProcessor.lastSegmentationResult, width, height, -M_PI/2, angle-M_PI/2);
 		for (size_t i = 0; i < pts.size(); i++) {
 			Point p = pts[i].second;
 			Vec3f val = image.at<Vec3b>(p);

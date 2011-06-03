@@ -11,6 +11,7 @@
 
 using namespace std;
 using namespace cv;
+using namespace horus;
 
 Segmentator segmentator;
 VideoProcessor videoProcessor;

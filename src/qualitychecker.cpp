@@ -1,5 +1,6 @@
 #include "qualitychecker.h"
-#include <cmath>
+
+using namespace horus;
 
 QualityChecker::QualityChecker()
 {

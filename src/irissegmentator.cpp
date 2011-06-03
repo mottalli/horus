@@ -1,6 +1,7 @@
 #include "irissegmentator.h"
 #include "tools.h"
-#include <cmath>
+
+using namespace horus;
 
 IrisSegmentator::IrisSegmentator()
 {
@@ -29,7 +30,7 @@ ContourAndCloseCircle IrisSegmentator::segmentIrisRecursive(const GrayscaleImage
 	    radiusMax = pupilCircle.radius * 5.0;
 	}
 
-	Tools::extractRing(image, this->adjustmentRing, pupilCircle.center.x, pupilCircle.center.y, radiusMin, radiusMax);
+	tools::extractRing(image, this->adjustmentRing, pupilCircle.center.x, pupilCircle.center.y, radiusMin, radiusMax);
 
 	blur(this->adjustmentRing, this->adjustmentRing, Size(3, 7));
 	Sobel(this->adjustmentRing, this->adjustmentRingGradient, CV_16S, 0, 1, 3);
@@ -128,7 +129,7 @@ ContourAndCloseCircle IrisSegmentator::segmentIrisRecursive(const GrayscaleImage
 	}
 
 	// Smooth the snake
-	Tools::smoothSnakeFourier(snake, 3);
+	tools::smoothSnakeFourier(snake, 3);
 
 	// Convert to image coordinates
 	Contour irisContour(snake.cols);
@@ -143,7 +144,7 @@ ContourAndCloseCircle IrisSegmentator::segmentIrisRecursive(const GrayscaleImage
 	ContourAndCloseCircle result;
 
 	result.first = irisContour;
-	result.second = Tools::approximateCircle(result.first);
+	result.second = tools::approximateCircle(result.first);
 
     return result;
 }

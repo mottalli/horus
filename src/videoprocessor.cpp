@@ -8,6 +8,8 @@
 #include "videoprocessor.h"
 #include "tools.h"
 
+using namespace horus;
+
 VideoProcessor::VideoProcessor()
 {
 	this->lastStatus = DEFOCUSED;
@@ -32,7 +34,7 @@ VideoProcessor::VideoStatus VideoProcessor::processFrame(const Mat& frame)
 			return UNPROCESSED;
 		}
 
-		Tools::toGrayscale(this->lastFrame, this->lastFrameBW, false);
+		tools::toGrayscale(this->lastFrame, this->lastFrameBW, false);
 
 		this->lastStatus = this->doProcess(this->lastFrameBW);
 
@@ -182,7 +184,7 @@ IrisTemplate VideoProcessor::getAverageTemplate() const
 GrayscaleImage VideoProcessor::getBestTemplateFrame() const
 {
 	GrayscaleImage res;
-	Tools::stretchHistogram(this->templateBuffer[this->bestTemplateIdx].image, res, 0.01, 0);
+	tools::stretchHistogram(this->templateBuffer[this->bestTemplateIdx].image, res, 0.01, 0);
 	return res;
 	//return this->templateBuffer[this->bestTemplateIdx].image;
 }

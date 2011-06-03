@@ -8,6 +8,8 @@
 
 #include "eyedetect.h"
 
+namespace horus {
+
 class VideoProcessorParameters
 {
 public:
@@ -45,7 +47,7 @@ class VideoProcessor {
 public:
 	VideoProcessor();
 	virtual ~VideoProcessor();
-	
+
 	typedef enum {
 		UNKNOWN_ERROR,
 		UNPROCESSED,
@@ -85,7 +87,7 @@ public:
 	SegmentationResult lastSegmentationResult;
 	double lastIrisQuality;
 	IrisTemplate lastTemplate;
-	
+
 	IrisTemplate getAverageTemplate() const;
 	GrayscaleImage getBestTemplateFrame() const;
 	const SegmentationResult& getBestTemplateSegmentation() const;
@@ -103,11 +105,11 @@ private:
 	EyeDetect eyeDetect;
 
 	VideoStatus doProcess(const GrayscaleImage& image);
-	
+
 	Mat templateFrame;
 	SegmentationResult templateSegmentation;
 	double templateIrisQuality;
-	
+
 	int templateWaitCount;
 	int framesToSkip;
 	bool waitingTemplate;
@@ -125,3 +127,4 @@ private:
 
 };
 
+}

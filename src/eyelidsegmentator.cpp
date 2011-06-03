@@ -1,5 +1,7 @@
 #include "eyelidsegmentator.h"
 
+using namespace horus;
+
 EyelidSegmentator::EyelidSegmentator()
 {
 }

@@ -3,6 +3,8 @@
 #include "irisdatabase.h"
 #include "templatecomparator.h"
 
+using namespace horus;
+
 IrisDatabase::IrisDatabase()
 {
 	this->ignoreId = -1;

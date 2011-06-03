@@ -4,6 +4,8 @@
 #include "iristemplate.h"
 #include "videoprocessor.h"
 
+namespace horus {
+
 class Decorator {
 public:
 	Decorator();
@@ -36,3 +38,4 @@ private:
 	void drawParabola(Image& image, const Parabola& parabola, int xMin, int xMax, const Scalar& color) const;
 };
 
+}

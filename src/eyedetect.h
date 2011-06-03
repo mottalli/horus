@@ -1,6 +1,8 @@
 #pragma once
 #include "common.h"
 
+namespace horus {
+
 class EyeDetectParameters
 {
 public:
@@ -30,3 +32,5 @@ private:
 	CascadeClassifier eyeClassifier;
 	GrayscaleImage pyramid;
 };
+
+}

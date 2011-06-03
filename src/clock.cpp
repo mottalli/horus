@@ -1,5 +1,7 @@
 #include "clock.h"
 
+using namespace horus;
+
 Clock::Clock() {
     _time = 0;
 }

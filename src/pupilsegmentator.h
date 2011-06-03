@@ -9,6 +9,8 @@
 
 #include "common.h"
 
+namespace horus {
+
 class PupilSegmentatorParameters
 {
 public:
@@ -86,3 +88,4 @@ private:
 };
 
 
+};

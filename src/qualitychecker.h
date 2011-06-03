@@ -4,6 +4,8 @@
 #include "iristemplate.h"
 #include "templatecomparator.h"
 
+namespace horus {
+
 class QualityCheckerParameters
 {
 public:
@@ -48,3 +50,4 @@ private:
 	Mat bufSobel;
 };
 
+}

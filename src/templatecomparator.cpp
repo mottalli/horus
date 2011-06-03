@@ -6,8 +6,8 @@
  */
 
 #include "templatecomparator.h"
-#include <cmath>
-#include <iostream>
+
+using namespace horus;
 
 int countNonZeroBits(const Mat& mat);
 
