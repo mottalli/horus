@@ -82,22 +82,6 @@ void horus::tools::drawHistogram(const IplImage* img)
 	cvReleaseImage(&copy);
 }
 
-uint8_t horus::tools::setBit(uint8_t b, int bit, bool value)
-{
-	if (value) {
-		// Set to 1
-		return b | BIT_MASK[bit];
-	} else {
-		// Set to 0
-		return b & (~BIT_MASK[bit]);
-	}
-}
-
-bool horus::tools::getBit(uint8_t b, int bit)
-{
-	return (b & BIT_MASK[bit]) ? true : false;
-}
-
 vector< pair<Point, Point> > horus::tools::iterateIris(const SegmentationResult& segmentation, int width, int height, double theta0, double theta1, double radiusMin, double radiusMax)
 {
 	vector< pair<Point, Point> > res(width*height);

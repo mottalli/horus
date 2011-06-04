@@ -52,12 +52,24 @@ void toGrayscale(const Image& src, GrayscaleImage& dest, bool cloneIfAlreadyGray
  */
 
 const uint8_t BIT_MASK[] = {0x80, 0x40, 0x20, 0x10, 0x08, 0x04, 0x02, 0x01 };
-inline uint8_t setBit(uint8_t b, int bit, bool value);
-inline bool getBit(uint8_t b, int bit);
-
+inline uint8_t setBit(uint8_t b, int bit, bool value)
+{
+	if (value) {
+		// Set to 1
+		return b | BIT_MASK[bit];
+	} else {
+		// Set to 0
+		return b & (~BIT_MASK[bit]);
+	}
 }
+
+inline bool getBit(uint8_t b, int bit)
+{
+	return (b & BIT_MASK[bit]) ? true : false;
 }
 
+}	/* Namespaces end */
+}
 
 
 template<class T>

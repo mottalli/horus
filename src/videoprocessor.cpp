@@ -173,7 +173,7 @@ IrisTemplate VideoProcessor::getBestTemplate() const
 
 IrisTemplate VideoProcessor::getAverageTemplate() const
 {
-	vector<VideoProcessor::CapturedTemplate> buffer = this->templateBuffer;			// Work with a copy
+	vector<CapturedTemplate> buffer = this->templateBuffer;			// Work with a copy
 	vector<const IrisTemplate*> templates(buffer.size());
 	for (size_t i = 0; i < buffer.size(); i++) {
 		templates[i] = &(buffer[i].irisTemplate);

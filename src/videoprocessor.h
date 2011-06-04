@@ -43,6 +43,13 @@ public:
 	}
 };
 
+typedef struct {
+	GrayscaleImage image;
+	SegmentationResult segmentationResult;
+	IrisTemplate irisTemplate;
+	double quality;
+} CapturedTemplate;
+
 class VideoProcessor {
 public:
 	VideoProcessor();
@@ -63,14 +70,6 @@ public:
 		FINISHED_CAPTURE,
 		GOT_TEMPLATE
 	} VideoStatus;
-
-	typedef struct {
-		GrayscaleImage image;
-		SegmentationResult segmentationResult;
-		IrisTemplate irisTemplate;
-		double quality;
-	} CapturedTemplate;
-
 
 	VideoProcessorParameters parameters;
 
@@ -97,7 +96,7 @@ public:
 
 	Rect eyeROI;
 
-	vector<VideoProcessor::CapturedTemplate> templateBuffer;
+	vector<CapturedTemplate> templateBuffer;
 
 private:
 	GrayscaleImage lastFrameBW;
