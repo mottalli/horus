@@ -29,9 +29,12 @@ int main(int, char**)
 	//VideoCapture cap("/home/marcelo/iris/BBDD/Videos/bursztyn1/20080501-230748.mpg");
 	//VideoCapture cap("/home/marcelo/iris/BBDD/Videos/marcelo1/marcelo1.mpg");
 	//VideoCapture cap("/home/marcelo/iris/BBDD/Videos/marta1/20080702-232946.mpg");
-	VideoCapture cap("/home/marcelo/iris/BBDD/Videos/norberto1/20080501-230608.mpg");
+	//VideoCapture cap("/home/marcelo/iris/BBDD/Videos/norberto1/20080501-230608.mpg");
 	//VideoCapture cap("/home/marcelo/iris/BBDD/Videos/norberto2/20080501-231028.mpg");
-	Mat frame;
+	VideoCapture cap(0);
+	cap.set(CV_CAP_PROP_FRAME_WIDTH, 720);
+	cap.set(CV_CAP_PROP_FRAME_HEIGHT, 576);
+	Mat frame_, frame;
 
 	namedWindow("video");
 	namedWindow("template");
@@ -40,13 +43,16 @@ int main(int, char**)
 	vector<IrisTemplate> templates;
 
 	while (true) {
-		cap >> frame;
+		cap >> frame_;
+		frame = frame_(Rect(10, 0, frame_.cols-20, frame_.rows));
 
 		if (frame.empty()) break;
 
 		VideoProcessor::VideoStatus status = videoProcessor.processFrame(frame);
-		if (status >= VideoProcessor::FOCUSED_IRIS) {
+		if (status >= VideoProcessor::FOCUSED_NO_IRIS) {
 			decorator.drawSegmentationResult(frame, videoProcessor.lastSegmentationResult);
+		}
+		if (status >= VideoProcessor::FOCUSED_IRIS) {
 			decorator.drawTemplate(frame, videoProcessor.lastTemplate);
 		}
 
