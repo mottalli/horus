@@ -5,7 +5,6 @@ OPTION(USE_CUDA "Use CUDA acceleration" OFF)
 
 # ----------------------------------- SOURCE FILES --------------------------------------
 SET(HORUS_LIB_SOURCES 
-	${PROJECT_SOURCE_DIR}/src/clock.cpp
 	${PROJECT_SOURCE_DIR}/src/decorator.cpp 
 	${PROJECT_SOURCE_DIR}/src/eyelidsegmentator.cpp 
 	${PROJECT_SOURCE_DIR}/src/irisdatabase.cpp 

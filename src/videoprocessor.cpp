@@ -25,7 +25,11 @@ VideoProcessor::~VideoProcessor()
 
 VideoProcessor::VideoStatus VideoProcessor::processFrame(const Mat& frame)
 {
+	this->processingTime = vector<double>(PROCTIME_UNUSED, 0.0);			// Initialize the timers to 0
+
 	try {
+		/***************** Initialization ***************/
+		Timer t;
 		frame.copyTo(this->lastFrame);
 
 		if (this->framesToSkip > 0) {
@@ -35,6 +39,11 @@ VideoProcessor::VideoStatus VideoProcessor::processFrame(const Mat& frame)
 		}
 
 		tools::toGrayscale(this->lastFrame, this->lastFrameBW, false);
+
+		this->processingTime[PROCTIME_INITIALIZE] = t.elapsed();
+
+
+		/***************** Quality checking ***************/
 
 		this->lastStatus = this->doProcess(this->lastFrameBW);
 
@@ -103,63 +112,93 @@ VideoProcessor::VideoStatus VideoProcessor::processFrame(const Mat& frame)
 
 VideoProcessor::VideoStatus VideoProcessor::doProcess(const GrayscaleImage& image)
 {
-	// Step 1 - Check that the image is in focus
+	VideoStatus status = UNPROCESSED;
+
+
+	/***************** 1. Check that the image is in focus ***************/
+	Timer t1;
 	this->lastFocusScore = this->qualityChecker.checkFocus(image);
 	if (this->lastFocusScore < this->parameters.focusThreshold) {
-		return DEFOCUSED;
+		status = DEFOCUSED;
 	}
+	this->processingTime[PROCTIME_FOCUS_CHECK] = t1.elapsed();
+	if (status != UNPROCESSED) return status;
 
+
+	/***************** 2. Check that an eye is present in the image ***************/
+	Timer t2;
 	if (this->parameters.doEyeDetect) {
 		// Step 2 - See if there's an eye
 		if (!this->eyeDetect.detectEye(image)) {
 			this->eyeROI = Rect();
-			return NO_EYE;
-		}
+			status = NO_EYE;
+		} else {
+			// Eye detected
+			// "Smooth" the ROI across frames
+			Rect roi = this->eyeDetect.eyeRect;
+			int x = roi.x;
+			int y = roi.y;
+			int w = roi.width;
+			int h = roi.height;
 
-		// "Smooth" the ROI across frames
-		Rect roi = this->eyeDetect.eyeRect;
-		int x = roi.x;
-		int y = roi.y;
-		int w = roi.width;
-		int h = roi.height;
-
-		if (this->eyeROI.width > 0) {
-			x = (x+this->eyeROI.x) / 2;
-			y = (y+this->eyeROI.y) / 2;
-			w = (w+this->eyeROI.width) / 2;
-			h = (h+this->eyeROI.height) / 2;
+			if (this->eyeROI.width > 0) {
+				x = (x+this->eyeROI.x) / 2;
+				y = (y+this->eyeROI.y) / 2;
+				w = (w+this->eyeROI.width) / 2;
+				h = (h+this->eyeROI.height) / 2;
+			}
+			this->eyeROI = Rect(x, y, w, h);
 		}
-		this->eyeROI = Rect(x, y, w, h);
 	} else {
 		this->eyeROI = Rect();
 	}
+	this->processingTime[PROCTIME_EYE_DETECT] = t2.elapsed();
+	if (status != UNPROCESSED) return status;
 
+
+	/***************** 3. Check that the frame is not interlaced ***************/
+	Timer t3;
 	if (this->parameters.interlacedVideo) {
 		double interlacedCorrelation = this->qualityChecker.interlacedCorrelation(image);
 		if (interlacedCorrelation < this->parameters.correlationThreshold) {
-			return INTERLACED;
+			status = INTERLACED;
 		}
 	}
+	this->processingTime[PROCTIME_INTERLACE_CHECK] = t3.elapsed();
+	if (status != UNPROCESSED) return status;
 
-	segmentator.setEyeROI(this->eyeROI);
+
+	/***************** 4. Segment the frame  ***************/
+	Timer t4;
+	if (this->eyeROI.width) {
+		segmentator.setEyeROI(this->eyeROI);
+	} else {
+		segmentator.unsetEyeROI();
+	}
 	this->lastSegmentationResult = segmentator.segmentImage(image);
 	if (this->parameters.segmentEyelids) {
 		segmentator.segmentEyelids(image, this->lastSegmentationResult);
 	}
+	this->processingTime[PROCTIME_SEGMENTATION] = t4.elapsed();
 
+
+	/***************** 5. Validate iris   ***************/
+	Timer t5;
 	this->lastIrisHeuristics = qualityChecker.validateIris(image, this->lastSegmentationResult);
 	if (this->lastIrisHeuristics != QualityChecker::HAS_IRIS) {
 		// No iris found on the image, or the segmentation is incorrect
-		return FOCUSED_NO_IRIS;
-	}
+		status = FOCUSED_NO_IRIS;
+	} else {
+		this->lastIrisQuality = qualityChecker.getIrisQuality(image, this->lastSegmentationResult);
+		if (this->lastIrisQuality < this->parameters.minimumContourQuality) {
+			// The image is kind of focused but the iris doesn't have enough quality
+			// TODO: Check whether to return IRIS_TOO_FAR or IRIS_TOO_CLOSE
 
-	this->lastIrisQuality = qualityChecker.getIrisQuality(image, this->lastSegmentationResult);
-	if (this->lastIrisQuality < this->parameters.minimumContourQuality) {
-		// The image is kind of focused but the iris doesn't have enough quality
-		// TODO: Check whether to return IRIS_TOO_FAR or IRIS_TOO_CLOSE
-
-		return IRIS_LOW_QUALITY;
+			status = IRIS_LOW_QUALITY;
+		}
 	}
+	this->processingTime[PROCTIME_IRIS_VALIDATION] = t5.elapsed();
+	if (status != UNPROCESSED) return status;
 
 	// At this point we have a good quality image and we have enough reasons to believe
 	// it's properly segmented.

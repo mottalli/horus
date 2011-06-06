@@ -71,6 +71,18 @@ public:
 		GOT_TEMPLATE
 	} VideoStatus;
 
+	enum {
+		PROCTIME_INITIALIZE,
+		PROCTIME_FOCUS_CHECK,
+		PROCTIME_EYE_DETECT,
+		PROCTIME_INTERLACE_CHECK,
+		PROCTIME_SEGMENTATION,
+		PROCTIME_IRIS_VALIDATION,
+		PROCTIME_UNUSED				/* Just to know how many time slots we need */
+	};
+
+	std::vector<double> processingTime;
+
 	VideoProcessorParameters parameters;
 
 	VideoStatus processFrame(const Mat& frame);

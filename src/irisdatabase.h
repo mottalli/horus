@@ -45,7 +45,7 @@ protected:
 	vector<double> distances;
 	static inline bool matchingDistanceComparator(MatchDistance d1, MatchDistance d2) { return d1.second < d2.second; }
 
-	Clock clock;
+	Timer timer;
 	double matchingTime;
 
 	double minNFA;

@@ -35,7 +35,7 @@ public:
 private:
 	Mat workingImage;
 	float resizeFactor;
-	Clock clock;
+	Timer timer;
 	Rect eyeROI;
 
 	GrayscaleImage blurredImage;			// Used as a buffer to calculate the ROI

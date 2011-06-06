@@ -17,7 +17,7 @@ Segmentator::~Segmentator() {
 SegmentationResult Segmentator::segmentImage(const Image& image) {
 	assert(image.depth() == CV_8U);
 
-	clock.start();
+	timer.restart();
 	
 	SegmentationResult result;
 	
@@ -37,7 +37,7 @@ SegmentationResult Segmentator::segmentImage(const Image& image) {
 
 	result.eyelidsSegmented = false;
 
-	this->segmentationTime = clock.stop();
+	this->segmentationTime = timer.elapsed();
 
 	return result;
 };
