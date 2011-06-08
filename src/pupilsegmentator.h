@@ -47,7 +47,7 @@ public:
 	inline int getPupilContourQuality() const { return this->pupilContourQuality; }
 
 	inline void setROI(Rect ROI) { this->eyeROI = ROI; }
-	inline void unsetROI() { this->eyeROI = Rect(0,0,0,0); }
+	inline void unsetROI() { this->eyeROI = Rect(); }
 	inline bool hasROI() const { return this->eyeROI.width > 0; }
 
 	// Internal buffers
@@ -63,13 +63,13 @@ public:
 
 	PupilSegmentatorParameters parameters;
 
-	Rect eyeROI, workingROI;
+	Rect eyeROI;
 
 private:
 	void setupBuffers(const Image& image);
 	void similarityTransform();
 	Circle approximatePupil(const GrayscaleImage& image);
-	Circle cascadedIntegroDifferentialOperator(const GrayscaleImage& image);
+	Circle cascadedIntegroDifferentialOperator(const GrayscaleImage& image, Rect ROI=Rect());
 	int calculatePupilContourQuality(const GrayscaleImage& region, const Mat_<uint16_t>& regionGradient, const Mat_<float>& contourSnake);
 
 	int pupilContourQuality;

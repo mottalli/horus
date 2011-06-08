@@ -57,14 +57,9 @@ void PupilSegmentator::setupBuffers(const Image& image)
 	if (width <= bufferWidth) {
 		this->resizeFactor = 1.0;
 		this->workingImage = image;
-		this->workingROI = this->eyeROI;
 	} else {
 		this->resizeFactor = double(bufferWidth) / double(width);
 		resize(image, this->workingImage, Size(), this->resizeFactor, this->resizeFactor);
-		this->workingROI.x /= this->resizeFactor;
-		this->workingROI.y /= this->resizeFactor;
-		this->workingROI.width /= this->resizeFactor;
-		this->workingROI.height /= this->resizeFactor;
 	}
 
 
@@ -86,7 +81,13 @@ Circle PupilSegmentator::approximatePupil(const GrayscaleImage& image)
 	}
 
 	// Now perform the cascaded integro-differential operator (use the ROI if any)
-	Circle res = this->cascadedIntegroDifferentialOperator(this->similarityImage);
+	Circle res;
+	Rect ROI = this->eyeROI;
+	ROI.x /= this->resizeFactor;
+	ROI.y /= this->resizeFactor;
+	ROI.width /= this->resizeFactor;
+	ROI.height /= this->resizeFactor;
+	res = this->cascadedIntegroDifferentialOperator(this->similarityImage, ROI);
 
 	return res;
 }
@@ -229,20 +230,20 @@ Contour PupilSegmentator::adjustPupilContour(const GrayscaleImage& image, const 
 	return result;
 }
 
-Circle PupilSegmentator::cascadedIntegroDifferentialOperator(const GrayscaleImage& image)
+Circle PupilSegmentator::cascadedIntegroDifferentialOperator(const GrayscaleImage& image, Rect ROI)
 {
 	int minradabs = this->parameters.minimumPupilRadius;
 	int minrad = minradabs;
 	int maxrad = this->parameters.maximumPupilRadius;
 
-	bool useROI = this->hasROI();
+	bool useROI = (ROI.width > 0);
 	int minx, miny, maxx, maxy;
 
 	if (useROI) {
-		minx = this->workingROI.x;
-		maxx = this->workingROI.x+this->workingROI.width;
-		miny = this->workingROI.y;
-		maxy = this->workingROI.y+this->workingROI.height;
+		minx = ROI.x;
+		maxx = ROI.x+ROI.width;
+		miny = ROI.y;
+		maxy = ROI.y+ROI.height;
 	} else {
 		// Exclude the image borders
         int dx = image.cols/10;
