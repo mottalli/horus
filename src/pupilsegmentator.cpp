@@ -54,14 +54,19 @@ void PupilSegmentator::setupBuffers(const Image& image)
 	int bufferWidth = this->parameters.bufferWidth;
 	int width = image.cols;
 
-	if (width <= bufferWidth || this->hasROI()) {
+	if (width <= bufferWidth) {
 		this->resizeFactor = 1.0;
 		this->workingImage = image;
+		this->workingROI = this->eyeROI;
 	} else {
 		this->resizeFactor = double(bufferWidth) / double(width);
 		resize(image, this->workingImage, Size(), this->resizeFactor, this->resizeFactor);
+		this->workingROI.x /= this->resizeFactor;
+		this->workingROI.y /= this->resizeFactor;
+		this->workingROI.width /= this->resizeFactor;
+		this->workingROI.height /= this->resizeFactor;
 	}
-    this->workingROI = this->eyeROI;
+
 
 	this->adjustmentRing.create(Size(this->parameters.pupilAdjustmentRingWidth, this->parameters.pupilAdjustmentRingHeight));
 	this->adjustmentRingGradient.create(Size(this->parameters.pupilAdjustmentRingWidth, this->parameters.pupilAdjustmentRingHeight));

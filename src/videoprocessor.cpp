@@ -99,9 +99,6 @@ VideoProcessor::VideoStatus VideoProcessor::processFrame(const Mat& frame)
 				}
 			}
 		}
-	} catch (runtime_error ex) {
-		this->lastStatus = UNKNOWN_ERROR;
-		cerr << ex.what() << endl;
 	} catch (exception ex) {
 		this->lastStatus = UNKNOWN_ERROR;
 		cerr << ex.what() << endl;
