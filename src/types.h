@@ -20,6 +20,7 @@ typedef vector<Point> Contour;
 typedef struct {
 	Point center;
 	int radius;
+	inline double perimeter() const { return 2.0*M_PI*double(radius); }
 } Circle;
 
 

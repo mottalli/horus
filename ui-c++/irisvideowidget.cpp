@@ -24,7 +24,7 @@ void IrisVideoWidget::slotFrameProcessed(const VideoProcessor& videoProcessor)
 
 
 		if (status >= VideoProcessor::FOCUSED_IRIS) {
-			//decorator.drawTemplate(this->decoratedFrame, videoProcessor.lastTemplate);
+			decorator.drawTemplate(this->decoratedFrame, videoProcessor.lastTemplate);
 		}
 	}
 

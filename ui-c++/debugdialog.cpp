@@ -45,5 +45,23 @@ void DebugDialog::slotFrameProcessed(const VideoProcessor& videoProcessor)
 		Image similarityImage;
 		cvtColor(videoProcessor.segmentator.pupilSegmentator.similarityImage, similarityImage, CV_GRAY2BGR);
 		this->ui->similarityImage->showImage(similarityImage);
+
+		GrayscaleImage adjustmentRing = videoProcessor.segmentator.pupilSegmentator.adjustmentRing.clone();
+		GrayscaleImage adjustmentRingGradient = Tools::normalizeImage(videoProcessor.segmentator.pupilSegmentator.adjustmentRingGradient);
+		const Mat1f& adjustmentSnake = videoProcessor.segmentator.pupilSegmentator.adjustmentSnake;
+
+		int delta = adjustmentRingGradient.rows * 0.1;
+
+		for (int x = 0; x < adjustmentSnake.cols; x++) {
+			float y = adjustmentSnake(0, x);
+			adjustmentRing(y, x) = 255;
+
+			adjustmentRingGradient(y, x) = 255;
+			if (y-delta >= 0) adjustmentRingGradient(y-delta, x) = 255;
+			if (y+delta < adjustmentRingGradient.rows) adjustmentRingGradient(y+delta, x) = 255;
+		}
+		this->ui->debug1->showImage(adjustmentRing);
+		assert(adjustmentRingGradient.isContinuous());
+		this->ui->debug2->showImage(adjustmentRingGradient);
 	}
 }

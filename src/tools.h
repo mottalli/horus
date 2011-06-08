@@ -35,7 +35,7 @@ namespace Tools
 	std::vector< std::pair<Point, Point> > iterateIris(const SegmentationResult& segmentation, int width, int height, double theta0=0.0, double theta1=2.0*M_PI, double radiusMin = 0.0, double radiusMax=1.0);
 	void superimposeTexture(GrayscaleImage& image, const GrayscaleImage& texture, const SegmentationResult& segmentation, double theta0=0.0, double theta1=2.0*M_PI, double radius=1.0, bool blend=true, double blendStart = 0.7);
 
-	GrayscaleImage normalizeImage(const GrayscaleImage& image, uint8_t min=0, uint8_t max=255);	// Normalizes an image to the given range
+	GrayscaleImage normalizeImage(const Mat& image, uint8_t min=0, uint8_t max=255);	// Normalizes an image to the given range
 	void toGrayscale(const Image& src, GrayscaleImage& dest, bool cloneIfAlreadyGray);
 }
 

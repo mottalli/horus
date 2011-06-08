@@ -123,7 +123,6 @@ void superimposeTextureWRAP(GrayscaleImage& image, const GrayscaleImage& texture
 %include "../src/irisdatabase.h"
 %include "../src/pupilsegmentator.h"
 %include "../src/qualitychecker.h"
-%include "../src/segmentationresult.h"
 %include "../src/segmentator.h"
 %include "../src/serializer.h"
 %include "../src/templatecomparator.h"

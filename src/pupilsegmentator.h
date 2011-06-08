@@ -30,7 +30,7 @@ public:
 		this->minimumPupilRadius = 7;
 		this->maximumPupilRadius = 80;
 		this->pupilAdjustmentRingWidth = 256;
-		this->pupilAdjustmentRingHeight = 100;
+		this->pupilAdjustmentRingHeight = 80;
 		this->infraredThreshold = 200;
 		this->avoidPupilReflection = true;
 	}

@@ -49,7 +49,6 @@ void Decorator::drawEncodingZone(Image& image, const SegmentationResult& segment
 	Contour outerContour(width), innerContour(width);
 	pair<Point, Point> firstBorder, secondBorder;
 
-
 	for (size_t i = 0; i < irisPoints.size(); i++) {
 		Point imagePoint = irisPoints[i].second;
 		Point coord = irisPoints[i].first;

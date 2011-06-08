@@ -284,10 +284,14 @@ void Tools::stretchHistogram(const Image& image, Image& dest, float marginMin, f
 	merge(chansDest, dest);
 }
 
-GrayscaleImage Tools::normalizeImage(const GrayscaleImage& image, uint8_t min, uint8_t max)
+GrayscaleImage Tools::normalizeImage(const Mat& image, uint8_t min, uint8_t max)
 {
+	assert(image.channels() == 1);
+
+	Mat tmp;
 	GrayscaleImage res;
-	normalize(image, res, min, max, NORM_MINMAX);
+	normalize(image, tmp, min, max, NORM_MINMAX);
+	tmp.convertTo(res, CV_8UC1);
 	return res;
 }
 
