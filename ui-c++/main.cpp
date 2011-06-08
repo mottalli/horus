@@ -13,7 +13,7 @@
 const string pathBase = "/home/marcelo/iris/horus/base-iris";
 
 SQLite3IrisDatabase DB(pathBase);
-VideoThread IRIS_VIDEO_THREAD(0);
+VideoThread IRIS_VIDEO_THREAD(1);
 ProcessingThread PROCESSING_THREAD;
 IrisVideoCapture IRIS_VIDEO_CAPTURE(pathBase);
 
@@ -34,11 +34,10 @@ int main(int argc, char *argv[])
 	qRegisterMetaType<VideoProcessor>("VideoProcessor");
 	qRegisterMetaType<IrisTemplate>("IrisTemplate");
 
-	//QObject::connect(&irisVideoThread, SIGNAL(signalFrameAvailable(Mat)), &w, SLOT(slotFrameAvailable(Mat)));
 	QObject::connect(&IRIS_VIDEO_THREAD, SIGNAL(signalFrameAvailable(ColorImage)), &PROCESSING_THREAD, SLOT(slotProcessFrame(ColorImage)), Qt::BlockingQueuedConnection);
 	QObject::connect(&PROCESSING_THREAD, SIGNAL(signalFrameProcessed(VideoProcessor)), &w, SLOT(slotFrameProcessed(VideoProcessor)), Qt::BlockingQueuedConnection);
 	QObject::connect(&PROCESSING_THREAD, SIGNAL(signalGotTemplate(VideoProcessor)), &w, SLOT(slotGotTemplate(VideoProcessor)), Qt::BlockingQueuedConnection);
-	QObject::connect(&PROCESSING_THREAD, SIGNAL(signalFrameProcessed(VideoProcessor)), &IRIS_VIDEO_CAPTURE, SLOT(slotFrameProcessed(VideoProcessor)), Qt::BlockingQueuedConnection);
+	QObject::connect(&PROCESSING_THREAD, SIGNAL(signalFrameProcessed(VideoProcessor)), &IRIS_VIDEO_CAPTURE, SLOT(slotFrameProcessed(VideoProcessor)));
 
 	IRIS_VIDEO_THREAD.start();
 
