@@ -2,7 +2,7 @@
 # It tries to take care of the paths automatically so it will be less a 
 # PITA to work in Windows.
 
-FIND_PACKAGE(Boost REQUIRED COMPONENTS system filesystem date_time)
+FIND_PACKAGE(Boost REQUIRED COMPONENTS system filesystem date_time program_options)
 
 FOREACH (SOURCE ${HORUS_LIB_SOURCES})
 	SET(SEP_HORUS_LIB_SOURCES "${SEP_HORUS_LIB_SOURCES} ${SOURCE}")

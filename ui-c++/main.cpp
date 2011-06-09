@@ -1,6 +1,7 @@
 #include <QtGui/QApplication>
 #include <QMetaType>
 #include <QDebug>
+#include <boost/program_options.hpp>
 
 #include "mainwindow.h"
 #include "videothread.h"
@@ -13,12 +14,20 @@
 const string pathBase = "/home/marcelo/iris/horus/base-iris";
 
 SQLite3IrisDatabase DB(pathBase);
-VideoThread IRIS_VIDEO_THREAD(1);
+VideoThread IRIS_VIDEO_THREAD;
 ProcessingThread PROCESSING_THREAD;
 IrisVideoCapture IRIS_VIDEO_CAPTURE(pathBase);
 
+namespace options = boost::program_options;
+
+void parseOptions(int argc, char** argv);
+
 int main(int argc, char *argv[])
 {
+	parseOptions(argc, argv);
+
+
+	/******* Inicializo ventana principal *****/
 	QApplication a(argc, argv);
 	MainWindow w;
 	w.show();
@@ -58,4 +67,32 @@ int main(int argc, char *argv[])
 	qDebug() << "Fin de video.";
 
 	return res;
+}
+
+/******* Parseo parámetros *****/
+
+void parseOptions(int argc, char** argv)
+{
+	options::options_description desc("Opciones");
+	desc.add_options()
+			("video,v", options::value<int>()->default_value(0), "Numero de dispositivo de video")
+			("help", "Ayuda")
+	;
+
+	try {
+		options::variables_map vm;
+		options::store(options::parse_command_line(argc, argv, desc), vm);
+		options::notify(vm);
+
+		if (vm.count("help")) {
+			cout << desc;
+			exit(0);
+		}
+
+		IRIS_VIDEO_THREAD.setCapture(vm["video"].as<int>());
+	} catch (options::error ex) {
+		cout << ex.what() << endl;
+		cout << desc;
+		exit(1);
+	}
 }
