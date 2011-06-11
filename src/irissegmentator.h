@@ -2,6 +2,8 @@
 
 #include "common.h"
 
+namespace horus {
+
 class IrisSegmentatorParameters {
 public:
 	int irisAdjustmentRingWidth;
@@ -34,3 +36,4 @@ private:
 };
 
 
+}

@@ -2,8 +2,7 @@
 
 #include "irisencoder.h"
 
-
-using namespace std;
+namespace horus {
 
 class LogGabor1DFilter {
 public:
@@ -48,3 +47,5 @@ protected:
 	virtual IrisTemplate encodeTexture(const GrayscaleImage& texture, const GrayscaleImage& mask);
 	virtual Size getNormalizationSize() { return LogGaborEncoder::getTemplateSize(); }
 };
+
+}

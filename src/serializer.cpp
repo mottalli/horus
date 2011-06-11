@@ -2,8 +2,10 @@
 #include "serializer.h"
 #include "tools.h"
 
+using namespace horus;
+using namespace horus::serialization;
 
-string Serializer::serializeSegmentationResult(const SegmentationResult& sr)
+string horus::serialization::serializeSegmentationResult(const SegmentationResult& sr)
 {
 	ostringstream stream;
 
@@ -18,7 +20,7 @@ string Serializer::serializeSegmentationResult(const SegmentationResult& sr)
 	return stream.str();
 }
 
-SegmentationResult Serializer::unserializeSegmentationResult(const string& s)
+SegmentationResult horus::serialization::unserializeSegmentationResult(const string& s)
 {
 	SegmentationResult res;
 	istringstream stream(s);
@@ -40,13 +42,13 @@ SegmentationResult Serializer::unserializeSegmentationResult(const string& s)
 		res.lowerEyelid = unserializeParabola(stream);
 	}
 
-	res.irisCircle = Tools::approximateCircle(res.irisContour);
-	res.pupilCircle = Tools::approximateCircle(res.pupilContour);
+	res.irisCircle = tools::approximateCircle(res.irisContour);
+	res.pupilCircle = tools::approximateCircle(res.pupilContour);
 
 	return res;
 }
 
-SegmentationResult Serializer::unserializeSegmentationResultOLD(const string& s)
+SegmentationResult horus::serialization::unserializeSegmentationResultOLD(const string& s)
 {
 	SegmentationResult res;
 	istringstream stream(s);
@@ -70,13 +72,13 @@ SegmentationResult Serializer::unserializeSegmentationResultOLD(const string& s)
 		res.lowerEyelid = unserializeParabola(stream);
 	}
 
-	res.irisCircle = Tools::approximateCircle(res.irisContour);
-	res.pupilCircle = Tools::approximateCircle(res.pupilContour);
+	res.irisCircle = tools::approximateCircle(res.irisContour);
+	res.pupilCircle = tools::approximateCircle(res.pupilContour);
 
 	return res;
 }
 
-string Serializer::serializeContour(const Contour& contour)
+string horus::serialization::serializeContour(const Contour& contour)
 {
 	ostringstream stream;
 	// Generate a matrix from the contour
@@ -87,13 +89,13 @@ string Serializer::serializeContour(const Contour& contour)
 		mat(1, i) = p.y;
 	}
 
-	string serializedMat = Tools::base64EncodeMat<int16_t>(mat);
+	string serializedMat = tools::base64EncodeMat<int16_t>(mat);
 	stream << serializedMat.size() << ',' << serializedMat;
 
 	return stream.str();
 }
 
-Contour Serializer::unserializeContour(istringstream& stream)
+Contour horus::serialization::unserializeContour(istringstream& stream)
 {
 	size_t size;
 	char comma;
@@ -104,7 +106,7 @@ Contour Serializer::unserializeContour(istringstream& stream)
 	char* buffer = new char[size+1];				// +1 for \0
 	stream.read(buffer, size);
 
-	Mat_<int16_t> mat = Tools::base64DecodeMat<int16_t>(buffer);
+	Mat_<int16_t> mat = tools::base64DecodeMat<int16_t>(buffer);
 	Contour res(mat.cols);
 
 	for (int i = 0; i < mat.cols; i++) {
@@ -116,14 +118,14 @@ Contour Serializer::unserializeContour(istringstream& stream)
 	return res;
 }
 
-string Serializer::serializeParabola(const Parabola& parabola)
+string horus::serialization::serializeParabola(const Parabola& parabola)
 {
 	ostringstream stream;
 	stream << parabola.x0 << ',' << parabola.y0 << ',' << parabola.p;
 	return stream.str();
 }
 
-Parabola Serializer::unserializeParabola(istringstream& stream)
+Parabola horus::serialization::unserializeParabola(istringstream& stream)
 {
 	char c;
 	int x0, y0, p;
@@ -137,11 +139,11 @@ Parabola Serializer::unserializeParabola(istringstream& stream)
 	return Parabola(x0, y0, p);
 }
 
-string Serializer::serializeIrisTemplate(const IrisTemplate& irisTemplate)
+string horus::serialization::serializeIrisTemplate(const IrisTemplate& irisTemplate)
 {
 	ostringstream stream;
-	string serializedTemplate = Tools::base64EncodeMat<uint8_t>(irisTemplate.getPackedTemplate());
-	string serializedMask = Tools::base64EncodeMat<uint8_t>(irisTemplate.getPackedMask());
+	string serializedTemplate = tools::base64EncodeMat<uint8_t>(irisTemplate.getPackedTemplate());
+	string serializedMask = tools::base64EncodeMat<uint8_t>(irisTemplate.getPackedMask());
 	string signature = irisTemplate.encoderSignature;
 
 	assert(find(signature.begin(), signature.end(), ',') == signature.end());	// Signature must not contain a comma
@@ -151,7 +153,7 @@ string Serializer::serializeIrisTemplate(const IrisTemplate& irisTemplate)
 	return stream.str();
 }
 
-IrisTemplate Serializer::unserializeIrisTemplate(const string& serializedTemplate)
+IrisTemplate horus::serialization::unserializeIrisTemplate(const string& serializedTemplate)
 {
 	istringstream stream(serializedTemplate);
 	char comma;
@@ -169,17 +171,17 @@ IrisTemplate Serializer::unserializeIrisTemplate(const string& serializedTemplat
 	stream >> encodedTemplateLength >> comma;
 	stream.get(buffer, encodedTemplateLength+1);		// According to documentation, it reads up to (encodedTemplateLength+1)-1 characters
 	encodedMat = string(buffer);
-	Mat_<uint8_t> packedTemplate = Tools::base64DecodeMat<uint8_t>(encodedMat);
+	Mat_<uint8_t> packedTemplate = tools::base64DecodeMat<uint8_t>(encodedMat);
 
 	stream >> encodedMat;
-	Mat_<uint8_t> packedMask = Tools::base64DecodeMat<uint8_t>(encodedMat);
+	Mat_<uint8_t> packedMask = tools::base64DecodeMat<uint8_t>(encodedMat);
 
 	IrisTemplate res;
 	res.setPackedData(packedTemplate, packedMask, signature);
 	return res;
 }
 
-Contour Serializer::unserializeContourOLD(istringstream& stream)
+Contour horus::serialization::unserializeContourOLD(istringstream& stream)
 {
 	int size;
 	char c;

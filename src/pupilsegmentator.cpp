@@ -9,6 +9,8 @@
 #include "tools.h"
 #include "tools.h"
 
+using namespace horus;
+
 PupilSegmentator::PupilSegmentator()
 {
 	this->_lastSigma = this->_lastMu = -100.0;
@@ -40,7 +42,7 @@ ContourAndCloseCircle PupilSegmentator::segmentPupil(const GrayscaleImage& image
 	pupilCircle.center.y /= this->resizeFactor;
 
 	result.first = this->adjustPupilContour(image, pupilCircle);
-	result.second = Tools::approximateCircle(result.first);
+	result.second = tools::approximateCircle(result.first);
 
 	return result;
 
@@ -52,14 +54,14 @@ void PupilSegmentator::setupBuffers(const Image& image)
 	int bufferWidth = this->parameters.bufferWidth;
 	int width = image.cols;
 
-	if (width <= bufferWidth || this->hasROI()) {
+	if (width <= bufferWidth) {
 		this->resizeFactor = 1.0;
 		this->workingImage = image;
 	} else {
 		this->resizeFactor = double(bufferWidth) / double(width);
 		resize(image, this->workingImage, Size(), this->resizeFactor, this->resizeFactor);
 	}
-    this->workingROI = this->eyeROI;
+
 
 	this->adjustmentRing.create(Size(this->parameters.pupilAdjustmentRingWidth, this->parameters.pupilAdjustmentRingHeight));
 	this->adjustmentRingGradient.create(Size(this->parameters.pupilAdjustmentRingWidth, this->parameters.pupilAdjustmentRingHeight));
@@ -70,7 +72,7 @@ Circle PupilSegmentator::approximatePupil(const GrayscaleImage& image)
 {
 	// First, equalize the image and apply the similarity transform
 	//equalizeHist(image, this->equalizedImage);
-	Tools::stretchHistogram(image, this->equalizedImage, 0.01, 0.0);
+	tools::stretchHistogram(image, this->equalizedImage, 0.01, 0.0);
 	this->similarityTransform();
 	blur(this->similarityImage, this->similarityImage, Size(7, 7));
 
@@ -79,7 +81,13 @@ Circle PupilSegmentator::approximatePupil(const GrayscaleImage& image)
 	}
 
 	// Now perform the cascaded integro-differential operator (use the ROI if any)
-	Circle res = this->cascadedIntegroDifferentialOperator(this->similarityImage);
+	Circle res;
+	Rect ROI = this->eyeROI;
+	ROI.x *= this->resizeFactor;
+	ROI.y *= this->resizeFactor;
+	ROI.width *= this->resizeFactor;
+	ROI.height *= this->resizeFactor;
+	res = this->cascadedIntegroDifferentialOperator(this->similarityImage, ROI);
 
 	return res;
 }
@@ -88,7 +96,7 @@ Contour PupilSegmentator::adjustPupilContour(const GrayscaleImage& image, const 
 {
 	int radiusMin = approximateCircle.radius * 0.5, radiusMax =
 			approximateCircle.radius * 1.5;
-	Tools::extractRing(image, this->adjustmentRing,
+	tools::extractRing(image, this->adjustmentRing,
 			approximateCircle.center.x, approximateCircle.center.y, radiusMin, radiusMax);
 
 	int infraredThreshold = this->parameters.infraredThreshold;
@@ -176,7 +184,7 @@ Contour PupilSegmentator::adjustPupilContour(const GrayscaleImage& image, const 
 	}
 
 	// Smooth the snake
-	Tools::smoothSnakeFourier(snake, 5);
+	tools::smoothSnakeFourier(snake, 5);
 
 	/*Tools::smoothSnakeFourier(snake, 3);
 	int delta = gradient.rows * 0.1;
@@ -222,20 +230,20 @@ Contour PupilSegmentator::adjustPupilContour(const GrayscaleImage& image, const 
 	return result;
 }
 
-Circle PupilSegmentator::cascadedIntegroDifferentialOperator(const GrayscaleImage& image)
+Circle PupilSegmentator::cascadedIntegroDifferentialOperator(const GrayscaleImage& image, Rect ROI)
 {
 	int minradabs = this->parameters.minimumPupilRadius;
 	int minrad = minradabs;
 	int maxrad = this->parameters.maximumPupilRadius;
 
-	bool useROI = this->hasROI();
+	bool useROI = (ROI.width > 0);
 	int minx, miny, maxx, maxy;
 
 	if (useROI) {
-		minx = this->workingROI.x;
-		maxx = this->workingROI.x+this->workingROI.width;
-		miny = this->workingROI.y;
-		maxy = this->workingROI.y+this->workingROI.height;
+		minx = ROI.x;
+		maxx = ROI.x+ROI.width;
+		miny = ROI.y;
+		maxy = ROI.y+ROI.height;
 	} else {
 		// Exclude the image borders
         int dx = image.cols/10;

@@ -3,6 +3,8 @@
 #include "irisdatabase.h"
 #include "templatecomparator.h"
 
+using namespace horus;
+
 IrisDatabase::IrisDatabase()
 {
 	this->ignoreId = -1;
@@ -41,7 +43,7 @@ void IrisDatabase::deleteTemplate(int templateId)
 
 void IrisDatabase::doMatch(const IrisTemplate& irisTemplate, void (*statusCallback)(int), int nRots, int rotStep)
 {
-	this->clock.start();
+	this->timer.restart();
 	TemplateComparator comparator(irisTemplate, nRots, rotStep);
 
 	size_t n = this->templates.size();
@@ -59,7 +61,7 @@ void IrisDatabase::doMatch(const IrisTemplate& irisTemplate, void (*statusCallba
 		if (statusCallback && ((i % ((n/10)+1)) == 0)) statusCallback(percentage);
 	}
 
-	this->matchingTime = this->clock.stop();
+	this->matchingTime = this->timer.elapsed();
 
 	// Sort the results from minimum to maximum distance
 	sort(this->matchingDistances.begin(), this->matchingDistances.end(), IrisDatabase::matchingDistanceComparator);
@@ -90,7 +92,7 @@ void IrisDatabase::calculatePartsDistances(const IrisTemplate& irisTemplate, uns
 
 void IrisDatabase::doAContrarioMatch(const IrisTemplate& irisTemplate, int nParts, void (*)(int), int nRots, int rotStep)
 {
-	this->clock.start();
+	this->timer.restart();
 	unsigned const int BINS = this->templates.size()/2;
 	assert(BINS >= 1);
 	const float BIN_MIN = 0.0f;
@@ -175,7 +177,7 @@ void IrisDatabase::doAContrarioMatch(const IrisTemplate& irisTemplate, int nPart
 	delete[] histograms;
 	delete[] cumhists;
 
-	this->matchingTime = this->clock.stop();
+	this->matchingTime = this->timer.elapsed();
 
 	// Generate the comparation image
 	TemplateComparator comparator(irisTemplate, nRots, rotStep);

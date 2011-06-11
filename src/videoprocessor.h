@@ -8,6 +8,8 @@
 
 #include "eyedetect.h"
 
+namespace horus {
+
 class VideoProcessorParameters
 {
 public:
@@ -36,16 +38,23 @@ public:
 		this->doEyeDetect = true;
 		this->pauseAfterCapture = true;
 		this->pauseFrames = 40;
-		this->minCountForTemplateAveraging = 10;
+		this->minCountForTemplateAveraging = 6;
 		this->minAverageTemplateQuality = 70;
 	}
 };
+
+typedef struct {
+	GrayscaleImage image;
+	SegmentationResult segmentationResult;
+	IrisTemplate irisTemplate;
+	double quality;
+} CapturedTemplate;
 
 class VideoProcessor {
 public:
 	VideoProcessor();
 	virtual ~VideoProcessor();
-	
+
 	typedef enum {
 		UNKNOWN_ERROR,
 		UNPROCESSED,
@@ -62,13 +71,17 @@ public:
 		GOT_TEMPLATE
 	} VideoStatus;
 
-	typedef struct {
-		GrayscaleImage image;
-		SegmentationResult segmentationResult;
-		IrisTemplate irisTemplate;
-		double quality;
-	} CapturedTemplate;
+	enum {
+		PROCTIME_INITIALIZE,
+		PROCTIME_FOCUS_CHECK,
+		PROCTIME_EYE_DETECT,
+		PROCTIME_INTERLACE_CHECK,
+		PROCTIME_SEGMENTATION,
+		PROCTIME_IRIS_VALIDATION,
+		PROCTIME_UNUSED				/* Just to know how many time slots we need */
+	};
 
+	std::vector<double> processingTime;
 
 	VideoProcessorParameters parameters;
 
@@ -85,7 +98,7 @@ public:
 	SegmentationResult lastSegmentationResult;
 	double lastIrisQuality;
 	IrisTemplate lastTemplate;
-	
+
 	IrisTemplate getAverageTemplate() const;
 	GrayscaleImage getBestTemplateFrame() const;
 	const SegmentationResult& getBestTemplateSegmentation() const;
@@ -95,7 +108,7 @@ public:
 
 	Rect eyeROI;
 
-	vector<VideoProcessor::CapturedTemplate> templateBuffer;
+	vector<CapturedTemplate> templateBuffer;
 
 private:
 	GrayscaleImage lastFrameBW;
@@ -103,11 +116,11 @@ private:
 	EyeDetect eyeDetect;
 
 	VideoStatus doProcess(const GrayscaleImage& image);
-	
+
 	Mat templateFrame;
 	SegmentationResult templateSegmentation;
 	double templateIrisQuality;
-	
+
 	int templateWaitCount;
 	int framesToSkip;
 	bool waitingTemplate;
@@ -125,3 +138,4 @@ private:
 
 };
 
+}

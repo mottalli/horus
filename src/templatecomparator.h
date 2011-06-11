@@ -9,7 +9,8 @@
 
 #include "common.h"
 #include "iristemplate.h"
-#include <vector>
+
+namespace horus {
 
 class TemplateComparator {
 public:
@@ -41,3 +42,5 @@ private:
 	int nRots, rotStep;
 	int minHDIdx;
 };
+
+}

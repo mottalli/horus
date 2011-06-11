@@ -3,6 +3,7 @@
 #include "common.h"
 #include <cmath>
 
+namespace horus {
 
 class EyelidSegmentatorParameters
 {
@@ -36,3 +37,4 @@ private:
 	Mat_<float> gradient;
 };
 
+}

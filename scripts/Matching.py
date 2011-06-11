@@ -6,7 +6,8 @@ from opencv import *
 from opencv.highgui import *
 
 def testMatching(base):
-	rows = base.conn.execute('SELECT id_iris,id_usuario,imagen,segmentacion,image_template FROM base_iris WHERE entrada_valida=1')
+	#rows = base.conn.execute('SELECT id_iris,id_usuario,imagen,segmentacion,image_template FROM base_iris WHERE entrada_valida=1')
+	rows = base.conn.execute('SELECT id_iris,id_usuario,imagen,segmentacion,template FROM vw_base_iris WHERE entrada_valida=1')
 
 	if pyhorus.HORUS_CUDA_SUPPORT:
 		irisDatabase = pyhorus.IrisDatabaseCUDA()
@@ -53,7 +54,7 @@ def testMatching(base):
 			idImagen2 = irisDatabase.ids[j]
 			if idImagen1 >= idImagen2: continue
 			intraClase = (clases[idImagen1] == clases[idImagen2])
-			base.conn.execute("INSERT INTO comparaciones(id_iris1, id_iris2, distancia, intra_clase) VALUES(%i,%i,%f,%i)" % (idImagen1, idImagen2, distance, 1 if intraClase else 0))
+			base.conn.execute("INSERT INTO comparaciones(id_imagen1, id_imagen2, distancia, intra_clase) VALUES(%i,%i,%f,%i)" % (idImagen1, idImagen2, distance, 1 if intraClase else 0))
 		if i % 20 == 0:
 			base.conn.commit()
 		

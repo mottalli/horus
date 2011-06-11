@@ -14,6 +14,8 @@ public:
 	void run();
 	void stop() { qDebug() << "VideoThread::stop"; _stop = true; }
 
+	inline void setCapture(int cam) { _cam = cam; }
+
 signals:
 	void signalFrameAvailable(const ColorImage& frame);
 

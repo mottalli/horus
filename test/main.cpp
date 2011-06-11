@@ -11,6 +11,7 @@
 
 using namespace std;
 using namespace cv;
+using namespace horus;
 
 Segmentator segmentator;
 VideoProcessor videoProcessor;
@@ -25,30 +26,39 @@ const string BLACK = "\033[0m";
 
 int main(int, char**)
 {
-	//VideoCapture cap("/home/marcelo/iris/BBDD/Videos/bursztyn1/20080501-230748.mpg");
-	//VideoCapture cap("/home/marcelo/iris/BBDD/Videos/marcelo1/marcelo1.mpg");
-	//VideoCapture cap("/home/marcelo/iris/BBDD/Videos/marta1/20080702-232946.mpg");
-	VideoCapture cap("/home/marcelo/iris/BBDD/Videos/norberto1/20080501-230608.mpg");
-	//VideoCapture cap("/home/marcelo/iris/BBDD/Videos/norberto2/20080501-231028.mpg");
-	Mat frame;
+	bool usar_avi = true;
 
-	namedWindow("video");
-	namedWindow("template");
+	VideoCapture cap;
+
+	if (usar_avi) {
+		//VideoCapture cap("/home/marcelo/iris/BBDD/Videos/bursztyn1/20080501-230748.mpg");
+		//VideoCapture cap("/home/marcelo/iris/BBDD/Videos/marcelo1/marcelo1.mpg");
+		//VideoCapture cap("/home/marcelo/iris/BBDD/Videos/marta1/20080702-232946.mpg");
+		cap.open("/home/marcelo/iris/BBDD/Videos/norberto1/20080501-230608.mpg");
+		//VideoCapture cap("/home/marcelo/iris/BBDD/Videos/norberto2/20080501-231028.mpg");
+	} else {
+		cap.open(1);
+		cap.set(CV_CAP_PROP_FRAME_WIDTH, 720);
+		cap.set(CV_CAP_PROP_FRAME_HEIGHT, 576);
+	}
+	Mat frame_, frame;
 
 	vector<double> focusScores;
 	vector<IrisTemplate> templates;
 
 	while (true) {
-		cap >> frame;
+		cap >> frame_;
+		frame = frame_(Rect(10, 0, frame_.cols-20, frame_.rows));
 
 		if (frame.empty()) break;
 
-		VideoProcessor::VideoStatus status = videoProcessor.processFrame(frame);
-		if (status >= VideoProcessor::FOCUSED_IRIS) {
+		/*VideoProcessor::VideoStatus status = videoProcessor.processFrame(frame);
+		if (status >= VideoProcessor::FOCUSED_NO_IRIS) {
 			decorator.drawSegmentationResult(frame, videoProcessor.lastSegmentationResult);
+		}
+		if (status >= VideoProcessor::FOCUSED_IRIS) {
 			decorator.drawTemplate(frame, videoProcessor.lastTemplate);
 		}
-
 
 		if (status == VideoProcessor::GOT_TEMPLATE) {
 			IrisTemplate irisTemplate = videoProcessor.getAverageTemplate();
@@ -57,11 +67,26 @@ int main(int, char**)
 			templates.push_back(irisTemplate);
 		}
 
+		for (int i = 0; i < videoProcessor.processingTime.size(); i++) {
+			if (i == 0) cout << "PROCTIME_INITIALIZE";
+			else if (i == 1) cout  << "PROCTIME_FOCUS_CHECK";
+			else if (i == 2) cout  << "PROCTIME_EYE_DETECT";
+			else if (i == 3) cout  << "PROCTIME_INTERLACE_CHECK";
+			else if (i == 4) cout  << "PROCTIME_SEGMENTATION";
+			else if (i == 5) cout  << "PROCTIME_IRIS_VALIDATION";
+
+			cout << ": " << videoProcessor.processingTime[i] << endl;
+		}
+
 		focusScores.push_back(videoProcessor.lastFocusScore);
-		drawFocusScores(focusScores, frame, Rect(200, 500, 300, 50), videoProcessor.parameters.focusThreshold);
+		drawFocusScores(focusScores, frame, Rect(200, 500, 300, 50), videoProcessor.parameters.focusThreshold);*/
+
+		Timer t;
+		SegmentationResult sr = videoProcessor.segmentator.segmentImage(frame);
+		decorator.drawSegmentationResult(frame, sr);
+		cout << t.elapsed() << endl;
 
 		imshow("video", frame);
-
 
 		if ( char(waitKey(20)) == 'q') break;
 	}

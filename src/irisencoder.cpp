@@ -4,6 +4,8 @@
 #include "irisencoder.h"
 #include "tools.h"
 
+using namespace horus;
+
 const double IrisEncoder::THETA0 = -M_PI/4.0;
 const double IrisEncoder::THETA1 = (5.0/4.0) * M_PI;
 const double IrisEncoder::MIN_RADIUS_TO_USE = 0.1;
@@ -24,7 +26,7 @@ IrisTemplate IrisEncoder::generateTemplate(const Image& image, const Segmentatio
 	// We can only process grayscale images. If it's a color image, we need to convert it. Try to optimise whenever
 	// possible.
 	GrayscaleImage bwimage;
-	Tools::toGrayscale(image, bwimage, false);
+	tools::toGrayscale(image, bwimage, false);
 
 	Size normalizedSize = this->getNormalizationSize();
 
@@ -66,7 +68,7 @@ void IrisEncoder::normalizeIris(const GrayscaleImage& image_, GrayscaleImage& de
 
 	int normalizedWidth = dest.cols, normalizedHeight = dest.rows;
 
-	vector< pair<Point, Point> > irisPoints = Tools::iterateIris(segmentationResult,
+	vector< pair<Point, Point> > irisPoints = tools::iterateIris(segmentationResult,
 		normalizedWidth, normalizedHeight, theta0, theta1, radiusMin, radiusMax);
 
 	// Initialize the mask to 1 (all bits enabled)

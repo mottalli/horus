@@ -4,6 +4,8 @@
 #include "segmentator.h"
 #include "tools.h"
 
+using namespace horus;
+
 Segmentator::Segmentator() :
 	eyeROI(0,0,0,0)
 {
@@ -15,12 +17,12 @@ Segmentator::~Segmentator() {
 SegmentationResult Segmentator::segmentImage(const Image& image) {
 	assert(image.depth() == CV_8U);
 
-	clock.start();
+	timer.restart();
 	
 	SegmentationResult result;
 	
 	GrayscaleImage imageBW;
-	Tools::toGrayscale(image, imageBW, false);
+	tools::toGrayscale(image, imageBW, false);
 
 	this->pupilSegmentator.setROI(this->eyeROI);
 
@@ -35,7 +37,7 @@ SegmentationResult Segmentator::segmentImage(const Image& image) {
 
 	result.eyelidsSegmented = false;
 
-	this->segmentationTime = clock.stop();
+	this->segmentationTime = timer.elapsed();
 
 	return result;
 };
@@ -43,7 +45,7 @@ SegmentationResult Segmentator::segmentImage(const Image& image) {
 void Segmentator::segmentEyelids(const Image& image, SegmentationResult& result)
 {
 	GrayscaleImage imageBW;
-	Tools::toGrayscale(image, imageBW, false);
+	tools::toGrayscale(image, imageBW, false);
 
 	assert(image.depth() == CV_8U);
 

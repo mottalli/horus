@@ -3,6 +3,8 @@
 #include "common.h"
 #include "irisencoder.h"
 
+namespace horus {
+
 class GaborFilter
 {
 public:
@@ -43,3 +45,5 @@ protected:
 	std::vector<GaborFilter> filterBank;
 };
 
+
+}

@@ -17,7 +17,8 @@ def correrMatchAContrario(base):
 	else:
 		irisDatabase = pyhorus.IrisDatabase()
 
-	rows = base.conn.execute('SELECT id_iris,id_usuario,imagen,segmentacion,image_template FROM base_iris WHERE entrada_valida=1')
+	#rows = base.conn.execute('SELECT id_iris,id_usuario,imagen,segmentacion,image_template FROM base_iris WHERE entrada_valida=1')
+	rows = base.conn.execute('SELECT id_iris,id_usuario,imagen,segmentacion,template FROM vw_base_iris WHERE entrada_valida=1')
 	
 	templates = {}
 	clases = {}

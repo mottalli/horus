@@ -2,7 +2,47 @@
 
 %{
 #include "../src/horus.h"
+
+using namespace horus;
+
+// From the OpenCV 2.2 Python interface
+struct cvmat_t {
+	PyObject_HEAD
+	CvMat *a;
+	PyObject *data;
+	size_t offset;
+};
+
+// Convert a OpenCV Python wrapper matrix to a Mat object
+inline Mat* convertParam(PyObject* input)
+{
+	// Depending on the OpenCV wrappers, $input could be 
+	// either a CvMat pointer (SWIG interface) or a cv.cvmat object (new Python interface)
+	const string python_typename = string(input->ob_type->tp_name);
+	CvMat* arg = 0;
+	
+	if (python_typename == "cv.cvmat") {
+		arg = ((cvmat_t*)input)->a;
+	} else {
+		string error = string("Don't know how to convert ") + python_typename + " to Mat object";
+		throw std::runtime_error(error);
+	}
+	
+	return new Mat(arg);
+}
+
 %}
+
+%include "exception.i"
+
+%exception {
+	try {
+		$action
+	} catch (const std::exception& e) {
+		SWIG_exception(SWIG_RuntimeError, e.what());
+	}
+}
+
 
 %include "std_vector.i"
 %include "std_string.i"
@@ -11,28 +51,8 @@
 namespace cv {
 };
 
-
-%{
-// From OpenCV 2.2 Python interface
-struct cvmat_t {
-  PyObject_HEAD
-  CvMat *a;
-  PyObject *data;
-  size_t offset;
-};
-%}
-
 %typemap(in) Mat const & {
-	// Depending on the OpenCV wrappers, $input could be 
-	// either a CvMat pointer (SWIG interface) or a cv.cvmat object (new Python interface)
-	
-	CvMat* arg = 0;
-	if (strcmp($input->ob_type->tp_name, "cv.cvmat") == 0) {		// New python interface object
-		arg = ((cvmat_t*)$input)->a;
-	} else {	// Old SWIG interface (CvMat pointer)
-		SWIG_ConvertPtr($input, (void**)&arg, SWIGTYPE_p_CvMat, 0);
-	}
-	$1 = new Mat(arg);
+	$1 = convertParam($input);
 }
 
 %typemap(freearg) Mat const & {
@@ -40,77 +60,26 @@ struct cvmat_t {
 }
 
 %typemap(in) Mat & {
-	// Depending on the OpenCV wrappers, $input could be 
-	// either a CvMat pointer (SWIG interface) or a cv.cvmat object (new Python interface)
-
-	CvMat* arg = 0;
-	if (strcmp($input->ob_type->tp_name, "cv.cvmat") == 0) {		// New python interface object
-		arg = ((cvmat_t*)$input)->a;
-	} else {	// Old SWIG interface (CvMat pointer)
-		SWIG_ConvertPtr($input, (void**)&arg, SWIGTYPE_p_CvMat, 0);
-	}
-	$1 = new Mat(arg);
+	$1 = convertParam($input);
 }
 
 %typemap(freearg) Mat & {
 	delete $1;
 }
 
-%typemap(out) Mat_<uint8_t> {
+/*%typemap(out) Mat_<uint8_t> {
 	// TODO: Fix this memory leak (typemap(freearg) does not work)
 	CvMat* m = new CvMat($1);
 	$result = SWIG_NewPointerObj(m, SWIGTYPE_p_CvMat, 0);
-}
+}*/
 
-
+// Initialize used vector types
 namespace std
 {
 	%template(vectord) vector<double>;
 	%template(vectori) vector<int>;
 	%template(vectorvectord) vector< vector<double> >;
 }
-
-%include "exception.i"
-
-%exception {
-  try {
-    $action
-  } catch (const std::exception& e) {
-    SWIG_exception(SWIG_RuntimeError, e.what());
-  }
-}
-
-%typemap(in) Mat* matin {
-	void* arg = 0;
-	SWIG_ConvertPtr($input, (void**)&arg, SWIGTYPE_p_Mat, 0);
-	$1 = reinterpret_cast<Mat*>(arg);
-}
-
-%newobject pyutilCloneImage;
-%inline %{
-	CvMat* pyutilCloneFromHorus(Mat* matin) {
-		CvMat* a = new CvMat;
-		*a = (CvMat)*matin;
-		return a;
-	}
-%}
-
-%extend IrisEncoder {
-	static void normalizeIrisWRAP(const GrayscaleImage& image, GrayscaleImage& dest, GrayscaleImage& destMask, const SegmentationResult& segmentationResult, double theta0, double theta1, double radius)
-	{
-		IrisEncoder::normalizeIris(image, dest, destMask, segmentationResult, theta0, theta1, radius);
-	};
-}
-
-void superimposeTextureWRAP(GrayscaleImage& image, const GrayscaleImage& texture, const SegmentationResult& segmentation, double theta0, double theta1, double radius, bool blend, double blendStart);
-%{
-void superimposeTextureWRAP(GrayscaleImage& image, const GrayscaleImage& texture, const SegmentationResult& segmentation, double theta0, double theta1, double radius, bool blend, double blendStart)
-{
-	Tools::superimposeTexture(image, texture, segmentation, theta0, theta1, radius, blend, blendStart);
-}
-%}
-
-
 
 %include "../src/common.h"
 %include "../src/clock.h"
@@ -136,10 +105,4 @@ void superimposeTextureWRAP(GrayscaleImage& image, const GrayscaleImage& texture
 %include "../src/irisdatabasecuda.h"
 #endif
 
-%extend Decorator {
-	void Decorator::drawTemplateWRAP(Image& image, const IrisTemplate& irisTemplate)
-	{
-		$self->drawTemplate(image, irisTemplate);
-	};
-}
 

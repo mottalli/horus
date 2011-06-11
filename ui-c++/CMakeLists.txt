@@ -1,0 +1,33 @@
+# Create the ui-c++.pro QMake project file for developing in QT Creator.
+# It tries to take care of the paths automatically so it will be less a 
+# PITA to work in Windows.
+
+FIND_PACKAGE(Boost REQUIRED COMPONENTS system filesystem date_time program_options)
+
+FOREACH (SOURCE ${HORUS_LIB_SOURCES})
+	SET(SEP_HORUS_LIB_SOURCES "${SEP_HORUS_LIB_SOURCES} ${SOURCE}")
+ENDFOREACH()
+
+FOREACH (HEADER ${HORUS_LIB_HEADERS})
+	SET(SEP_HORUS_LIB_HEADERS "${SEP_HORUS_LIB_HEADERS} ${HEADER}")
+ENDFOREACH()
+
+FOREACH (INCDIR ${OpenCV_INCLUDE_DIRS})
+	SET(SEP_OpenCV_INCLUDE_DIRS "${SEP_OpenCV_INCLUDE_DIRS} ${INCDIR}")
+ENDFOREACH()
+
+SET(OpenCV_FINAL_LIBS ${OpenCV_LIBS})
+LIST(REMOVE_ITEM OpenCV_FINAL_LIBS "debug" "optimized")
+LIST(REMOVE_DUPLICATES OpenCV_FINAL_LIBS)
+FOREACH (LIB ${OpenCV_FINAL_LIBS})
+	SET(SEP_OpenCV_LIBS "${SEP_OpenCV_LIBS} -l${LIB}")
+ENDFOREACH()
+
+SET(Boost_FINAL_LIBS ${Boost_LIBRARIES})
+LIST(REMOVE_ITEM Boost_FINAL_LIBS "debug" "optimized")
+LIST(REMOVE_DUPLICATES Boost_FINAL_LIBS)
+FOREACH (LIB ${Boost_FINAL_LIBS})
+	SET(SEP_Boost_LIBS "${SEP_Boost_LIBS} ${LIB}")
+ENDFOREACH()
+
+CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/ui-c++.pro.in ${CMAKE_CURRENT_SOURCE_DIR}/ui-c++.pro)

@@ -1,6 +1,7 @@
 #include "gaborencoder.h"
-
 #include "tools.h"
+
+using namespace horus;
 
 GaborFilter::GaborFilter()
 {

@@ -10,9 +10,10 @@
 #include "common.h"
 #include "iristemplate.h"
 
-namespace Serializer
-{
-	std::string serializeSegmentationResult(const SegmentationResult& sr);
+namespace horus {
+namespace serialization {
+
+std::string serializeSegmentationResult(const SegmentationResult& sr);
 	std::string serializeContour(const Contour& contour);
 	std::string serializeParabola(const Parabola& parabola);
 
@@ -25,5 +26,6 @@ namespace Serializer
 
 	string serializeIrisTemplate(const IrisTemplate& irisTemplate);
 	IrisTemplate unserializeIrisTemplate(const std::string& serializedTemplate);
-};
 
+}
+}

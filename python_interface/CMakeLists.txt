@@ -9,7 +9,7 @@ INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR}/src)
 # Find the site-packages dir
 EXECUTE_PROCESS(COMMAND python -c "from distutils.sysconfig import get_python_lib; print get_python_lib()" 
 	OUTPUT_VARIABLE PYTHON_SITE_PACKAGES OUTPUT_STRIP_TRAILING_WHITESPACE)
-MESSAGE("Installing python extensions to ${PYTHON_SITE_PACKAGES}")
+MESSAGE(STATUS "Installing python extensions to ${PYTHON_SITE_PACKAGES}")
 
 SET_SOURCE_FILES_PROPERTIES(pyhorus.i PROPERTIES CPLUSPLUS ON)
 

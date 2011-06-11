@@ -1,7 +1,9 @@
+#include <fstream>
+
 #include "eyedetect.h"
 #include "eyedetect_haarcascades.h"
 
-#include <fstream>
+using namespace horus;
 
 EyeDetect::EyeDetect()
 {

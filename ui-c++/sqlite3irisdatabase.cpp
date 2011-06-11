@@ -2,6 +2,8 @@
 #include "sqlite3irisdatabase.h"
 #include "processingthread.h"
 
+using namespace horus::serialization;
+
 extern ProcessingThread PROCESSING_THREAD;
 
 SQLite3IrisDatabase::SQLite3IrisDatabase(const string& dbPath) :
@@ -23,7 +25,7 @@ SQLite3IrisDatabase::SQLite3IrisDatabase(const string& dbPath) :
 			throw runtime_error("Se detectó una imagen no codificada");
 		}
 
-		this->addTemplate(idTemplate, Serializer::unserializeIrisTemplate(serializedTemplate));
+		this->addTemplate(idTemplate, serialization::unserializeIrisTemplate(serializedTemplate));
 	}
 
 	qDebug() << "Fin carga";
@@ -55,8 +57,8 @@ SQLite3IrisDatabase::IrisData SQLite3IrisDatabase::getIrisData(int irisId) const
 
 		res.userId = userId;
 		res.userName = userName;
-		res.segmentation = Serializer::unserializeSegmentationResult(serializedSegmentation);
-		res.irisTemplate = Serializer::unserializeIrisTemplate(serializedTemplate);
+		res.segmentation = serialization::unserializeSegmentationResult(serializedSegmentation);
+		res.irisTemplate = serialization::unserializeIrisTemplate(serializedTemplate);
 		res.image = imread(fullPath, 1);
 	} else {
 		throw runtime_error("Invalid iris ID");
@@ -109,9 +111,9 @@ void SQLite3IrisDatabase::addImage(int userId, const Image& image, const Segment
 
 	IrisTemplate imageTemplate = ::PROCESSING_THREAD.videoProcessor.irisEncoder.generateTemplate(image, segmentationResult);
 
-	string serializedImageTemplate = Serializer::serializeIrisTemplate(imageTemplate);
-	string serializedAverageTemplate = ( (averageTemplate) ? Serializer::serializeIrisTemplate(*averageTemplate) : "");
-	string serializedSegmentationResult = Serializer::serializeSegmentationResult(segmentationResult);
+	string serializedImageTemplate = serialization::serializeIrisTemplate(imageTemplate);
+	string serializedAverageTemplate = ( (averageTemplate) ? serialization::serializeIrisTemplate(*averageTemplate) : "");
+	string serializedSegmentationResult = serialization::serializeSegmentationResult(segmentationResult);
 
 	SQlite3Database::PreparedStatement stmt = this->db.prepareStatement("INSERT INTO base_iris(id_usuario,imagen,segmentacion,entrada_valida,image_template,average_template) \
 						VALUES (?,?,?,?,?,?)");

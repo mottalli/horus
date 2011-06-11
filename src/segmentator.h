@@ -13,6 +13,8 @@
 #include "eyelidsegmentator.h"
 #include "clock.h"
 
+namespace horus {
+
 class Segmentator {
 public:
 	Segmentator();
@@ -27,16 +29,16 @@ public:
 
 	double segmentationTime;
 
-    void setEyeROI(const Rect& ROI) { this->eyeROI = ROI; }
-    void unsetEyeROI() { this->eyeROI = Rect(0,0,0,0); }
+	void setEyeROI(const Rect& ROI) { this->eyeROI = ROI; }
+	void unsetEyeROI() { this->eyeROI = Rect(0,0,0,0); }
 
 private:
 	Mat workingImage;
 	float resizeFactor;
-	Clock clock;
+	Timer timer;
 	Rect eyeROI;
 
 	GrayscaleImage blurredImage;			// Used as a buffer to calculate the ROI
 };
 
-
+}

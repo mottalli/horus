@@ -3,6 +3,8 @@
 #include "common.h"
 #include <string>
 
+namespace horus {
+
 class IrisTemplate {
 public:
 	IrisTemplate();
@@ -25,3 +27,4 @@ protected:
 	GrayscaleImage irisTemplate, mask;
 };
 
+}

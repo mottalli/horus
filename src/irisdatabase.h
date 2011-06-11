@@ -5,7 +5,7 @@
 #include "iristemplate.h"
 #include "clock.h"
 
-using namespace std;
+namespace horus {
 
 typedef pair<int, double> MatchDistance;
 
@@ -35,6 +35,11 @@ public:
 
 	double getMatchingTime() const { return this->matchingTime; }
 
+	//TODO: Move these as protected members
+	vector<int> ids;
+	vector<double> resultNFAs;
+	vector< vector<double> > resultPartsDistances;
+
 protected:
 	virtual void calculatePartsDistances(const IrisTemplate& irisTemplate, unsigned int nParts, unsigned int nRots, unsigned int rotStep);
 
@@ -45,19 +50,15 @@ protected:
 	vector<double> distances;
 	static inline bool matchingDistanceComparator(MatchDistance d1, MatchDistance d2) { return d1.second < d2.second; }
 
-	Clock clock;
+	Timer timer;
 	double matchingTime;
 
 	double minNFA;
-	int minNFAId;
-
-	vector<int> ids;
-
-	vector< vector<double> > resultPartsDistances;
-	vector<double> resultNFAs;
+	int minNFAId;	
 
 	GrayscaleImage comparationImage;
 
 	int ignoreId;
 };
 
+}
