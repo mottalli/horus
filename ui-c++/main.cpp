@@ -24,6 +24,7 @@ void parseOptions(int argc, char** argv);
 
 int main(int argc, char *argv[])
 {
+	/******* Inicializo parámetros *****/
 	parseOptions(argc, argv);
 
 
@@ -33,8 +34,8 @@ int main(int argc, char *argv[])
 	w.show();
 
 	/******* Seteo parámetros *****/
-	PROCESSING_THREAD.videoProcessor.parameters.doEyeDetect = false;
-	PROCESSING_THREAD.videoProcessor.segmentator.pupilSegmentator.parameters.avoidPupilReflection = false;
+	//PROCESSING_THREAD.videoProcessor.parameters.doEyeDetect = false;
+	//PROCESSING_THREAD.videoProcessor.segmentator.pupilSegmentator.parameters.avoidPupilReflection = false;
 
 	/******* Inicializacion *******/
 	qRegisterMetaType<Mat>("Mat");

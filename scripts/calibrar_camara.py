@@ -9,6 +9,10 @@ WIDTH_IRIS = 200
 
 cap = cvCreateCameraCapture(0)
 cvNamedWindow("video")
+frame = cvQueryFrame(cap)
+
+print "Tamaño del video: %ix%i" % (frame.width, frame.height)
+
 while True:
 	frame = cvQueryFrame(cap)
 	if not frame:
