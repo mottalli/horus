@@ -38,7 +38,7 @@ public:
 		this->doEyeDetect = true;
 		this->pauseAfterCapture = true;
 		this->pauseFrames = 40;
-		this->minCountForTemplateAveraging = 10;
+		this->minCountForTemplateAveraging = 6;
 		this->minAverageTemplateQuality = 70;
 	}
 };

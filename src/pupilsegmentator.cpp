@@ -83,10 +83,10 @@ Circle PupilSegmentator::approximatePupil(const GrayscaleImage& image)
 	// Now perform the cascaded integro-differential operator (use the ROI if any)
 	Circle res;
 	Rect ROI = this->eyeROI;
-	ROI.x /= this->resizeFactor;
-	ROI.y /= this->resizeFactor;
-	ROI.width /= this->resizeFactor;
-	ROI.height /= this->resizeFactor;
+	ROI.x *= this->resizeFactor;
+	ROI.y *= this->resizeFactor;
+	ROI.width *= this->resizeFactor;
+	ROI.height *= this->resizeFactor;
 	res = this->cascadedIntegroDifferentialOperator(this->similarityImage, ROI);
 
 	return res;
