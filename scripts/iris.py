@@ -3,7 +3,7 @@
 
 import sys
 
-import horus
+import pyhorus
 import Database
 from optparse import OptionParser
 import os

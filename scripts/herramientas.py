@@ -8,10 +8,9 @@ def obtenerImagen(imagen, base=None):
 		idImagen = int(imagen)
 		if not base:
 			raise Exception('obtenerImagen: se definió ID pero no se definió la base!')
-		BASE = BaseIris.cargarBase(base)
-		fila = BASE.conn.cursor().execute('SELECT * FROM base_iris WHERE id_imagen=?', (idImagen,)).fetchone()
+		fila = base.conn.cursor().execute('SELECT * FROM base_iris WHERE id_imagen=?', (idImagen,)).fetchone()
 		(idImagen, idClase, pathImagen, segmentacion, segmentacionCorrecta, codigoDCT, codigoGabor, mascaraCodigo) = fila
-		fullPathImagen = str(os.path.join(BASE.pathBase, pathImagen))
+		fullPathImagen = str(os.path.join(base.pathBase, pathImagen))
 	except ValueError:
 		fullPathImagen = imagen
 

@@ -3,6 +3,8 @@
 #include "irisdatabase.h"
 #include "templatecomparator.h"
 
+using namespace horus;
+
 IrisDatabase::IrisDatabase()
 {
 	this->ignoreId = -1;
@@ -10,9 +12,6 @@ IrisDatabase::IrisDatabase()
 
 IrisDatabase::~IrisDatabase()
 {
-	for (vector<IrisTemplate*>::iterator it = this->templates.begin(); it != this->templates.end(); it++) {
-		delete (*it);			// Free the memory allocated in addTemplate
-	}
 }
 
 void IrisDatabase::addTemplate(int templateId, const IrisTemplate& irisTemplate)
@@ -22,8 +21,7 @@ void IrisDatabase::addTemplate(int templateId, const IrisTemplate& irisTemplate)
 		this->deleteTemplate(templateId);
 	}
 
-	IrisTemplate* newTemplate = new IrisTemplate(irisTemplate);
-	this->templates.push_back(newTemplate);
+	this->templates.push_back(irisTemplate);			// Note that this creates a copy of the template
 	this->ids.push_back(templateId);
 	this->positions[templateId] = this->ids.size()-1;
 }
@@ -31,7 +29,7 @@ void IrisDatabase::addTemplate(int templateId, const IrisTemplate& irisTemplate)
 void IrisDatabase::deleteTemplate(int templateId)
 {
 	vector<int>::iterator it1;
-	vector<IrisTemplate*>::iterator it2;
+	vector<IrisTemplate>::iterator it2;
 
 	for (it1 = this->ids.begin(), it2 = this->templates.begin(); it1 != this->ids.end(); it1++, it2++) {
 		if (*it1 == templateId) {
@@ -45,30 +43,31 @@ void IrisDatabase::deleteTemplate(int templateId)
 
 void IrisDatabase::doMatch(const IrisTemplate& irisTemplate, void (*statusCallback)(int), int nRots, int rotStep)
 {
-	this->clock.start();
+	this->timer.restart();
 	TemplateComparator comparator(irisTemplate, nRots, rotStep);
 
 	size_t n = this->templates.size();
-	this->minDistanceId = 0;
-	this->minDistance = 1.0;
 
-	this->resultDistances = vector<double>(n);
+	this->matchingDistances = vector<MatchDistance>(n);
+	this->distances = vector<double>(n);
 
 	for (size_t i = 0; i < n; i++) {
-		double hammingDistance = comparator.compare(*(this->templates[i]));
-		this->resultDistances[i] = hammingDistance;
+		double hammingDistance = comparator.compare(this->templates[i]);
 		int matchId = this->ids[i];
+		this->matchingDistances[i] = MatchDistance(matchId, hammingDistance);
+		this->distances[i] = hammingDistance;
 
-		if (matchId != this->ignoreId && hammingDistance < this->minDistance) {
-			this->minDistance = hammingDistance;
-			this->minDistanceId = matchId;
-		}
-
-		int percentage = (100*i)/n;
-		if (statusCallback) statusCallback(percentage);
+		int percentage = (90*i)/n;			// The extra 10% is for sorting
+		if (statusCallback && ((i % ((n/10)+1)) == 0)) statusCallback(percentage);
 	}
 
-	this->matchingTime = this->clock.stop();
+	this->matchingTime = this->timer.elapsed();
+
+	// Sort the results from minimum to maximum distance
+	sort(this->matchingDistances.begin(), this->matchingDistances.end(), IrisDatabase::matchingDistanceComparator);
+
+	//comparator.compare(*(this->templates[bestIdx]));
+	//this->comparationImage = comparator.getComparationImage();
 }
 
 void IrisDatabase::calculatePartsDistances(const IrisTemplate& irisTemplate, unsigned int nParts, unsigned int nRots, unsigned int rotStep)
@@ -82,7 +81,7 @@ void IrisDatabase::calculatePartsDistances(const IrisTemplate& irisTemplate, uns
 
 	// Calculate the distances between the parts
 	for (size_t i = 0; i < n; i++) {
-		vector<double> partsDistances = comparator.compareParts(*(this->templates[i]), nParts);
+		vector<double> partsDistances = comparator.compareParts(this->templates[i], nParts);
 		assert(partsDistances.size() == nParts);
 
 		for (unsigned int p = 0; p < nParts; p++) {
@@ -93,8 +92,9 @@ void IrisDatabase::calculatePartsDistances(const IrisTemplate& irisTemplate, uns
 
 void IrisDatabase::doAContrarioMatch(const IrisTemplate& irisTemplate, int nParts, void (*)(int), int nRots, int rotStep)
 {
-	this->clock.start();
+	this->timer.restart();
 	unsigned const int BINS = this->templates.size()/2;
+	assert(BINS >= 1);
 	const float BIN_MIN = 0.0f;
 	const float BIN_MAX = 0.7f;
 
@@ -145,6 +145,7 @@ void IrisDatabase::doAContrarioMatch(const IrisTemplate& irisTemplate, int nPart
 	this->minNFA = INT_MAX;
 
 
+	size_t bestIdx = 0;
 	for (unsigned int i = 0; i < n; i++) {
 		this->resultNFAs[i] = log10(double(n));
 
@@ -161,6 +162,7 @@ void IrisDatabase::doAContrarioMatch(const IrisTemplate& irisTemplate, int nPart
 		if (matchId != this->ignoreId && this->resultNFAs[i] < this->minNFA) {
 			this->minNFA = this->resultNFAs[i];
 			this->minNFAId = matchId;
+			bestIdx = i;
 		}
 	}
 
@@ -175,5 +177,10 @@ void IrisDatabase::doAContrarioMatch(const IrisTemplate& irisTemplate, int nPart
 	delete[] histograms;
 	delete[] cumhists;
 
-	this->matchingTime = this->clock.stop();
+	this->matchingTime = this->timer.elapsed();
+
+	// Generate the comparation image
+	TemplateComparator comparator(irisTemplate, nRots, rotStep);
+	comparator.compare(this->templates[bestIdx]);
+	this->comparationImage = comparator.getComparationImage();
 }

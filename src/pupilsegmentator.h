@@ -9,6 +9,8 @@
 
 #include "common.h"
 
+namespace horus {
+
 class PupilSegmentatorParameters
 {
 public:
@@ -20,17 +22,19 @@ public:
 	int pupilAdjustmentRingWidth;
 	int pupilAdjustmentRingHeight;
 	int infraredThreshold;
+	bool avoidPupilReflection;
 
 	PupilSegmentatorParameters()
 	{
 		this->bufferWidth = 320;
-		this->muPupil = 2.0;
-		this->sigmaPupil = 5.0;
+		this->muPupil = 0.0;
+		this->sigmaPupil = 2.0;
 		this->minimumPupilRadius = 7;
 		this->maximumPupilRadius = 80;
 		this->pupilAdjustmentRingWidth = 256;
-		this->pupilAdjustmentRingHeight = 100;
+		this->pupilAdjustmentRingHeight = 80;
 		this->infraredThreshold = 200;
+		this->avoidPupilReflection = true;
 	}
 };
 
@@ -39,31 +43,34 @@ public:
 	PupilSegmentator();
 	virtual ~PupilSegmentator();
 
-	ContourAndCloseCircle segmentPupil(const Mat& image);
+	ContourAndCloseCircle segmentPupil(const GrayscaleImage& image);
 	inline int getPupilContourQuality() const { return this->pupilContourQuality; }
 
-	inline void setROI(Rect ROI) { this->ROI = ROI; };
-	inline void unsetROI() { this->ROI = Rect(0,0,0,0); };
+	inline void setROI(Rect ROI) { this->eyeROI = ROI; }
+	inline void unsetROI() { this->eyeROI = Rect(); }
+	inline bool hasROI() const { return this->eyeROI.width > 0; }
 
 	// Internal buffers
-	Mat_<uint8_t> similarityImage;
-	Mat_<uint8_t> equalizedImage;
-	Mat_<uint8_t> adjustmentRing;
+	GrayscaleImage similarityImage;
+	GrayscaleImage equalizedImage;
+	GrayscaleImage adjustmentRing;
 	Mat_<int16_t> adjustmentRingGradient;
-	Mat_<uint8_t> workingImage;
-	Mat_<float> adjustmentSnake;
-	Mat_<float> originalAdjustmentSnake;
-	Mat_<uint8_t> _LUT;
+	GrayscaleImage workingImage;
+	Mat1f adjustmentSnake;
+	Mat1f originalAdjustmentSnake;
+	GrayscaleImage _LUT;
 	double resizeFactor;
 
 	PupilSegmentatorParameters parameters;
 
+	Rect eyeROI;
+
 private:
-	void setupBuffers(const Mat& image);
+	void setupBuffers(const Image& image);
 	void similarityTransform();
-	Circle approximatePupil(const Mat_<uint8_t>& image);
-	Circle cascadedIntegroDifferentialOperator(const Mat_<uint8_t>& image);
-	int calculatePupilContourQuality(const Mat_<uint8_t>& region, const Mat_<uint16_t>& regionGradient, const Mat_<float>& contourSnake);
+	Circle approximatePupil(const GrayscaleImage& image);
+	Circle cascadedIntegroDifferentialOperator(const GrayscaleImage& image, Rect ROI=Rect());
+	int calculatePupilContourQuality(const GrayscaleImage& region, const Mat_<uint16_t>& regionGradient, const Mat_<float>& contourSnake);
 
 	int pupilContourQuality;
 
@@ -71,14 +78,14 @@ private:
 		int maxRad;
 		int maxStep;
 	} MaxAvgRadiusResult;
-	MaxAvgRadiusResult maxAvgRadius(const Mat_<uint8_t>& image, int x, int y, int radmin, int radmax, int radstep);
+	MaxAvgRadiusResult maxAvgRadius(const GrayscaleImage& image, int x, int y, int radmin, int radmax, int radstep);
 
-	uint8_t circleAverage(const Mat_<uint8_t>& image, int x, int y, int radius);
-	Contour adjustPupilContour(const Mat_<uint8_t>& image, const Circle& approximateCircle);
+	uint8_t circleAverage(const GrayscaleImage& image, int x, int y, int radius);
+	Contour adjustPupilContour(const GrayscaleImage& image, const Circle& approximateCircle);
 
 	double _lastSigma, _lastMu;
-
-	Rect ROI, workingROI;
+	GrayscaleImage matStructElem;
 };
 
 
+};

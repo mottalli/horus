@@ -3,21 +3,38 @@
 
 #include <iostream>
 #include <QDebug>
-#include <horus/irisdatabase.h>
-#include <horus/serializer.h>
+#include <QObject>
+#include <boost/optional.hpp>
 
-#include "external/sqlite3/sqlite3.h"
+#include "common.h"
+#include "sqlite3wrapper.h"
 
+#ifdef HORUS_CUDA_SUPPORT
+class SQLite3IrisDatabase : public IrisDatabaseCUDA
+#else
 class SQLite3IrisDatabase : public IrisDatabase
+#endif
 {
 public:
 	SQLite3IrisDatabase(const string& dbPath);
 	~SQLite3IrisDatabase();
+
+	typedef struct {
+		int userId;
+		string userName;
+		IrisTemplate irisTemplate;
+		SegmentationResult segmentation;
+		Mat image;
+	} IrisData;
+
+
+	IrisData getIrisData(int userId) const;
+	void addUser(string userName, const IrisTemplate& irisTemplate, const SegmentationResult& segmentationResult, const Image& image);
+	void addImage(int userId, const Image& image, const SegmentationResult& segmentationResult, optional<IrisTemplate> averageTemplate = optional<IrisTemplate>());
+
 private:
 	string dbPath;
-	sqlite3* db;
-
-	void VERIFY_SQL(int status, const string msgError = "");
+	mutable SQlite3Database db;
 };
 
 #endif // SQLITE3IRISDATABASE_H

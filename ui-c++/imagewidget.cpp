@@ -7,7 +7,7 @@ ImageWidget::ImageWidget(QWidget *parent) :
 {
 }
 
-void ImageWidget::showImage(const Mat& image)
+void ImageWidget::showImage(const Image& image)
 {
 	switch (image.type()) {
 	case CV_8UC1:
@@ -17,7 +17,9 @@ void ImageWidget::showImage(const Mat& image)
 		cvtColor(image, _tmp, CV_BGR2RGB);
 		break;
 	}
-	_qimage = QImage(_tmp.data, image.cols, image.rows, QImage::Format_RGB888);
+
+	assert(_tmp.isContinuous());
+	_qimage = QImage(_tmp.data, _tmp.cols, _tmp.rows, QImage::Format_RGB888);
 
 	this->setFixedSize(image.cols, image.rows);
 

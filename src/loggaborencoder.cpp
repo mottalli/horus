@@ -1,7 +1,7 @@
 #include "loggaborencoder.h"
 #include "tools.h"
 
-#include <cmath>
+using namespace horus;
 
 LogGabor1DFilter::LogGabor1DFilter()
 {
@@ -19,66 +19,63 @@ LogGabor1DFilter::~LogGabor1DFilter()
 {
 }
 
-void LogGabor1DFilter::applyFilter(const Mat_<uint8_t>& image, Mat_<float>& dest, const Mat_<uint8_t>& mask, Mat_<uint8_t>& destMask)
+void LogGabor1DFilter::applyFilter(const GrayscaleImage& image, Mat1d& dest, const GrayscaleImage& mask, GrayscaleImage& destMask)
 {
 	assert(image.size() == mask.size());
 
 	this->initializeFilter(image);
 
-	Mat_<float> imageFloat;
+	Mat1d imageFloat;
 	image.convertTo(imageFloat, imageFloat.type());
-	blur(imageFloat, imageFloat, Size(3,3));			// Blur a bit (improves result for some reason)
+	//blur(imageFloat, imageFloat, Size(3,3));			// Blur a bit (improves result for some reason)
 
-	this->filterResult.create(image.size());
 	assert(this->filter.channels() == 2);
+	assert(image.cols == this->filter.cols);
 
 	// Calculate the Fourier spectrum for each row of the input image
-	dft(imageFloat, this->filterResult, DFT_ROWS | DFT_COMPLEX_OUTPUT, this->filterResult.rows);
+	dft(imageFloat, this->filterResult, DFT_ROWS + DFT_COMPLEX_OUTPUT, imageFloat.rows);
 	// Convolve each row of the image with the filter by multiplying the spectrums
 	mulSpectrums(this->filter, this->filterResult, this->filterResult, DFT_ROWS);
 
 	// Perform the inverse transform
-	dft(this->filterResult, this->filterResult, DFT_INVERSE | DFT_ROWS, this->filterResult.rows);
+	dft(this->filterResult, this->filterResult, DFT_INVERSE | DFT_ROWS, 0);
 
 	assert(this->filterResult.channels() == 2);
 
 	// Split real and imaginary parts
-	vector< Mat_<float> > parts;
+	vector<Mat1d> parts;
 	split(this->filterResult, parts);
 	assert(parts.size() == 2);
-	Mat_<float>& real = parts[0];
-	Mat_<float>& imag = parts[1];
+	Mat1d& real = parts[0];
+	Mat1d& imag = parts[1];
 
 	dest = (this->type == FILTER_REAL ? real : imag);
 
-	// Filter out elements with low response to the filter
-	Mat_<uint8_t> responseMask;
-	Mat absreal, absimag, absResponse;
-	multiply(real, real, absreal);
-	multiply(imag, imag, absimag);
-	add(absreal, absimag, absResponse);
-
-	compare(absResponse, 0.01, responseMask, CMP_GE);
+	// Filter out elements with low response to the filter (low magnitude)
+	GrayscaleImage responseMask;
+	Mat1d mag;
+	magnitude(real, imag, mag);
+	compare(mag, 0.01, responseMask, CMP_GE);
 	bitwise_and(mask, responseMask, destMask);
 }
 
-void LogGabor1DFilter::initializeFilter(const Mat_<uint8_t> image)
+void LogGabor1DFilter::initializeFilter(const GrayscaleImage image)
 {
-	float q = 2.0*log(this->sigmaOnF)*log(this->sigmaOnF);
+	double q = 2.0*log(this->sigmaOnF)*log(this->sigmaOnF);
 	this->filter.create(image.size());
 
-	Mat_< complex<float> > row(1, image.cols);
+	Mat_<Complexd> row(1, image.cols);
 
-	const float x0 = 0.0, x1 = 0.5;
+	const double x0 = 0.0, x1 = 0.5;
 
 	for (int i = 0; i < image.cols; i++) {
-		float r = ((x1-x0)/float(image.cols-1)) * float(i);
-		float value = exp( -(log(r/f0)*log(r/f0)) / q);
-		row(0, i) = complex<float>(value, 0);
+		double r = ((x1-x0)/double(image.cols-1)) * double(i);
+		double value = exp( -(log(r/f0)*log(r/f0)) / q);
+		row(0, i) = Complexd(value, 0);
 	}
 
 	for (int y = 0; y < image.rows; y++) {
-		Mat destRow = this->filter.row(y);
+		Mat_<Complexd> destRow = this->filter.row(y);
 		row.copyTo(destRow);
 	}
 }
@@ -93,7 +90,7 @@ LogGaborEncoder::~LogGaborEncoder()
 {
 }
 
-IrisTemplate LogGaborEncoder::encodeTexture(const Mat_<uint8_t>& texture, const Mat_<uint8_t>& mask)
+IrisTemplate LogGaborEncoder::encodeTexture(const GrayscaleImage& texture, const GrayscaleImage& mask)
 {
 	Size templateSize = LogGaborEncoder::getTemplateSize();
 	Size textureSize = texture.size();
@@ -132,7 +129,18 @@ IrisTemplate LogGaborEncoder::encodeTexture(const Mat_<uint8_t>& texture, const 
 		}
 	}
 
-	IrisTemplate result(resultTemplate, resultMask);
+	IrisTemplate result(resultTemplate, resultMask, this->getEncoderSignature());
 
 	return result;
+}
+
+string LogGaborEncoder::getEncoderSignature() const
+{
+	ostringstream signature;
+	signature << "LG:" << this->filterBank.size() << ':';
+	for (vector<LogGabor1DFilter>::const_iterator it = this->filterBank.begin(); it != this->filterBank.end(); it++) {
+		const LogGabor1DFilter& f = (*it);
+		signature << f.f0 << '-' << f.sigmaOnF << '-' << f.type;
+	}
+	return signature.str();
 }

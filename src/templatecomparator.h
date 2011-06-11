@@ -9,7 +9,8 @@
 
 #include "common.h"
 #include "iristemplate.h"
-#include <vector>
+
+namespace horus {
 
 class TemplateComparator {
 public:
@@ -22,17 +23,24 @@ public:
 	
 	// For "a contrario" matching
 	std::vector<double> compareParts(const IrisTemplate& otherTemplate, int nParts = 4);
-
 	std::vector<IrisTemplate> rotatedTemplates;
+
+	const IrisTemplate& getBestRotatedTemplate();
+
+	GrayscaleImage getComparationImage();
 
 private:
 	static void rotateMatrix(const Mat& src, Mat& dest, int step);
+	static inline const GrayscaleImage getPart(const IrisTemplate& irisTemplate, int part, int nParts, bool fromMask);
+	IrisTemplate irisTemplate;
 
-	Mat_<uint8_t> maskIntersection;
-	Mat_<uint8_t> xorBuffer;
+	GrayscaleImage maskIntersection;
+	GrayscaleImage xorBuffer;
 
-	double packedHammingDistance(const Mat_<uint8_t>& template1, const Mat_<uint8_t>& mask1, const Mat_<uint8_t>& template2, const Mat_<uint8_t>& mask2);
+	double packedHammingDistance(const GrayscaleImage& template1, const GrayscaleImage& mask1, const GrayscaleImage& template2, const GrayscaleImage& mask2);
 
 	int nRots, rotStep;
-
+	int minHDIdx;
 };
+
+}

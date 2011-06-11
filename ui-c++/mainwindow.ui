@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>813</width>
-    <height>523</height>
+    <width>799</width>
+    <height>533</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -21,7 +21,20 @@
        <string>Video</string>
       </property>
       <layout class="QGridLayout" name="gridLayout_3">
+       <item row="0" column="0">
+        <widget class="IrisVideoWidget" name="video" native="true">
+         <property name="minimumSize">
+          <size>
+           <width>320</width>
+           <height>240</height>
+          </size>
+         </property>
+        </widget>
+       </item>
        <item row="1" column="0">
+        <widget class="ImageWidget" name="animacionEnfoque" native="true"/>
+       </item>
+       <item row="2" column="0">
         <layout class="QHBoxLayout" name="horizontalLayout_2">
          <item>
           <widget class="QPushButton" name="btnCapturar">
@@ -45,16 +58,6 @@
           </widget>
          </item>
         </layout>
-       </item>
-       <item row="0" column="0">
-        <widget class="ImageWidget" name="video" native="true">
-         <property name="minimumSize">
-          <size>
-           <width>320</width>
-           <height>240</height>
-          </size>
-         </property>
-        </widget>
        </item>
       </layout>
      </widget>
@@ -84,16 +87,9 @@
           <item row="0" column="0">
            <layout class="QHBoxLayout" name="horizontalLayout">
             <item>
-             <widget class="QRadioButton" name="automaticaIdentificar">
+             <widget class="QRadioButton" name="autoIdentify">
               <property name="text">
                <string>Identificar</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QRadioButton" name="automaticaRegistrar">
-              <property name="text">
-               <string>Registrar</string>
               </property>
              </widget>
             </item>
@@ -181,7 +177,7 @@
          </item>
         </layout>
        </item>
-       <item row="6" column="0">
+       <item row="7" column="0">
         <spacer name="verticalSpacer">
          <property name="orientation">
           <enum>Qt::Vertical</enum>
@@ -194,27 +190,30 @@
          </property>
         </spacer>
        </item>
+       <item row="6" column="0">
+        <layout class="QHBoxLayout" name="horizontalLayout_8">
+         <item>
+          <widget class="QCheckBox" name="chkGuardarVideo">
+           <property name="text">
+            <string>Guardar video</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="debugWindow">
+           <property name="text">
+            <string>Ventana de debug</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </item>
       </layout>
      </widget>
     </item>
    </layout>
   </widget>
-  <widget class="QMenuBar" name="menuBar">
-   <property name="geometry">
-    <rect>
-     <x>0</x>
-     <y>0</y>
-     <width>813</width>
-     <height>25</height>
-    </rect>
-   </property>
-  </widget>
   <widget class="QStatusBar" name="statusBar"/>
-  <action name="actionE_xit">
-   <property name="text">
-    <string>&amp;Salir</string>
-   </property>
-  </action>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
  <customwidgets>
@@ -222,6 +221,12 @@
    <class>ImageWidget</class>
    <extends>QWidget</extends>
    <header>imagewidget.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>IrisVideoWidget</class>
+   <extends>QWidget</extends>
+   <header>irisvideowidget.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>

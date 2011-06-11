@@ -18,7 +18,7 @@ public:
 signals:
 
 public slots:
-	void showImage(const Mat& image);
+	void showImage(const Image& image);
 protected:
 	void paintEvent(QPaintEvent* event);
 	QImage _qimage;

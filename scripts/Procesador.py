@@ -1,5 +1,5 @@
 # -*- coding: UTF8 -*-
-from horus import Segmentator, LogGaborEncoder, Decorator, unserializeSegmentationResult, serializeIrisTemplate, unserializeIrisTemplate, TemplateComparator, GaborEncoder
+from pyhorus import Segmentator, LogGaborEncoder, Decorator, unserializeSegmentationResult, serializeIrisTemplate, unserializeIrisTemplate, TemplateComparator, GaborEncoder
 from opencv import *
 from opencv.highgui import *
 
@@ -49,7 +49,7 @@ def procesar(base, options):
 		if cvWaitKey(0) == 'q': break
 
 def codificar(base, options):
-	filas = base.conn.execute('SELECT id_imagen,imagen,segmentacion FROM base_iris WHERE segmentacion_correcta=1').fetchall()
+	filas = base.conn.execute('SELECT id_iris,imagen,segmentacion FROM base_iris WHERE entrada_valida=1').fetchall()
 	
 	for i in range(len(filas)):
 		(id_imagen, path, segmentacion) = filas[i]
@@ -60,5 +60,5 @@ def codificar(base, options):
 		segmentationResult = unserializeSegmentationResult(str(segmentacion))
 		template = encoder.generateTemplate(imagen, segmentationResult)
 		
-		base.conn.execute('UPDATE base_iris SET codigo_gabor=? WHERE id_imagen=?', [serializeIrisTemplate(template), id_imagen])
+		base.conn.execute('UPDATE base_iris SET image_template=? WHERE id_iris=?', [serializeIrisTemplate(template), id_imagen])
 	base.conn.commit()

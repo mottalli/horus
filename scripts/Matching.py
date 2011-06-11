@@ -1,17 +1,18 @@
 #!/usr/bin/python
-import horus
+import pyhorus
 import sqlite3
 import os
 from opencv import *
 from opencv.highgui import *
 
 def testMatching(base):
-	rows = base.conn.execute('SELECT * FROM base_iris WHERE segmentacion_correcta=1')
+	#rows = base.conn.execute('SELECT id_iris,id_usuario,imagen,segmentacion,image_template FROM base_iris WHERE entrada_valida=1')
+	rows = base.conn.execute('SELECT id_iris,id_usuario,imagen,segmentacion,template FROM vw_base_iris WHERE entrada_valida=1')
 
-	if horus.HORUS_CUDA_SUPPORT:
-		irisDatabase = horus.IrisDatabaseCUDA()
+	if pyhorus.HORUS_CUDA_SUPPORT:
+		irisDatabase = pyhorus.IrisDatabaseCUDA()
 	else:
-		irisDatabase = horus.IrisDatabase()
+		irisDatabase = pyhorus.IrisDatabase()
 	
 	templates = {}
 	clases = {}
@@ -21,14 +22,14 @@ def testMatching(base):
 		idClase = int(row[1])
 		imagePath = base.fullPath(row[2])
 		serializedSegmentationResult = str(row[3])
-		serializedTemplate = str(row[6])
+		serializedTemplate = str(row[4])
 		
 		print "Cargando %i..." % idImagen
 
 		if not len(serializedTemplate):
 			raise Exception('No se codificaron todas las imagenes! (correr iris.py con el parametro -c)')
 
-		templates[idImagen] = horus.unserializeIrisTemplate(serializedTemplate)
+		templates[idImagen] = pyhorus.unserializeIrisTemplate(serializedTemplate)
 		clases[idImagen] = idClase
 		
 		irisDatabase.addTemplate(idImagen, templates[idImagen])
@@ -46,7 +47,7 @@ def testMatching(base):
 		irisDatabase.doMatch(templates[idImagen1])
 		print "Tiempo: %.2f ms." % irisDatabase.getMatchingTime()
 		
-		distances = irisDatabase.resultDistances
+		distances = irisDatabase.getDistances()
 		#for (j, distance) in enumerate(distances):			# Note: this triggers a bug with sequences in swig
 		for j in range(len(distances)):
 			distance = distances[j]

@@ -9,16 +9,26 @@
 #include "tools.h"
 #include "tools.h"
 
+using namespace horus;
+
 PupilSegmentator::PupilSegmentator()
 {
 	this->_lastSigma = this->_lastMu = -100.0;
+	uchar strel[] =  { 0, 0, 0, 0, 0, 0, \
+					  0, 0, 255, 255, 0, 0, \
+					  0, 255, 255, 255, 255, 0, \
+					  0, 255, 255, 255, 255, 0, \
+					  0, 0, 255, 255, 0, 0, \
+					  0, 0, 0, 0, 0, 0, \
+					};
+	this->matStructElem = GrayscaleImage(6, 6, strel).clone();
 }
 
 PupilSegmentator::~PupilSegmentator()
 {
 }
 
-ContourAndCloseCircle PupilSegmentator::segmentPupil(const Mat& image)
+ContourAndCloseCircle PupilSegmentator::segmentPupil(const GrayscaleImage& image)
 {
 	assert(image.channels() == 1 && image.depth() == CV_8U);
 
@@ -28,38 +38,28 @@ ContourAndCloseCircle PupilSegmentator::segmentPupil(const Mat& image)
 	Circle pupilCircle = this->approximatePupil(this->workingImage);
 
 	pupilCircle.radius /= this->resizeFactor;
-	pupilCircle.xc /= this->resizeFactor;
-	pupilCircle.yc /= this->resizeFactor;
+	pupilCircle.center.x /= this->resizeFactor;
+	pupilCircle.center.y /= this->resizeFactor;
 
 	result.first = this->adjustPupilContour(image, pupilCircle);
-	result.second = Tools::approximateCircle(result.first);
+	result.second = tools::approximateCircle(result.first);
 
 	return result;
 
 }
 
-void PupilSegmentator::setupBuffers(const Mat& image)
+void PupilSegmentator::setupBuffers(const Image& image)
 {
 	// Initialize the working image
 	int bufferWidth = this->parameters.bufferWidth;
 	int width = image.cols;
 
-	if (this->ROI.width) {
+	if (width <= bufferWidth) {
 		this->resizeFactor = 1.0;
-	} else {
-		this->resizeFactor = ((width > bufferWidth) ? double(bufferWidth) / double(width) : 1.0);
-	}
-
-	if (this->resizeFactor != 1.0) {
-		resize(image, this->workingImage, Size(), this->resizeFactor, this->resizeFactor);
-	} else {
 		this->workingImage = image;
-	}
-
-	if (!this->ROI.width || !this->ROI.height) {
-		this->workingROI = Rect(0, 0, this->workingImage.cols, this->workingImage.rows);
 	} else {
-		this->workingROI = Rect(this->ROI.x*this->resizeFactor, this->ROI.y*this->resizeFactor, this->ROI.width*this->resizeFactor, this->ROI.height*this->resizeFactor);
+		this->resizeFactor = double(bufferWidth) / double(width);
+		resize(image, this->workingImage, Size(), this->resizeFactor, this->resizeFactor);
 	}
 
 
@@ -68,37 +68,36 @@ void PupilSegmentator::setupBuffers(const Mat& image)
 	this->adjustmentSnake.create(Size(this->parameters.pupilAdjustmentRingWidth, 1));
 }
 
-Circle PupilSegmentator::approximatePupil(const Mat_<uint8_t>& image)
+Circle PupilSegmentator::approximatePupil(const GrayscaleImage& image)
 {
-	Mat_<uint8_t> searchArea;
-	bool useROI = (this->ROI.width > 0);
-
-	searchArea = (useROI ? image(this->ROI) : image);
-
-	// First, equalize the image
-	equalizeHist(searchArea, this->equalizedImage);
-
-	// Then apply the similarity transformation
+	// First, equalize the image and apply the similarity transform
+	//equalizeHist(image, this->equalizedImage);
+	tools::stretchHistogram(image, this->equalizedImage, 0.01, 0.0);
 	this->similarityTransform();
 	blur(this->similarityImage, this->similarityImage, Size(7, 7));
 
-	// Now perform the cascaded integro-differential operator
-	Circle res = this->cascadedIntegroDifferentialOperator(this->similarityImage);
-
-	if (useROI) {
-		res.xc += this->ROI.x;
-		res.yc += this->ROI.y;
+	if (this->parameters.avoidPupilReflection) {
+		morphologyEx(this->similarityImage, this->similarityImage, MORPH_DILATE, matStructElem, Point(-1,-1), 4);
 	}
+
+	// Now perform the cascaded integro-differential operator (use the ROI if any)
+	Circle res;
+	Rect ROI = this->eyeROI;
+	ROI.x *= this->resizeFactor;
+	ROI.y *= this->resizeFactor;
+	ROI.width *= this->resizeFactor;
+	ROI.height *= this->resizeFactor;
+	res = this->cascadedIntegroDifferentialOperator(this->similarityImage, ROI);
 
 	return res;
 }
 
-Contour PupilSegmentator::adjustPupilContour(const Mat_<uint8_t>& image, const Circle& approximateCircle)
+Contour PupilSegmentator::adjustPupilContour(const GrayscaleImage& image, const Circle& approximateCircle)
 {
 	int radiusMin = approximateCircle.radius * 0.5, radiusMax =
 			approximateCircle.radius * 1.5;
-	Tools::extractRing(image, this->adjustmentRing,
-			approximateCircle.xc, approximateCircle.yc, radiusMin, radiusMax);
+	tools::extractRing(image, this->adjustmentRing,
+			approximateCircle.center.x, approximateCircle.center.y, radiusMin, radiusMax);
 
 	int infraredThreshold = this->parameters.infraredThreshold;
 
@@ -185,7 +184,7 @@ Contour PupilSegmentator::adjustPupilContour(const Mat_<uint8_t>& image, const C
 	}
 
 	// Smooth the snake
-	Tools::smoothSnakeFourier(snake, 5);
+	tools::smoothSnakeFourier(snake, 5);
 
 	/*Tools::smoothSnakeFourier(snake, 3);
 	int delta = gradient.rows * 0.1;
@@ -222,8 +221,8 @@ Contour PupilSegmentator::adjustPupilContour(const Mat_<uint8_t>& image, const C
 				* double(radiusMax - radiusMin) + double(radiusMin);
 		radius += 1;
 
-		int ximag = int(double(approximateCircle.xc) + cos(theta) * radius);
-		int yimag = int(double(approximateCircle.yc) + sin(theta) * radius);
+		int ximag = int(double(approximateCircle.center.x) + cos(theta) * radius);
+		int yimag = int(double(approximateCircle.center.y) + sin(theta) * radius);
 
 		result[x] = Point(ximag, yimag);
 	}
@@ -231,19 +230,31 @@ Contour PupilSegmentator::adjustPupilContour(const Mat_<uint8_t>& image, const C
 	return result;
 }
 
-Circle PupilSegmentator::cascadedIntegroDifferentialOperator(const Mat_<uint8_t>& image)
+Circle PupilSegmentator::cascadedIntegroDifferentialOperator(const GrayscaleImage& image, Rect ROI)
 {
 	int minradabs = this->parameters.minimumPupilRadius;
 	int minrad = minradabs;
 	int maxrad = this->parameters.maximumPupilRadius;
 
-	int dx = image.cols*0.2, dy = image.rows*0.2;			// Exclude the image borders
+	bool useROI = (ROI.width > 0);
+	int minx, miny, maxx, maxy;
 
-	/*int minx = dx, miny = dy;
-	int maxx = image.cols - dx, maxy = image.rows - dy;*/
+	if (useROI) {
+		minx = ROI.x;
+		maxx = ROI.x+ROI.width;
+		miny = ROI.y;
+		maxy = ROI.y+ROI.height;
+	} else {
+		// Exclude the image borders
+        int dx = image.cols/10;
+        int dy = image.rows/10;
 
-	int minx = this->workingROI.x+dx, miny = this->workingROI.y+dy;			// Detect the circle ONLY inside the ROI
-	int maxx = this->workingROI.x+this->workingROI.width-dx, maxy = this->workingROI.y+this->workingROI.height-dy;
+		minx = dx;
+		maxx = image.cols-dx;
+		miny = dy;
+		maxy = image.rows-dy;
+	}
+
 	int x, y;
 	//int maxStep = INT_MIN;
 	int bestX = 0, bestY = 0, bestRadius = 0;
@@ -260,8 +271,7 @@ Circle PupilSegmentator::cascadedIntegroDifferentialOperator(const Mat_<uint8_t>
 		int maxStep = INT_MIN;
 		for (x = minx; x < maxx; x += steps[i]) {
 			for (y = miny; y < maxy; y += steps[i]) {
-				MaxAvgRadiusResult res = this->maxAvgRadius(image, x, y,
-						minrad, maxrad, radiusSteps[i]);
+				MaxAvgRadiusResult res = this->maxAvgRadius(image, x, y, minrad, maxrad, radiusSteps[i]);
 				if (res.maxStep > maxStep) {
 					maxStep = res.maxStep;
 					bestX = x;
@@ -281,14 +291,14 @@ Circle PupilSegmentator::cascadedIntegroDifferentialOperator(const Mat_<uint8_t>
 	}
 
 	Circle bestCircle;
-	bestCircle.xc = bestX;
-	bestCircle.yc = bestY;
+	bestCircle.center.x = bestX;
+	bestCircle.center.y = bestY;
 	bestCircle.radius = bestRadius;
 
 	return bestCircle;
 }
 
-PupilSegmentator::MaxAvgRadiusResult PupilSegmentator::maxAvgRadius(const Mat_<uint8_t>& image, int x, int y, int radmin, int radmax, int radstep)
+PupilSegmentator::MaxAvgRadiusResult PupilSegmentator::maxAvgRadius(const GrayscaleImage& image, int x, int y, int radmin, int radmax, int radstep)
 {
 	int maxDifference, difference;
 	uint8_t actualAvg, nextAvg;
@@ -313,7 +323,7 @@ PupilSegmentator::MaxAvgRadiusResult PupilSegmentator::maxAvgRadius(const Mat_<u
 	return result;
 }
 
-uint8_t PupilSegmentator::circleAverage(const Mat_<uint8_t>& image, int xc, int yc, int rc)
+uint8_t PupilSegmentator::circleAverage(const GrayscaleImage& image, int xc, int yc, int rc)
 {
 	// Optimized Bresenham algorithm for circles
 	int x = 0;
@@ -335,14 +345,6 @@ uint8_t PupilSegmentator::circleAverage(const Mat_<uint8_t>& image, int xc, int 
 			i++;
 			w = (i - 1) * 8 + 1;
 
-			/*row1 = ((uint8_t*) (image->imageData)) + image->widthStep
-					* (yc + y);
-			row2 = ((uint8_t*) (image->imageData)) + image->widthStep
-					* (yc - y);
-			row3 = ((uint8_t*) (image->imageData)) + image->widthStep
-					* (yc + x);
-			row4 = ((uint8_t*) (image->imageData)) + image->widthStep
-					* (yc - x);*/
 			row1 = image.ptr(yc+y);
 			row2 = image.ptr(yc-y);
 			row3 = image.ptr(yc+x);
@@ -404,16 +406,6 @@ uint8_t PupilSegmentator::circleAverage(const Mat_<uint8_t>& image, int xc, int 
 			i++;
 			w = (i - 1) * 8 + 1;
 
-			/*row1 = ((uint8_t*) (image->imageData)) + image->widthStep
-					* (yc + y);
-			row2 = ((uint8_t*) (image->imageData)) + image->widthStep
-					* (yc - y);
-			row3 = ((uint8_t*) (image->imageData)) + image->widthStep
-					* (yc + x);
-			row4 = ((uint8_t*) (image->imageData)) + image->widthStep
-					* (yc - x);
-					*/
-
 			row1 = image.ptr(yc+y);
 			row2 = image.ptr(yc-y);
 			row3 = image.ptr(yc+x);
@@ -469,7 +461,7 @@ void PupilSegmentator::similarityTransform()
 	LUT(this->equalizedImage, this->_LUT, this->similarityImage);
 }
 
-int PupilSegmentator::calculatePupilContourQuality(const Mat_<uint8_t>& region, const Mat_<uint16_t>& regionGradient, const Mat_<float>& contourSnake)
+int PupilSegmentator::calculatePupilContourQuality(const GrayscaleImage& region, const Mat_<uint16_t>& regionGradient, const Mat_<float>& contourSnake)
 {
 	assert(regionGradient.cols == contourSnake.cols);
 	assert(region.size() == regionGradient.size());
@@ -508,11 +500,11 @@ int PupilSegmentator::calculatePupilContourQuality(const Mat_<uint8_t>& region, 
 		}
 	}
 
-	if (!norm2) {
+	if (norm2 == 0.0) {
 		return 0;
 	}
 
-	assert(sum2 < norm2);
+	assert(sum2 <= norm2);
 	assert(norm2 > 0);
 
 	return int((100.0*sum2)/norm2);

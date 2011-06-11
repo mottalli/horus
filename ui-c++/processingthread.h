@@ -3,7 +3,7 @@
 
 #include <QThread>
 
-#include <horus/videoprocessor.h>
+#include "common.h"
 
 class ProcessingThread : public QThread
 {
@@ -12,16 +12,17 @@ public:
     explicit ProcessingThread(QObject *parent = 0);
 	void run();
 
+	VideoProcessor videoProcessor;
+
 signals:
 	void signalFrameProcessed(const VideoProcessor& vp);
 	void signalGotTemplate(const VideoProcessor& vp);
 
 public slots:
-	void slotProcessFrame(const Mat& frame);
+	void slotProcessFrame(const ColorImage& frame);
 
 protected:
-	Mat _frame;
-	VideoProcessor _videoProcessor;
+	ColorImage _frame;
 
 };
 

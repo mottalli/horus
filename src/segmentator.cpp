@@ -2,7 +2,9 @@
 #include <iostream>
 
 #include "segmentator.h"
+#include "tools.h"
 
+using namespace horus;
 
 Segmentator::Segmentator() :
 	eyeROI(0,0,0,0)
@@ -12,27 +14,20 @@ Segmentator::Segmentator() :
 Segmentator::~Segmentator() {
 }
 
-SegmentationResult Segmentator::segmentImage(const Mat& image) {
-	clock.start();
+SegmentationResult Segmentator::segmentImage(const Image& image) {
+	assert(image.depth() == CV_8U);
+
+	timer.restart();
 	
 	SegmentationResult result;
-	Mat imageToSegment;		// Can either user image or workingImage depending on image format
 	
-	assert(image.depth() == CV_8U);
-	
-	if (image.channels() == 1) {
-		imageToSegment = image;
-	} else if (image.channels() == 3) {
-		cvtColor(image, this->workingImage, CV_BGR2GRAY);
-		imageToSegment = this->workingImage;
-	}
+	GrayscaleImage imageBW;
+	tools::toGrayscale(image, imageBW, false);
 
-	if (this->eyeROI.width > 0) {
-		this->pupilSegmentator.setROI(this->eyeROI);
-	}
+	this->pupilSegmentator.setROI(this->eyeROI);
 
-	ContourAndCloseCircle pupilResult = this->pupilSegmentator.segmentPupil(imageToSegment);
-	ContourAndCloseCircle irisResult = this->irisSegmentator.segmentIris(imageToSegment, pupilResult);
+	ContourAndCloseCircle pupilResult = this->pupilSegmentator.segmentPupil(imageBW);
+	ContourAndCloseCircle irisResult = this->irisSegmentator.segmentIris(imageBW, pupilResult);
 
 	result.pupilContour = pupilResult.first;
 	result.pupilCircle = pupilResult.second;
@@ -42,25 +37,19 @@ SegmentationResult Segmentator::segmentImage(const Mat& image) {
 
 	result.eyelidsSegmented = false;
 
-	this->segmentationTime = clock.stop();
+	this->segmentationTime = timer.elapsed();
 
 	return result;
 };
 
-void Segmentator::segmentEyelids(const Mat& image, SegmentationResult& result)
+void Segmentator::segmentEyelids(const Image& image, SegmentationResult& result)
 {
-	Mat imageToSegment;		// Can either user image or workingImage depending on image format
+	GrayscaleImage imageBW;
+	tools::toGrayscale(image, imageBW, false);
 
 	assert(image.depth() == CV_8U);
 
-	if (image.channels() == 1) {
-		imageToSegment = image;
-	} else if (image.channels() == 3) {
-		cvtColor(image, this->workingImage, CV_BGR2GRAY);
-		imageToSegment = this->workingImage;
-	}
-
-	std::pair<Parabola, Parabola> eyelids = this->eyelidSegmentator.segmentEyelids(imageToSegment, result.pupilCircle, result.irisCircle);
+	std::pair<Parabola, Parabola> eyelids = this->eyelidSegmentator.segmentEyelids(imageBW, result.pupilCircle, result.irisCircle);
 	result.upperEyelid = eyelids.first;
 	result.lowerEyelid = eyelids.second;
 	result.eyelidsSegmented = true;

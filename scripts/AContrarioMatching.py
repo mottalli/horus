@@ -1,6 +1,6 @@
 # -*- coding: UTF8 -*-
 import Database
-import horus
+import pyhorus
 import os.path
 from opencv import *
 from opencv.highgui import *
@@ -11,13 +11,14 @@ import herramientas
 CANTIDAD_PARTES = 4
 	
 def correrMatchAContrario(base):
-	if horus.HORUS_CUDA_SUPPORT:
+	if pyhorus.HORUS_CUDA_SUPPORT:
 		print "NOTA: usando aceleración CUDA"
-		irisDatabase = horus.IrisDatabaseCUDA()
+		irisDatabase = pyhorus.IrisDatabaseCUDA()
 	else:
-		irisDatabase = horus.IrisDatabase()
+		irisDatabase = pyhorus.IrisDatabase()
 
-	rows = base.conn.execute('SELECT * FROM base_iris WHERE segmentacion_correcta=1')
+	#rows = base.conn.execute('SELECT id_iris,id_usuario,imagen,segmentacion,image_template FROM base_iris WHERE entrada_valida=1')
+	rows = base.conn.execute('SELECT id_iris,id_usuario,imagen,segmentacion,template FROM vw_base_iris WHERE entrada_valida=1')
 	
 	templates = {}
 	clases = {}
@@ -27,14 +28,14 @@ def correrMatchAContrario(base):
 		idClase = int(row[1])
 		imagePath = base.fullPath(row[2])
 		serializedSegmentationResult = str(row[3])
-		serializedTemplate = str(row[6])
+		serializedTemplate = str(row[4])
 		
 		print "Cargando %i..." % idImagen
 
 		if not len(serializedTemplate):
 			raise Exception('No se codificaron todas las imagenes! (correr iris.py con el parametro -c)')
 
-		templates[idImagen] = horus.unserializeIrisTemplate(serializedTemplate)
+		templates[idImagen] = pyhorus.unserializeIrisTemplate(serializedTemplate)
 		clases[idImagen] = idClase
 		
 		irisDatabase.addTemplate(idImagen, templates[idImagen])

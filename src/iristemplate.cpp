@@ -10,13 +10,13 @@
 #include "iristemplate.h"
 #include "tools.h"
 
+using namespace horus;
+
 IrisTemplate::IrisTemplate()
 {
-	this->irisTemplate = NULL;
-	this->mask = NULL;
 }
 
-IrisTemplate::IrisTemplate(const Mat& binaryTemplate, const Mat& binaryMask)
+IrisTemplate::IrisTemplate(const GrayscaleImage& binaryTemplate, const GrayscaleImage& binaryMask, string encoderSignature_)
 {
 	assert(binaryTemplate.size() == binaryMask.size());
 	assert(binaryTemplate.depth() == CV_8U);
@@ -26,20 +26,24 @@ IrisTemplate::IrisTemplate(const Mat& binaryTemplate, const Mat& binaryMask)
 
 	assert(binaryTemplate.cols % 8 == 0);
 
-	Tools::packBits(binaryTemplate, this->irisTemplate);
-	Tools::packBits(binaryMask, this->mask);
+	tools::packBits(binaryTemplate, this->irisTemplate);
+	tools::packBits(binaryMask, this->mask);
+
+	this->encoderSignature = encoderSignature_;
 }
 
 IrisTemplate::IrisTemplate(const IrisTemplate& otherTemplate)
 {
 	this->irisTemplate = otherTemplate.irisTemplate.clone();
 	this->mask = otherTemplate.mask.clone();
+	this->encoderSignature = otherTemplate.encoderSignature;
 }
 
 IrisTemplate& IrisTemplate::operator=(const IrisTemplate& otherTemplate)
 {
 	this->irisTemplate = otherTemplate.irisTemplate.clone();
 	this->mask = otherTemplate.mask.clone();
+	this->encoderSignature = otherTemplate.encoderSignature;
 
 	return *this;
 }
@@ -48,32 +52,35 @@ IrisTemplate::~IrisTemplate()
 {
 }
 
-Mat IrisTemplate::getTemplateImage() const
+GrayscaleImage IrisTemplate::getTemplateImage() const
 {
-	//CvMat* foo = cvCreateMat(this->irisTemplate->height, this->irisTemplate->width*8, CV_8U);
-	Mat_<uint8_t> image;
-	Tools::unpackBits(this->irisTemplate, image, 255);
-	return Mat(image);
+	GrayscaleImage imgTemplate, imgMask;
+	tools::unpackBits(this->irisTemplate, imgTemplate, 255);
+	tools::unpackBits(this->mask, imgMask, 255);
+
+	bitwise_not(imgMask, imgMask);			// Hacky way to NOT the template
+	imgTemplate.setTo(127, imgMask);
+
+	return imgTemplate;
 }
 
-Mat IrisTemplate::getNoiseMaskImage() const
+GrayscaleImage IrisTemplate::getUnpackedTemplate() const
 {
-	Mat_<uint8_t> image;
-	Tools::unpackBits(this->mask, image, 255);
-	return Mat(image);
+	GrayscaleImage unpacked;
+	tools::unpackBits(this->irisTemplate, unpacked);
+	return unpacked;
 }
 
-Mat IrisTemplate::getUnpackedTemplate() const
+GrayscaleImage IrisTemplate::getUnpackedMask() const
 {
-	Mat_<uint8_t> unpacked;
-	Tools::unpackBits(this->irisTemplate, unpacked);
-	return Mat(unpacked);
+	GrayscaleImage unpacked;
+	tools::unpackBits(this->mask, unpacked);
+	return unpacked;
 }
 
-Mat IrisTemplate::getUnpackedMask() const
+void IrisTemplate::setPackedData(const GrayscaleImage& packedTemplate, const GrayscaleImage& packedMask, string algorithmSignature)
 {
-	Mat_<uint8_t> unpacked;
-	Tools::unpackBits(this->mask, unpacked);
-	return Mat(unpacked);
+	this->irisTemplate = packedTemplate;
+	this->mask = packedMask;
+	this->encoderSignature = algorithmSignature;
 }
-

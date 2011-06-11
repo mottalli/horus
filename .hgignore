@@ -3,9 +3,12 @@ syntax: glob
 *.pyc
 build/
 release/
+ui-c++-build*
 horus.py
 horus_wrap.cxx
 *.o
 *.orig
 CMakeFiles/
 CMakeCache.txt
+*.user
+base-iris

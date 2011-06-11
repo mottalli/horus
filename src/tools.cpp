@@ -7,11 +7,11 @@
 
 #include "tools.h"
 
-inline uint8_t setBit(uint8_t b, int bit, bool value);
-inline bool getBit(uint8_t b, int bit);
+using namespace horus;
+using namespace horus::tools;
 
 // Pack the binary in src into bits
-void Tools::packBits(const Mat_<uint8_t>& src, Mat_<uint8_t>& dest)
+void horus::tools::packBits(const GrayscaleImage& src, GrayscaleImage& dest)
 {
 	assert( (src.cols % 8) == 0);
 	dest.create(src.rows, src.cols/8);
@@ -33,7 +33,7 @@ void Tools::packBits(const Mat_<uint8_t>& src, Mat_<uint8_t>& dest)
 	}
 }
 
-void Tools::unpackBits(const Mat_<uint8_t>& src, Mat_<uint8_t>& dest, int trueval)
+void horus::tools::unpackBits(const GrayscaleImage& src, GrayscaleImage& dest, int trueval)
 {
 	dest.create(src.rows, src.cols*8);
 
@@ -49,7 +49,7 @@ void Tools::unpackBits(const Mat_<uint8_t>& src, Mat_<uint8_t>& dest, int trueva
 	}
 }
 
-void Tools::drawHistogram(const IplImage* img)
+void horus::tools::drawHistogram(const IplImage* img)
 {
 	int bins = 256;
 	int hsize[] = { bins };
@@ -82,181 +82,13 @@ void Tools::drawHistogram(const IplImage* img)
 	cvReleaseImage(&copy);
 }
 
-/*
- 10000000: 128
- 01000000: 64
- 00100000: 32
- 00010000: 16
- 00001000: 8
- 00000100: 4
- 00000010: 2
- 00000001: 1
- */
-
-static uint8_t BIT_MASK[] = {0x80, 0x40, 0x20, 0x10, 0x08, 0x04, 0x02, 0x01 };
-
-uint8_t setBit(uint8_t b, int bit, bool value)
+vector< pair<Point, Point> > horus::tools::iterateIris(const SegmentationResult& segmentation, int width, int height, double theta0, double theta1, double radiusMin, double radiusMax)
 {
-	if (value) {
-		// Set to 1
-		return b | BIT_MASK[bit];
-	} else {
-		// Set to 0
-		return b & (~BIT_MASK[bit]);
-	}
-}
-
-bool getBit(uint8_t b, int bit)
-{
-	return (b & BIT_MASK[bit]) ? true : false;
-}
-
-static const std::string base64_chars =
-			 "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-			 "abcdefghijklmnopqrstuvwxyz"
-			 "0123456789+/";
-
-std::string Tools::base64EncodeMat(const Mat& mat)
-{
-	int width = mat.cols, height = mat.rows;
-	assert(mat.depth() == CV_8U);
-
-	uint8_t* buffer = new uint8_t[2*sizeof(int16_t) + width*height];		// Stores width, height and data
-
-	// Store width and height
-	int16_t* header = (int16_t*)buffer;
-	header[0] = width;
-	header[1] = height;
-
-	uint8_t* p = buffer + 2*sizeof(int16_t);		// Pointer to the actual data past the width and height
-
-	for (int y = 0; y < height; y++) {
-		memcpy(p + y*width, mat.ptr(y), width);		// Copy one line
-	}
-
-	std::string base64 = Tools::base64Encode(buffer, width*height+2*sizeof(int16_t));
-
-	delete[] buffer;
-
-	return base64;
-}
-
-Mat Tools::base64DecodeMat(const std::string &s)
-{
-	int width, height;
-
-	std::string decoded = Tools::base64Decode(s);
-	uint8_t* buffer = (uint8_t*)decoded.c_str();
-
-	int16_t* header = (int16_t*)buffer;
-	width = header[0];
-	height = header[1];
-
-	uint8_t* p = buffer + 2*sizeof(int16_t);		// Pointer to the actual data past the width and height
-
-	Mat res(height, width, CV_8U);
-
-	for (int y = 0; y < height; y++) {
-		memcpy(res.ptr(y), p + y*width, width);		// Copy one line
-	}
-
-	return res;
-}
-
-static inline bool is_base64(unsigned char c) {
-  return (isalnum(c) || (c == '+') || (c == '/'));
-}
-
-std::string Tools::base64Encode(unsigned char const* bytes_to_encode, unsigned int in_len)
-{
-  std::string ret;
-  int i = 0;
-  int j = 0;
-  unsigned char char_array_3[3];
-  unsigned char char_array_4[4];
-
-  while (in_len--) {
-	char_array_3[i++] = *(bytes_to_encode++);
-	if (i == 3) {
-	  char_array_4[0] = (char_array_3[0] & 0xfc) >> 2;
-	  char_array_4[1] = ((char_array_3[0] & 0x03) << 4) + ((char_array_3[1] & 0xf0) >> 4);
-	  char_array_4[2] = ((char_array_3[1] & 0x0f) << 2) + ((char_array_3[2] & 0xc0) >> 6);
-	  char_array_4[3] = char_array_3[2] & 0x3f;
-
-	  for(i = 0; (i <4) ; i++)
-		ret += base64_chars[char_array_4[i]];
-	  i = 0;
-	}
-  }
-
-  if (i)
-  {
-	for(j = i; j < 3; j++)
-	  char_array_3[j] = '\0';
-
-	char_array_4[0] = (char_array_3[0] & 0xfc) >> 2;
-	char_array_4[1] = ((char_array_3[0] & 0x03) << 4) + ((char_array_3[1] & 0xf0) >> 4);
-	char_array_4[2] = ((char_array_3[1] & 0x0f) << 2) + ((char_array_3[2] & 0xc0) >> 6);
-	char_array_4[3] = char_array_3[2] & 0x3f;
-
-	for (j = 0; (j < i + 1); j++)
-	  ret += base64_chars[char_array_4[j]];
-
-	while((i++ < 3))
-	  ret += '=';
-
-  }
-
-  return ret;
-
-}
-
-std::string Tools::base64Decode(std::string const& encoded_string) {
-  int in_len = encoded_string.size();
-  int i = 0;
-  int j = 0;
-  int in_ = 0;
-  unsigned char char_array_4[4], char_array_3[3];
-  std::string ret;
-
-  while (in_len-- && ( encoded_string[in_] != '=') && is_base64(encoded_string[in_])) {
-	char_array_4[i++] = encoded_string[in_]; in_++;
-	if (i ==4) {
-	  for (i = 0; i <4; i++)
-		char_array_4[i] = base64_chars.find(char_array_4[i]);
-
-	  char_array_3[0] = (char_array_4[0] << 2) + ((char_array_4[1] & 0x30) >> 4);
-	  char_array_3[1] = ((char_array_4[1] & 0xf) << 4) + ((char_array_4[2] & 0x3c) >> 2);
-	  char_array_3[2] = ((char_array_4[2] & 0x3) << 6) + char_array_4[3];
-
-	  for (i = 0; (i < 3); i++)
-		ret += char_array_3[i];
-	  i = 0;
-	}
-  }
-
-  if (i) {
-	for (j = i; j <4; j++)
-	  char_array_4[j] = 0;
-
-	for (j = 0; j <4; j++)
-	  char_array_4[j] = base64_chars.find(char_array_4[j]);
-
-	char_array_3[0] = (char_array_4[0] << 2) + ((char_array_4[1] & 0x30) >> 4);
-	char_array_3[1] = ((char_array_4[1] & 0xf) << 4) + ((char_array_4[2] & 0x3c) >> 2);
-	char_array_3[2] = ((char_array_4[2] & 0x3) << 6) + char_array_4[3];
-
-	for (j = 0; (j < i - 1); j++) ret += char_array_3[j];
-  }
-
-  return ret;
-}
-
-std::vector< std::pair<Point, Point> > Tools::iterateIris(const SegmentationResult& segmentation, int width, int height, double theta0, double theta1, double radius)
-{
-	std::vector< std::pair<Point, Point> > res;
+	vector< pair<Point, Point> > res(width*height);
 	const Contour& pupilContour = segmentation.pupilContour;
 	const Contour& irisContour = segmentation.irisContour;
+
+	assert(height > 1);
 
 	Point p0, p1;
 	for (int x = 0; x < width; x++) {
@@ -264,44 +96,45 @@ std::vector< std::pair<Point, Point> > Tools::iterateIris(const SegmentationResu
 		if (theta < 0) theta = 2.0 * M_PI + theta;
 		assert(theta >= 0 && theta <= 2.0*M_PI);
 		double w = (theta/(2.0*M_PI))*double(pupilContour.size());
-		p0 = pupilContour[int(std::floor(w))];
-		p1 = pupilContour[int(std::ceil(w)) % pupilContour.size()];
+		p0 = pupilContour[int(floor(w)) % pupilContour.size()];
+		p1 = pupilContour[int(ceil(w)) % pupilContour.size()];
 
-		double prop = w-std::floor(w);
+		double prop = w-floor(w);
 		double xfrom = double(p0.x) + double(p1.x-p0.x)*prop;
 		double yfrom = double(p0.y) + double(p1.y-p0.y)*prop;
 
 		w = (theta/(2.0*M_PI))*double(irisContour.size());
-		p0 = irisContour[int(std::floor(w))];
-		p1 = irisContour[int(std::ceil(w)) % irisContour.size()];
-		prop = w-std::floor(w);
+		p0 = irisContour[int(floor(w)) % irisContour.size()];
+		p1 = irisContour[int(ceil(w)) % irisContour.size()];
+		prop = w-floor(w);
 		double xto = double(p0.x) + double(p1.x-p0.x)*prop;
 		double yto = double(p0.y) + double(p1.y-p0.y)*prop;
 
 		for (int y = 0; y < height; y++) {
-			w = (double(y)/double(height-1)) * radius;
+			w = (double(y)/double(height-1)) * (radiusMax-radiusMin) + radiusMin;
 			double ximage = xfrom + w*(xto-xfrom);
 			double yimage = yfrom + w*(yto-yfrom);
 
-			res.push_back(std::pair<Point, Point>(Point(x, y), Point(ximage, yimage)));
+			//res[x*height+y] = pair<Point, Point>(Point(x, y), Point(ximage, yimage));			// This causes some weird issues! (Ubuntu 11.04, gcc 4.5)
+			res.push_back(pair<Point, Point>(Point(x, y), Point(ximage, yimage)));
 		}
 	}
 
 	return res;
 }
 
-void Tools::superimposeTexture(Mat& image, const Mat& texture, const SegmentationResult& segmentation, double theta0, double theta1, double radius, bool blend, double blendStart)
+void horus::tools::superimposeTexture(GrayscaleImage& image, const GrayscaleImage& texture, const SegmentationResult& segmentation, double theta0, double theta1, double radius, bool blend, double blendStart)
 {
 	assert(texture.type() == CV_8U);
 	assert(image.type() == CV_8U);
 
-	std::vector< std::pair<Point, Point> > irisIt = Tools::iterateIris(segmentation, texture.cols, texture.rows, theta0, theta1, radius);
+	vector< pair<Point, Point> > irisIt = iterateIris(segmentation, texture.cols, texture.rows, theta0, theta1, radius);
 	for (size_t i = 0; i < irisIt.size(); i++) {
 		int xsrc = irisIt[i].first.x, ysrc = irisIt[i].first.y;
-		int xdest = std::floor(irisIt[i].second.x + 0.5), ydest = std::floor(irisIt[i].second.y + 0.5);
+		int xdest = floor(irisIt[i].second.x + 0.5), ydest = floor(irisIt[i].second.y + 0.5);
 
-		double orig = double(image.at<uint8_t>(ydest, xdest));
-		double new_ = double(texture.at<uint8_t>(ysrc, xsrc));
+		double orig = image(ydest, xdest);
+		double new_ = texture(ysrc, xsrc);
 
 		if (blend && ysrc >= (texture.rows*blendStart)) {
 			double q = 1.0 - ( double(ysrc-texture.rows*blendStart)/double(texture.rows-texture.rows*blendStart) );
@@ -309,11 +142,11 @@ void Tools::superimposeTexture(Mat& image, const Mat& texture, const Segmentatio
 			//new_ = 255;
 		}
 
-		image.at<uint8_t>(ydest, xdest) = uint8_t(new_);
+		image(ydest, xdest) = uint8_t(new_);
 	}
 }
 
-void Tools::extractRing(const Mat_<uint8_t>& src, Mat_<uint8_t>& dest, int x0, int y0, int radiusMin, int radiusMax)
+void horus::tools::extractRing(const GrayscaleImage& src, GrayscaleImage& dest, int x0, int y0, int radiusMin, int radiusMax)
 {
 	assert(src.channels() == 1 && dest.channels() == 1);
 	assert(radiusMin < radiusMax);
@@ -339,7 +172,7 @@ void Tools::extractRing(const Mat_<uint8_t>& src, Mat_<uint8_t>& dest, int x0, i
 	}
 }
 
-void Tools::smoothSnakeFourier(Mat_<float>& snake, int coefficients)
+void horus::tools::smoothSnakeFourier(Mat_<float>& snake, int coefficients)
 {
 	dft(snake, snake, CV_DXT_FORWARD);
 	for (int u = coefficients; u < snake.cols-coefficients; u++) {
@@ -348,7 +181,7 @@ void Tools::smoothSnakeFourier(Mat_<float>& snake, int coefficients)
 	dft(snake, snake, CV_DXT_INV_SCALE);
 }
 
-Circle Tools::approximateCircle(const Contour& contour)
+Circle horus::tools::approximateCircle(const Contour& contour)
 {
 	Circle result;
 
@@ -359,16 +192,16 @@ Circle Tools::approximateCircle(const Contour& contour)
 		sumX += (*it).x;
 		sumY += (*it).y;
 	}
-	result.xc = sumX/n;
-	result.yc = sumY/n;
+	result.center.x = sumX/n;
+	result.center.y = sumY/n;
 
 	int bestRadius = 0;
 	int x,y;
 	for (Contour::const_iterator it = contour.begin(); it != contour.end(); it++) {
 		x = (*it).x;
 		y = (*it).y;
-		if ( (x-result.xc)*(x-result.xc)+(y-result.yc)*(y-result.yc) > bestRadius*bestRadius) {
-			bestRadius = int(sqrt((float)(x-result.xc)*(x-result.xc)+(y-result.yc)*(y-result.yc)));
+		if ( (x-result.center.x)*(x-result.center.x)+(y-result.center.y)*(y-result.center.y) > bestRadius*bestRadius) {
+			bestRadius = int(sqrt((float)(x-result.center.x)*(x-result.center.x)+(y-result.center.y)*(y-result.center.y)));
 		}
 	}
 
@@ -377,45 +210,72 @@ Circle Tools::approximateCircle(const Contour& contour)
 	return result;
 }
 
-void Tools::stretchHistogram(const Mat_<uint8_t>& image, Mat_<uint8_t>& dest, float marginMin, float marginMax)
+void horus::tools::stretchHistogram(const Image& image, Image& dest, float marginMin, float marginMax)
 {
-	if (dest.size() != image.size()) {
-		dest.create(image.size());
+	assert(image.depth() == CV_8U);
+
+	if (dest.size() != image.size() || image.type() != dest.type()) {
+		dest.create(image.size(), image.type());
 	}
 
-	// Quick & dirty way to calculate the histogram
-	unsigned int hist[256];
-	memset(hist, 0, sizeof(hist));
+	vector<Mat> chansSrc(image.channels()), chansDest(dest.channels());
 
+	split(image, chansSrc);
+	split(dest, chansDest);
+
+	vector<int> hist(256, 0);
 	unsigned int total = image.rows*image.cols;
 
-	for (MatConstIterator_<uint8_t> it = image.begin(); it != image.end(); it++) {
-		hist[*it]++;
-	}
+	for (size_t c = 0; c < chansSrc.size(); c++) {
+		GrayscaleImage chanSrc = chansSrc[c];
+		GrayscaleImage chanDest = chansDest[c];
 
-	unsigned int sum;
-	unsigned char x0, x1;
-	for (x0 = 0, sum=0; sum <= marginMin*float(total); x0++) {
-		sum += hist[x0];
-	}
+		// Quick & dirty way to calculate the histogram
+		for (GrayscaleImage::const_iterator it = chanSrc.begin(); it != chanSrc.end(); it++) {
+			hist[*it]++;
+		}
 
-	for (x1 = 255,sum=0; sum <= marginMax*float(total); x1--) {
-		sum += hist[x1];
-	}
+		unsigned int sum;
+		unsigned char x0, x1;
+		for (x0 = 0, sum=0; sum <= marginMin*float(total); x0++) {
+			sum += hist[x0];
+		}
 
-	for (int y = 0; y < image.rows; y++) {
-		for (int x = 0; x < image.cols; x++) {
-			int q = (float(image(y, x)-x0)/float(x1-x0)) * 255;
-			q = max(min(q, 255), 0);
-			dest(y, x) = q;
+		for (x1 = 255, sum=0; sum <= marginMax*float(total); x1--) {
+			sum += hist[x1];
+		}
+
+		for (GrayscaleImage::const_iterator it = chanSrc.begin(); it != chanSrc.end(); it++) {
+			int q = int((float((*it)- x0)/float(x1-x0))*255.0);
+			q = max(min(q,255), 0);
+			chanDest(it.pos()) = q;
 		}
 	}
+
+	merge(chansDest, dest);
 }
 
-Mat_<uint8_t> Tools::normalizeImage(const Mat& image)
+GrayscaleImage horus::tools::normalizeImage(const Mat& image, uint8_t min, uint8_t max)
 {
-	Mat_<uint8_t> res;
-	normalize(image, res, 0, 255, NORM_MINMAX);
+	assert(image.channels() == 1);
 
+	Mat tmp;
+	GrayscaleImage res;
+	normalize(image, tmp, min, max, NORM_MINMAX);
+	tmp.convertTo(res, CV_8UC1);
 	return res;
+}
+
+void horus::tools::toGrayscale(const Image& src, GrayscaleImage& dest, bool cloneIfAlreadyGray) {
+	assert(src.type() == CV_8UC1 || src.type() == CV_8UC3);
+
+	if (src.type() == CV_8UC1) {
+		if (cloneIfAlreadyGray) {
+			dest = src.clone();
+		} else {
+			dest = src;
+		}
+	} else if (src.type() == CV_8UC3) {
+		cvtColor(src, dest, CV_BGR2GRAY);
+	}
 }

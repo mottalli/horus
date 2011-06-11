@@ -1,6 +1,7 @@
 #include "irissegmentator.h"
 #include "tools.h"
-#include <cmath>
+
+using namespace horus;
 
 IrisSegmentator::IrisSegmentator()
 {
@@ -10,13 +11,13 @@ IrisSegmentator::IrisSegmentator()
 IrisSegmentator::~IrisSegmentator() {
 }
 
-ContourAndCloseCircle IrisSegmentator::segmentIris(const Mat& image, const ContourAndCloseCircle& pupilSegmentation)
+ContourAndCloseCircle IrisSegmentator::segmentIris(const GrayscaleImage& image, const ContourAndCloseCircle& pupilSegmentation)
 {
 	assert(image.channels() == 1 && image.depth() == CV_8U);
-	return this->segmentIrisRecursive((const Mat_<uint8_t>&)image, pupilSegmentation, -1, -1);
+	return this->segmentIrisRecursive((const GrayscaleImage&)image, pupilSegmentation, -1, -1);
 }
 
-ContourAndCloseCircle IrisSegmentator::segmentIrisRecursive(const Mat_<uint8_t>& image, const ContourAndCloseCircle& pupilSegmentation, int radiusMax, int radiusMin)
+ContourAndCloseCircle IrisSegmentator::segmentIrisRecursive(const GrayscaleImage& image, const ContourAndCloseCircle& pupilSegmentation, int radiusMax, int radiusMin)
 {
 	this->setupBuffers(image);
 
@@ -29,7 +30,7 @@ ContourAndCloseCircle IrisSegmentator::segmentIrisRecursive(const Mat_<uint8_t>&
 	    radiusMax = pupilCircle.radius * 5.0;
 	}
 
-	Tools::extractRing(image, this->adjustmentRing, pupilCircle.xc, pupilCircle.yc, radiusMin, radiusMax);
+	tools::extractRing(image, this->adjustmentRing, pupilCircle.center.x, pupilCircle.center.y, radiusMin, radiusMax);
 
 	blur(this->adjustmentRing, this->adjustmentRing, Size(3, 7));
 	Sobel(this->adjustmentRing, this->adjustmentRingGradient, CV_16S, 0, 1, 3);
@@ -62,7 +63,7 @@ ContourAndCloseCircle IrisSegmentator::segmentIrisRecursive(const Mat_<uint8_t>&
 		sumY2 = 0;
 
 		//int16_t* row = (int16_t*)(gradient->imageData + y*gradient->widthStep);
-		const int16_t* row = (const int16_t*)gradient.ptr(y);
+		const int16_t* row = gradient.ptr<int16_t>(y);
 
 		for (int x = x0; x < x1; x++) {
 			sumY1 += row[XIMAGE(x)];
@@ -128,27 +129,27 @@ ContourAndCloseCircle IrisSegmentator::segmentIrisRecursive(const Mat_<uint8_t>&
 	}
 
 	// Smooth the snake
-	Tools::smoothSnakeFourier(snake, 3);
+	tools::smoothSnakeFourier(snake, 3);
 
 	// Convert to image coordinates
 	Contour irisContour(snake.cols);
 	for (int x = 0; x < snake.cols; x++) {
 		double theta = (double(x)/double(snake.cols))*2.0*M_PI;
 		double radius = ((double(snake(0,x))/double(gradient.rows-1))*double(radiusMax-radiusMin)) + double(radiusMin);
-		int ximage = int(double(pupilCircle.xc) + cos(theta) * radius);
-		int yimage = int(double(pupilCircle.yc) + sin(theta) * radius);
+		int ximage = int(double(pupilCircle.center.x) + cos(theta) * radius);
+		int yimage = int(double(pupilCircle.center.y) + sin(theta) * radius);
 		irisContour[x] = Point(ximage, yimage);
 	}
 
 	ContourAndCloseCircle result;
 
 	result.first = irisContour;
-	result.second = Tools::approximateCircle(result.first);
+	result.second = tools::approximateCircle(result.first);
 
     return result;
 }
 
-void IrisSegmentator::setupBuffers(const Mat_<uint8_t>&)
+void IrisSegmentator::setupBuffers(const GrayscaleImage&)
 {
 	this->adjustmentSnake.create(1, this->parameters.irisAdjustmentRingWidth);
 	this->adjustmentRing.create(Size(this->parameters.irisAdjustmentRingWidth, this->parameters.irisAdjustmentRingHeight));

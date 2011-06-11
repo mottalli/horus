@@ -1,0 +1,23 @@
+#pragma once
+#include "clock.h"
+#include "common.h"
+#include "decorator.h"
+#include "eyedetect.h"
+#include "eyelidsegmentator.h"
+#include "gaborencoder.h"
+#include "irisdatabase.h"
+#ifdef HORUS_CUDA
+#include "irisdatabasecuda.h"
+#endif
+#include "irisencoder.h"
+#include "irissegmentator.h"
+#include "iristemplate.h"
+#include "loggaborencoder.h"
+#include "pupilsegmentator.h"
+#include "qualitychecker.h"
+#include "segmentator.h"
+#include "serializer.h"
+#include "templatecomparator.h"
+#include "tools.h"
+#include "types.h"
+#include "videoprocessor.h"

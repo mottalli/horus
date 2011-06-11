@@ -8,60 +8,116 @@
 #pragma once
 
 #include "common.h"
-#include "segmentationresult.h"
+#include "external/base64.h"
+#include "segmentator.h"
+#include "iristemplate.h"
+#include "irisencoder.h"
 
-//------------ Base64 code license BEGIN
+namespace horus {
+
+namespace tools {
+
+void packBits(const GrayscaleImage& src, GrayscaleImage& dest);
+void unpackBits(const GrayscaleImage& src, GrayscaleImage& dest, int trueval = 1);
+
+void extractRing(const GrayscaleImage& src, GrayscaleImage& dest, int x0, int y0, int radiusMin, int radiusMax);
+void smoothSnakeFourier(Mat_<float>& snake, int coefficients);
+Circle approximateCircle(const Contour& contour);
+
+// Useful debugging functions
+void drawHistogram(const IplImage* img);
+
+template<class T>
+std::string base64EncodeMat(const Mat& mat);
+template<class T>
+Mat_<T> base64DecodeMat(const std::string &s);
+
+void stretchHistogram(const Image& image, Image& dest, float marginMin=0.0, float marginMax=0.0);
+
+std::vector< std::pair<Point, Point> > iterateIris(const SegmentationResult& segmentation, int width, int height, double theta0=0.0, double theta1=2.0*M_PI, double radiusMin = 0.0, double radiusMax=1.0);
+void superimposeTexture(GrayscaleImage& image, const GrayscaleImage& texture, const SegmentationResult& segmentation, double theta0=0.0, double theta1=2.0*M_PI, double radius=1.0, bool blend=true, double blendStart = 0.7);
+
+GrayscaleImage normalizeImage(const Mat& image, uint8_t min=0, uint8_t max=255);	// Normalizes an image to the given range
+void toGrayscale(const Image& src, GrayscaleImage& dest, bool cloneIfAlreadyGray);
+
 /*
-   base64.cpp and base64.h
+ 10000000: 128
+ 01000000: 64
+ 00100000: 32
+ 00010000: 16
+ 00001000: 8
+ 00000100: 4
+ 00000010: 2
+ 00000001: 1
+ */
 
-   Copyright (C) 2004-2008 René Nyffenegger
-
-   This source code is provided 'as-is', without any express or implied
-   warranty. In no event will the author be held liable for any damages
-   arising from the use of this software.
-
-   Permission is granted to anyone to use this software for any purpose,
-   including commercial applications, and to alter it and redistribute it
-   freely, subject to the following restrictions:
-
-   1. The origin of this source code must not be misrepresented; you must not
-	  claim that you wrote the original source code. If you use this source code
-	  in a product, an acknowledgment in the product documentation would be
-	  appreciated but is not required.
-
-   2. Altered source versions must be plainly marked as such, and must not be
-	  misrepresented as being the original source code.
-
-   3. This notice may not be removed or altered from any source distribution.
-
-   René Nyffenegger rene.nyffenegger@adp-gmbh.ch
-
-*/
-//------------ Base64 code license END
-
-namespace Tools
+const uint8_t BIT_MASK[] = {0x80, 0x40, 0x20, 0x10, 0x08, 0x04, 0x02, 0x01 };
+inline uint8_t setBit(uint8_t b, int bit, bool value)
 {
-	void packBits(const Mat_<uint8_t>& src, Mat_<uint8_t>& dest);
-	void unpackBits(const Mat_<uint8_t>& src, Mat_<uint8_t>& dest, int trueval = 1);
-
-	void extractRing(const Mat_<uint8_t>& src, Mat_<uint8_t>& dest, int x0, int y0, int radiusMin, int radiusMax);
-	void smoothSnakeFourier(Mat_<float>& snake, int coefficients);
-	Circle approximateCircle(const Contour& contour);
-
-	// Useful debugging functions
-	void drawHistogram(const IplImage* img);
-
-	// Base64 methods
-	std::string base64Encode(const uint8_t* buffer, unsigned int len);
-	std::string base64Decode(std::string const& s);
-
-	std::string base64EncodeMat(const Mat& mat);
-	Mat base64DecodeMat(const std::string &s);
-
-	void stretchHistogram(const Mat_<uint8_t>& image, Mat_<uint8_t>& dest, float marginMin=0.01, float marginMax=0.0);
-	Mat_<uint8_t> normalizeImage(const Mat& image);
-
-	std::vector< std::pair<Point, Point> > iterateIris(const SegmentationResult& segmentation, int width, int height, double theta0=0.0, double theta1=2.0*M_PI, double radius=1.0);
-	void superimposeTexture(Mat& image, const Mat& texture, const SegmentationResult& segmentation, double theta0=0.0, double theta1=2.0*M_PI, double radius=1.0, bool blend=true, double blendStart = 0.7);
+	if (value) {
+		// Set to 1
+		return b | BIT_MASK[bit];
+	} else {
+		// Set to 0
+		return b & (~BIT_MASK[bit]);
+	}
 }
 
+inline bool getBit(uint8_t b, int bit)
+{
+	return (b & BIT_MASK[bit]) ? true : false;
+}
+
+}	/* Namespaces end */
+}
+
+
+template<class T>
+string horus::tools::base64EncodeMat(const Mat& mat)
+{
+	int width = mat.cols, height = mat.rows;
+	assert(mat.channels() == 1);
+	assert(mat.isContinuous());
+
+	unsigned char* buffer = new unsigned char[2*sizeof(int16_t) + width*height*sizeof(T)];		// Stores width, height and data
+
+	// Store width and height
+	int16_t* header = (int16_t*)buffer;
+	header[0] = width;
+	header[1] = height;
+
+	T* p = (T*)(buffer + 2*sizeof(int16_t));		// Pointer to the actual data past the width and height
+
+	for (int y = 0; y < height; y++) {
+		memcpy((void*)(p + y*width), mat.ptr(y), width*sizeof(T));		// Copy one line
+	}
+
+	string base64 = Tools::base64Encode(buffer, 2*sizeof(int16_t) + width*height*sizeof(T));
+
+	delete[] buffer;
+
+	return base64;
+}
+
+template<class T>
+Mat_<T> horus::tools::base64DecodeMat(const string &s)
+{
+	int width, height;
+
+	string decoded = Tools::base64Decode(s);
+	const char* buffer = decoded.c_str();
+
+	int16_t* header = (int16_t*)buffer;
+	width = header[0];
+	height = header[1];
+
+	T* p = (T*)(buffer + 2*sizeof(int16_t));		// Pointer to the actual data past the width and height
+
+	Mat_<T> res(height, width);
+
+	for (int y = 0; y < height; y++) {
+		memcpy(res.ptr(y), p + y*width, width*sizeof(T));		// Copy one line
+	}
+
+	return res;
+}

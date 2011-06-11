@@ -8,12 +8,12 @@
 #pragma once
 
 #include "common.h"
-#include "segmentationresult.h"
 #include "iristemplate.h"
 
-namespace Serializer
-{
-	std::string serializeSegmentationResult(const SegmentationResult& sr);
+namespace horus {
+namespace serialization {
+
+std::string serializeSegmentationResult(const SegmentationResult& sr);
 	std::string serializeContour(const Contour& contour);
 	std::string serializeParabola(const Parabola& parabola);
 
@@ -21,7 +21,11 @@ namespace Serializer
 	Contour unserializeContour(std::istringstream& stream);
 	Parabola unserializeParabola(std::istringstream& stream);
 
-	std::string serializeIrisTemplate(const IrisTemplate& irisTemplate);
-	IrisTemplate unserializeIrisTemplate(const std::string& serializedTemplate);
-};
+	SegmentationResult unserializeSegmentationResultOLD(const std::string& s);
+	Contour unserializeContourOLD(std::istringstream& stream);
 
+	string serializeIrisTemplate(const IrisTemplate& irisTemplate);
+	IrisTemplate unserializeIrisTemplate(const std::string& serializedTemplate);
+
+}
+}

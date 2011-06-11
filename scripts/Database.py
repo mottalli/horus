@@ -1,6 +1,6 @@
 import sqlite3
 import os.path
-import horus
+import pyhorus
 
 PATH_BASE = '/home/marcelo/iris/BBDD'
 
@@ -12,7 +12,7 @@ PATHS_BASES = {
 		'casia3p': str(os.path.join(PATH_BASE, 'CASIA3-Preprocesada')),
 		'mmu': str(os.path.join(PATH_BASE, 'MMU')),
 		'bath': str(os.path.join(PATH_BASE, 'Bath')),
-		'uba': '/home/marcelo/iris/horus/ui/_base'
+		'uba': str(os.path.join(PATH_BASE, 'base-iris')),
 	}
 
 class IrisDatabase:

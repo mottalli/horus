@@ -7,15 +7,18 @@ ProcessingThread::ProcessingThread(QObject *parent) :
 
 void ProcessingThread::run()
 {
-	VideoProcessor::VideoStatus status = _videoProcessor.processFrame(_frame);
-	signalFrameProcessed(_videoProcessor);
+	Timer t;
+	VideoProcessor::VideoStatus status = this->videoProcessor.processFrame(_frame);
+	signalFrameProcessed(this->videoProcessor);
+
+	qDebug() << "FP: " << t.elapsed();
 
 	if (status == VideoProcessor::GOT_TEMPLATE) {
-		signalGotTemplate(_videoProcessor);
+		signalGotTemplate(this->videoProcessor);
 	}
 }
 
-void ProcessingThread::slotProcessFrame(const Mat& frame)
+void ProcessingThread::slotProcessFrame(const ColorImage& frame)
 {
 	_frame = frame.clone();
 	start();

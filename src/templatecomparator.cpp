@@ -6,8 +6,8 @@
  */
 
 #include "templatecomparator.h"
-#include <cmath>
-#include <iostream>
+
+using namespace horus;
 
 int countNonZeroBits(const Mat& mat);
 
@@ -15,6 +15,7 @@ TemplateComparator::TemplateComparator(int nRots, int rotStep)
 {
 	this->nRots = nRots;
 	this->rotStep = rotStep;
+	this->minHDIdx = -1;
 }
 
 TemplateComparator::TemplateComparator(const IrisTemplate& irisTemplate, int nRots, int rotStep)
@@ -33,11 +34,18 @@ double TemplateComparator::compare(const IrisTemplate& otherTemplate)
 {
 	double minHD = 1.0;
 
-	for (std::vector<IrisTemplate>::const_iterator it = this->rotatedTemplates.begin(); it != this->rotatedTemplates.end(); it++) {
-		const IrisTemplate& rotatedTemplate = (*it);
+	assert(this->irisTemplate.encoderSignature == otherTemplate.encoderSignature);		// Must be the same "type" of template
+
+	//for (std::vector<IrisTemplate>::const_iterator it = this->rotatedTemplates.begin(); it != this->rotatedTemplates.end(); it++) {
+	for (size_t i = 0; i < this->rotatedTemplates.size(); i++) {
+		//const IrisTemplate& rotatedTemplate = (*it);
+		const IrisTemplate& rotatedTemplate = this->rotatedTemplates[i];
 		double hd = this->packedHammingDistance(rotatedTemplate.getPackedTemplate(), rotatedTemplate.getPackedMask(),
 				otherTemplate.getPackedTemplate(), otherTemplate.getPackedMask());
-		minHD = std::min(hd, minHD);
+		if (hd < minHD) {
+			minHD = hd;
+			this->minHDIdx = i;
+		}
 	}
 
 	return minHD;
@@ -60,10 +68,10 @@ std::vector<double> TemplateComparator::compareParts(const IrisTemplate& otherTe
 		for (int p = 0; p < nParts; p++) {
 			Rect r(p*partWidth, 0, partWidth, templateHeight);
 
-			Mat_<uint8_t> part1(rotatedTemplate.getPackedTemplate(), r);
-			Mat_<uint8_t> mask1(rotatedTemplate.getPackedMask(), r);
-			Mat_<uint8_t> part2(otherTemplate.getPackedTemplate(), r);
-			Mat_<uint8_t> mask2(otherTemplate.getPackedMask(), r);
+			GrayscaleImage part1 = TemplateComparator::getPart(rotatedTemplate, p, nParts, false);
+			GrayscaleImage mask1 = TemplateComparator::getPart(rotatedTemplate, p, nParts, true);
+			GrayscaleImage part2 = TemplateComparator::getPart(otherTemplate, p, nParts, false);
+			GrayscaleImage mask2 = TemplateComparator::getPart(otherTemplate, p, nParts, true);
 			
 			double hd = this->packedHammingDistance(part1, mask1, part2, mask2);
 			minHDs[p] = std::min(minHDs[p], hd);
@@ -75,6 +83,7 @@ std::vector<double> TemplateComparator::compareParts(const IrisTemplate& otherTe
 
 void TemplateComparator::setSrcTemplate(const IrisTemplate& irisTemplate)
 {
+	this->irisTemplate = irisTemplate;
 
 	Mat unpackedTemplate = irisTemplate.getUnpackedTemplate();
 	Mat unpackedMask = irisTemplate.getUnpackedMask();
@@ -98,11 +107,11 @@ void TemplateComparator::setSrcTemplate(const IrisTemplate& irisTemplate)
 	for (int r = this->rotStep; r <= this->nRots; r += this->rotStep) {
 		this->rotateMatrix(unpackedTemplate, rotatedTemplate, r);
 		this->rotateMatrix(unpackedMask, rotatedMask, r);
-		this->rotatedTemplates.push_back(IrisTemplate(rotatedTemplate, rotatedMask));
+		this->rotatedTemplates.push_back(IrisTemplate(rotatedTemplate, rotatedMask, irisTemplate.encoderSignature));
 
 		this->rotateMatrix(unpackedTemplate, rotatedTemplate, -r);
 		this->rotateMatrix(unpackedMask, rotatedMask, -r);
-		this->rotatedTemplates.push_back(IrisTemplate(rotatedTemplate, rotatedMask));
+		this->rotatedTemplates.push_back(IrisTemplate(rotatedTemplate, rotatedMask, irisTemplate.encoderSignature));
 	}
 }
 
@@ -140,7 +149,7 @@ void TemplateComparator::rotateMatrix(const Mat& src, Mat& dest, int step)
 	}
 }
 
-double TemplateComparator::packedHammingDistance(const Mat_<uint8_t>& template1, const Mat_<uint8_t>& mask1, const Mat_<uint8_t>& template2, const Mat_<uint8_t>& mask2)
+double TemplateComparator::packedHammingDistance(const GrayscaleImage& template1, const GrayscaleImage& mask1, const GrayscaleImage& template2, const GrayscaleImage& mask2)
 {
 	assert(template1.size() == mask1.size());
 	assert(template2.size() == mask2.size());
@@ -152,6 +161,14 @@ double TemplateComparator::packedHammingDistance(const Mat_<uint8_t>& template1,
 
 	int nonZeroBits = countNonZeroBits(xorBuffer);
 	int validBits = countNonZeroBits(maskIntersection);
+
+	/*//
+	int template1ValidBits = countNonZeroBits(mask1);
+	int template2ValidBits = countNonZeroBits(mask2);
+	cout << 100.0*double(template1ValidBits)/double(template1.cols*template1.rows*8) << '%' << " ";
+	cout << 100.0*double(template2ValidBits)/double(template1.cols*template1.rows*8) << '%' << " ";
+	cout << 100.0*double(validBits)/double(maskIntersection.cols*maskIntersection.rows*8) << '%' << endl;
+	//*/
 
 	if (validBits == 0) {
 		return 1.0;		// No bits to compare
@@ -222,6 +239,61 @@ int countNonZeroBits(const Mat& mat)
 		for (; x < mat.cols; x++) {
 			res += nonZeroBits[ row[x] ];
 		}
+	}
+	return res;
+}
+
+const IrisTemplate& TemplateComparator::getBestRotatedTemplate()
+{
+	return this->rotatedTemplates[this->minHDIdx];
+}
+
+GrayscaleImage TemplateComparator::getComparationImage()
+{
+	IrisTemplate t1 = this->irisTemplate;
+	IrisTemplate t2 = this->getBestRotatedTemplate();
+
+	GrayscaleImage i1 = t1.getUnpackedTemplate();
+	GrayscaleImage i2 = t2.getUnpackedTemplate();
+	GrayscaleImage m1 = t1.getUnpackedMask();
+	GrayscaleImage m2 = t2.getUnpackedMask();
+
+
+	GrayscaleImage res;
+	i1.setTo(255, i1);
+	i2.setTo(255, i2);
+	m1.setTo(255, m1);
+	m2.setTo(255, m2);
+
+	bitwise_not(m1, m1);
+	bitwise_not(m2, m2);
+
+	bitwise_xor(i1, i2, res);
+	res.setTo(128, m1);
+	res.setTo(128, m2);
+	return res;
+}
+
+const GrayscaleImage TemplateComparator::getPart(const IrisTemplate& irisTemplate, int part, int nParts, bool fromMask)
+{
+	const GrayscaleImage& packedMat = (fromMask ? irisTemplate.getPackedMask() : irisTemplate.getPackedTemplate());
+	const int width = packedMat.cols;
+	const int height = packedMat.rows;
+
+	assert(width % nParts == 0);
+	const int partWidth = width / nParts;
+
+	/*
+	// Faster version of the algorithm (using entire blocks) but less reliable
+	Rect r(part*partWidth, 0, partWidth, height);
+	return packedMat(r);
+	*/
+	// Slower version: interleave the columns in each part. More reliable.
+	//TODO: Apply this in the CUDA version
+	GrayscaleImage res(height, partWidth);
+	for (int i = 0; i < partWidth; i++) {
+		Mat dest = res.col(i);
+		packedMat.col(i*nParts+part).copyTo(dest);
 	}
 	return res;
 }
