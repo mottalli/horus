@@ -11,7 +11,7 @@ SET(HORUS_LIB_SOURCES
 	${PROJECT_SOURCE_DIR}/src/irisencoder.cpp
 	${PROJECT_SOURCE_DIR}/src/irissegmentator.cpp 
 	${PROJECT_SOURCE_DIR}/src/iristemplate.cpp 
-	${PROJECT_SOURCE_DIR}/src/loggaborencoder.cpp 
+	${PROJECT_SOURCE_DIR}/src/loggaborencoder.cpp
 	${PROJECT_SOURCE_DIR}/src/pupilsegmentator.cpp 
 	${PROJECT_SOURCE_DIR}/src/qualitychecker.cpp 
 	${PROJECT_SOURCE_DIR}/src/segmentator.cpp 
