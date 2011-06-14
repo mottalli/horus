@@ -67,15 +67,14 @@ INCLUDE_DIRECTORIES(${OpenCV_INCLUDE_DIRS})
 FIND_PACKAGE(CUDA)
 IF (USE_CUDA AND CUDA_FOUND)
 	ADD_DEFINITIONS("-DUSE_CUDA")
-	SET(HORUS_LIB_SOURCES ${HORUS_LIB_SOURCES} ${PROJECT_SOURCE_DIR}/src/irisdatabasecuda.cpp)
-	SET(HORUS_LIB_HEADERS ${HORUS_LIB_HEADERS} ${PROJECT_SOURCE_DIR}/src/cudacommon.h)
 	SET(CUDA_SOURCES
 		${PROJECT_SOURCE_DIR}/src/irisdatabase_kernel.cu
-		${PROJECT_SOURCE_DIR}/src/gpuwrapper.cu
+		${PROJECT_SOURCE_DIR}/src/irisdatabasecuda.cpp
 	)
-	#SET(CUDA_LIBRARIES ${CUDA_LIBRARIES} ${LIBRARIES})
 	# Enable this to compile CUDA support in a dynamic library
 	SET(CUDA_NVCC_FLAGS --ptxas-options=-v --compiler-options '-fPIC')
+	SET(CMAKE_CXX_FLAGS -fPIC)		# NOTE: this is needed by CUDA to force the compilation of irisdatabasecuda.cpp into a shared library.
+						# it is suboptimal and may cause problems in 32-bit builds
 	CUDA_ADD_LIBRARY(horus_cuda ${CUDA_SOURCES})
 ELSE ()
 	SET(USE_CUDA OFF)

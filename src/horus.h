@@ -6,9 +6,6 @@
 #include "eyelidsegmentator.h"
 #include "gaborencoder.h"
 #include "irisdatabase.h"
-#ifdef HORUS_CUDA
-#include "irisdatabasecuda.h"
-#endif
 #include "irisencoder.h"
 #include "irissegmentator.h"
 #include "iristemplate.h"
@@ -21,3 +18,6 @@
 #include "tools.h"
 #include "types.h"
 #include "videoprocessor.h"
+#ifdef USE_CUDA
+#include "irisdatabasecuda.h"
+#endif

@@ -1,8 +1,13 @@
 #pragma once
 
+#include <cuda.h>
+
 #include "irisdatabase.h"
+#include "iristemplate.h"
 #include "cudacommon.h"
-using namespace std;
+#include "templatecomparator.h"
+
+namespace horus {
 
 class IrisDatabaseCUDA : public IrisDatabase
 {
@@ -10,16 +15,21 @@ public:
     IrisDatabaseCUDA();
 	virtual ~IrisDatabaseCUDA();
 
-	void addTemplate(int templateId, const IrisTemplate& irisTemplate);
-	void deleteTemplate(int templateId);
-
-	void doMatch(const IrisTemplate& irisTemplate, void (*statusCallback)(int) = NULL, int nRots=20, int rotStep=2);
+	virtual void addTemplate(int templateId, const IrisTemplate& irisTemplate);
+	virtual void deleteTemplate(int templateId);
+	virtual void doMatch(const IrisTemplate& irisTemplate, void (*statusCallback)(int) = NULL, int nRots=20, int rotStep=2);
 
 protected:
-	void calculatePartsDistances(const IrisTemplate& irisTemplate, int nParts, int nRots, int rotStep);
+	virtual void calculatePartsDistances(const IrisTemplate& irisTemplate, int nParts, int nRots, int rotStep);
+
+	// Functions to interact with GPU
+	void uploadDBToDevice();
+	void cleanupDB();
+	std::pair<uint8_t*, uint8_t*> uploadRotatedTemplates(const vector<IrisTemplate>& rotatedTemplates);
 	
 	bool dirty;
 	GPUDatabase gpuDatabase;
 };
 
 
+}

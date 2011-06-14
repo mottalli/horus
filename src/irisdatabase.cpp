@@ -72,6 +72,7 @@ void IrisDatabase::doMatch(const IrisTemplate& irisTemplate, void (*statusCallba
 
 void IrisDatabase::calculatePartsDistances(const IrisTemplate& irisTemplate, unsigned int nParts, unsigned int nRots, unsigned int rotStep)
 {
+	cout << "IrisDatabase::calculatePartsDistances" << endl;
 	size_t n = this->templates.size();
 
 	assert(this->resultPartsDistances.size() == nParts);
@@ -103,7 +104,6 @@ void IrisDatabase::doAContrarioMatch(const IrisTemplate& irisTemplate, int nPart
 	this->resultPartsDistances = vector< vector<double> >(nParts, vector<double>(n));		// This is a copy in a better format to interface with Python
 
 	this->calculatePartsDistances(irisTemplate, nParts, nRots, rotStep);
-
 
 	for (int p = 0; p < nParts; p++) {
 		//distances[p] = cvCreateMat(1, n, CV_32F);

@@ -15,11 +15,11 @@ public:
 	IrisDatabase();
 	virtual ~IrisDatabase();
 
-	void addTemplate(int templateId, const IrisTemplate& irisTemplate);
-	void deleteTemplate(int templateId);
+	virtual void addTemplate(int templateId, const IrisTemplate& irisTemplate);
+	virtual void deleteTemplate(int templateId);
+	virtual void doMatch(const IrisTemplate& irisTemplate, void (*statusCallback)(int) = NULL, int nRots=20, int rotStep=2);
+	virtual void doAContrarioMatch(const IrisTemplate& irisTemplate, int nParts=4, void (*statusCallback)(int) = NULL, int nRots=20, int rotStep=2);
 
-	void doMatch(const IrisTemplate& irisTemplate, void (*statusCallback)(int) = NULL, int nRots=20, int rotStep=2);
-	void doAContrarioMatch(const IrisTemplate& irisTemplate, int nParts=4, void (*statusCallback)(int) = NULL, int nRots=20, int rotStep=2);
 	inline size_t databaseSize() const { return this->templates.size(); }
 
 	inline int getMinDistanceId() const { return this->matchingDistances[0].first; }

@@ -29,9 +29,34 @@ public:
 
 	GrayscaleImage getComparationImage();
 
+	static inline const GrayscaleImage getPart(const IrisTemplate& irisTemplate, int part, int nParts, bool fromMask)
+	{
+		const GrayscaleImage& packedMat = (fromMask ? irisTemplate.getPackedMask() : irisTemplate.getPackedTemplate());
+		const int width = packedMat.cols;
+		const int height = packedMat.rows;
+
+		assert(width % nParts == 0);
+		assert(packedMat.isContinuous());
+		const int partWidth = width / nParts;
+
+		// Faster version of the algorithm (using entire blocks) but less reliable
+		Rect r(part*partWidth, 0, partWidth, height);
+		return packedMat(r);
+
+		// Slower version: interleave the columns in each part. More reliable.
+		//TODO: Apply this in the CUDA version
+		/*GrayscaleImage res(height, partWidth);
+			for (int y = 0; y < height; y++) {
+			const uint8_t* srcRow = packedMat.ptr(y);
+			for (int xdest = 0; xdest < partWidth; xdest++) {
+				res(y, xdest) = srcRow[xdest*nParts+part];
+			}
+		}
+		return res;*/
+	}
+
 private:
 	static void rotateMatrix(const Mat& src, Mat& dest, int step);
-	static inline const GrayscaleImage getPart(const IrisTemplate& irisTemplate, int part, int nParts, bool fromMask);
 	IrisTemplate irisTemplate;
 
 	GrayscaleImage maskIntersection;

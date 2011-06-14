@@ -120,3 +120,25 @@ __global__ void doGPUAContrarioMatchKernel(const uint8_t* rotatedTemplates, cons
 	}
 }
 
+// Wrapper functions to invoke from C++
+void doGPUMatchKernelWrapper(dim3 blockSize, dim3 gridSize, const uint8_t* d_rotatedTemplates, const uint8_t* d_rotatedMasks, size_t nRotatedTemplates, const GPUDatabase database, float* d_distances)
+{
+	doGPUMatchKernel<<<gridSize, blockSize>>>(
+		d_rotatedTemplates,
+		d_rotatedMasks,
+		nRotatedTemplates,
+		database,
+		d_distances
+	);
+}
+
+void doGPUAContrarioMatchKernelWrapper(dim3 blockSize, dim3 gridSize, const uint8_t* d_rotatedTemplates, const uint8_t* d_rotatedMasks, size_t nRotatedTemplates, const GPUDatabase database, float* d_distances)
+{
+	doGPUAContrarioMatchKernel<<<gridSize, blockSize>>>(
+		d_rotatedTemplates,
+		d_rotatedMasks,
+		nRotatedTemplates,
+		database,
+		d_distances
+	);
+}

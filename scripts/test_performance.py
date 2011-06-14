@@ -2,33 +2,32 @@
 # -*- coding: UTF8 -*-
 import sys
 
-import horus
+import pyhorus
 import Database
 from pylab import *
 
 def matchesPorSegundo(v):
-	return (1000.0*v[-1, 0])/v[-1, 1];
+	return (v[-1, 0])/v[-1, 1];
 
 base = Database.getDatabase('bath')
-#irisDatabase = horus.IrisDatabase()
-irisDatabaseCUDA = horus.IrisDatabaseCUDA()
-irisDatabase = horus.IrisDatabase()
+irisDatabaseCUDA = pyhorus.IrisDatabaseCUDA()
+irisDatabase = pyhorus.IrisDatabase()
 
 step = 1000
 cant_total = 20000
 #cant_total = 5000
 
-codigo_base = base.conn.execute('SELECT codigo_gabor FROM base_iris WHERE segmentacion_correcta=1').fetchone()
-codigo_base = horus.unserializeIrisTemplate(str(codigo_base[0]))
+codigo_base = base.conn.execute('SELECT template FROM vw_base_iris WHERE entrada_valida=1').fetchone()
+codigo_base = pyhorus.unserializeIrisTemplate(str(codigo_base[0]))
 
 count = 0
 print "Tamaño | Tiempo match | Tiempo a contrario | Tiempo match CUDA | Tiempo a contrario CUDA | Dif. prom. HD | Dif. prom. NFA"
 res = []
 while count < cant_total:
-	rows = base.conn.execute('SELECT id_imagen,codigo_gabor FROM base_iris WHERE segmentacion_correcta=1')
+	rows = base.conn.execute('SELECT id_iris,template FROM vw_base_iris WHERE entrada_valida=1')
 	for row in rows:
 		idTemplate = int(row[0])
-		codigo = horus.unserializeIrisTemplate(str(row[1]))
+		codigo = pyhorus.unserializeIrisTemplate(str(row[1]))
 		irisDatabase.addTemplate(count, codigo)
 		irisDatabaseCUDA.addTemplate(count, codigo)
 		count += 1
@@ -41,11 +40,13 @@ while count < cant_total:
 
 			irisDatabaseCUDA.doMatch(codigo_base)
 			matchTimeCUDA = irisDatabaseCUDA.getMatchingTime()
+			print "irisDatabaseCUDA.doAContrarioMatch"
 			irisDatabaseCUDA.doAContrarioMatch(codigo_base)
+			print "irisDatabaseCUDA.fin"
 			aContrarioMatchTimeCUDA = irisDatabaseCUDA.getMatchingTime()
 			
-			rd = array(irisDatabase.resultDistances)
-			rdcuda = array(irisDatabaseCUDA.resultDistances)
+			rd = array(irisDatabase.getDistances())
+			rdcuda = array(irisDatabaseCUDA.getDistances())
 			
 			rnfa = array(irisDatabase.resultNFAs)
 			rnfacuda = array(irisDatabaseCUDA.resultNFAs)

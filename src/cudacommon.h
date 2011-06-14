@@ -2,13 +2,25 @@
 
 #include <stdint.h>
 #include <vector>
-#include "iristemplate.h"
-#include "templatecomparator.h"
+#include <cuda.h>
+#include <cuda_runtime.h>
 
 using namespace std;
 
-#define MAX_ROTS 40
-#define MAX_PARTS 8
+const unsigned MAX_ROTS=40;
+const unsigned MAX_PARTS=8;
+
+// Taken from the CUDA SDK
+#define CUDA_SAFE_CALL(err) __cudaSafeCall(err, __FILE__, __LINE__)
+inline void __cudaSafeCall(cudaError err, const char *file, const int line )
+{
+	if (cudaSuccess != err) {
+		fprintf(stderr, "CUDA_SAFE_CALL() Runtime API error in file <%s>, line %i : %s.\n",
+				file, line, cudaGetErrorString(err));
+		//TODO: throw exception instead
+		exit(-1);
+	}
+}
 
 struct GPUDatabase {
 	uint8_t* d_templates;
@@ -22,13 +34,8 @@ struct GPUDatabase {
 	}
 };
 
-// Wrapper functions (must be defined as "extern C"
-namespace gpu {
-	extern "C"
-	{
-		void loadDatabase(const vector<IrisTemplate*>& templates, GPUDatabase& gpuDatabase);
-		void cleanupDatabase(GPUDatabase* database);
-		void doGPUMatch(const TemplateComparator& comparator, GPUDatabase& gpuDatabase, vector<double>& resultDistances, double& matchingTime);
-		void doGPUAContrarioMatch(const TemplateComparator& comparator, GPUDatabase& gpuDatabase, unsigned nParts, vector< vector<double> >& resultDistances, double& matchingTime);
-	}
+// Wrapper functions (must be defined as "extern C")
+extern "C" {
+	void doGPUMatchKernelWrapper(dim3 blockSize, dim3 gridSize, const uint8_t* rotatedTemplates, const uint8_t* rotatedMasks, size_t nRotatedTemplates, const GPUDatabase database, float* distances);
+	void doGPUAContrarioMatchKernelWrapper(dim3 blockSize, dim3 gridSize, const uint8_t* rotatedTemplates, const uint8_t* rotatedMasks, size_t nRotatedTemplates, const GPUDatabase database, float* distances);
 }

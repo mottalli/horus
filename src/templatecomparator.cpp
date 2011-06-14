@@ -273,27 +273,3 @@ GrayscaleImage TemplateComparator::getComparationImage()
 	res.setTo(128, m2);
 	return res;
 }
-
-const GrayscaleImage TemplateComparator::getPart(const IrisTemplate& irisTemplate, int part, int nParts, bool fromMask)
-{
-	const GrayscaleImage& packedMat = (fromMask ? irisTemplate.getPackedMask() : irisTemplate.getPackedTemplate());
-	const int width = packedMat.cols;
-	const int height = packedMat.rows;
-
-	assert(width % nParts == 0);
-	const int partWidth = width / nParts;
-
-	/*
-	// Faster version of the algorithm (using entire blocks) but less reliable
-	Rect r(part*partWidth, 0, partWidth, height);
-	return packedMat(r);
-	*/
-	// Slower version: interleave the columns in each part. More reliable.
-	//TODO: Apply this in the CUDA version
-	GrayscaleImage res(height, partWidth);
-	for (int i = 0; i < partWidth; i++) {
-		Mat dest = res.col(i);
-		packedMat.col(i*nParts+part).copyTo(dest);
-	}
-	return res;
-}
