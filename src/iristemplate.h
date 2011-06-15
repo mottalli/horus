@@ -1,7 +1,7 @@
 #pragma once
 
-#include "common.h"
 #include <string>
+#include "common.h"
 
 namespace horus {
 
@@ -22,13 +22,16 @@ public:
 
 	void setPackedData(const GrayscaleImage& packedTemplate, const GrayscaleImage& packedMask, string algorithmSignature);
 
-
 	/**
 	 * Returns a value between 0 and 100 with the percentage of valid (non-masked) bits in the template
 	 */
 	unsigned getValidBitCount() const;
 
 	string encoderSignature;
+
+	//TODO
+	unsigned irisQuality;
+	unsigned templateQuality;
 protected:
 	GrayscaleImage irisTemplate, mask;
 };

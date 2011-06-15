@@ -30,6 +30,8 @@ IrisTemplate::IrisTemplate(const GrayscaleImage& binaryTemplate, const Grayscale
 	tools::packBits(binaryMask, this->mask);
 
 	this->encoderSignature = encoderSignature_;
+	this->irisQuality = 0;
+	this->templateQuality = 0;
 }
 
 IrisTemplate::IrisTemplate(const IrisTemplate& otherTemplate)
@@ -37,6 +39,8 @@ IrisTemplate::IrisTemplate(const IrisTemplate& otherTemplate)
 	this->irisTemplate = otherTemplate.irisTemplate.clone();
 	this->mask = otherTemplate.mask.clone();
 	this->encoderSignature = otherTemplate.encoderSignature;
+	this->irisQuality = otherTemplate.irisQuality;
+	this->templateQuality = otherTemplate.templateQuality;
 }
 
 IrisTemplate& IrisTemplate::operator=(const IrisTemplate& otherTemplate)
@@ -44,6 +48,8 @@ IrisTemplate& IrisTemplate::operator=(const IrisTemplate& otherTemplate)
 	this->irisTemplate = otherTemplate.irisTemplate.clone();
 	this->mask = otherTemplate.mask.clone();
 	this->encoderSignature = otherTemplate.encoderSignature;
+	this->irisQuality = otherTemplate.irisQuality;
+	this->templateQuality = otherTemplate.templateQuality;
 
 	return *this;
 }

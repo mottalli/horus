@@ -68,8 +68,7 @@ void IrisDatabase::doMatch(const IrisTemplate& irisTemplate, void (*statusCallba
 	if (statusCallback) statusCallback(100);
 
 	const IrisTemplate& matchingTemplate = this->templates[ this->positions[this->getMinDistanceId()] ];
-	comparator.compare(matchingTemplate);
-	this->comparationImage = comparator.getComparationImage();
+	this->comparationImage = comparator.getComparationImage(matchingTemplate);
 }
 
 void IrisDatabase::calculatePartsDistances(const IrisTemplate& irisTemplate, unsigned int nParts, unsigned int nRots, unsigned int rotStep)
@@ -179,9 +178,4 @@ void IrisDatabase::doAContrarioMatch(const IrisTemplate& irisTemplate, int nPart
 	delete[] cumhists;
 
 	this->matchingTime = this->timer.elapsed();
-
-	// Generate the comparation image
-	TemplateComparator comparator(irisTemplate, nRots, rotStep);
-	comparator.compare(this->templates[bestIdx]);
-	this->comparationImage = comparator.getComparationImage();
 }

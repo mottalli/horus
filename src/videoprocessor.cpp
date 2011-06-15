@@ -59,6 +59,10 @@ VideoProcessor::VideoStatus VideoProcessor::processFrame(const Mat& frame)
 				CapturedTemplate capturedTemplate;
 				capturedTemplate.image = this->lastFrameBW.clone();
 				capturedTemplate.irisTemplate = this->irisEncoder.generateTemplate(this->lastFrameBW, this->lastSegmentationResult);
+				capturedTemplate.irisTemplate.irisQuality = this->lastSegmentationResult.pupilContourQuality;
+				// Note that the "template quality" does not neccesarily have to be the valid bit count (could be something else)
+				// That's why we put it outside the IrisTemplate class
+				capturedTemplate.irisTemplate.templateQuality = capturedTemplate.irisTemplate.getValidBitCount();
 				capturedTemplate.quality = this->lastIrisQuality;
 				capturedTemplate.segmentationResult = this->lastSegmentationResult;
 
@@ -85,7 +89,8 @@ VideoProcessor::VideoStatus VideoProcessor::processFrame(const Mat& frame)
 					// Check if we have a "good" template
 					IrisTemplate irisTemplate = this->getAverageTemplate();
 					if (this->qualityChecker.irisTemplateQuality(irisTemplate) < this->parameters.minAverageTemplateQuality) {
-						// Bad template - try another one
+						// Bad template - try another one (repeats the whole process!)
+						this->lastStatus = BAD_TEMPLATE;
 						this->resetCapture();
 					} else {
 						this->lastStatus = GOT_TEMPLATE;

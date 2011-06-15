@@ -28,7 +28,7 @@ public:
 
 	VideoProcessorParameters()
 	{
-		this->templateWaitTimeout = 20;
+		this->templateWaitTimeout = 10;
 		this->focusThreshold = 35;
 		this->interlacedVideo = true;
 		this->correlationThreshold = 92;
@@ -39,7 +39,7 @@ public:
 		this->pauseAfterCapture = true;
 		this->pauseFrames = 40;
 		this->minCountForTemplateAveraging = 10;
-		this->minAverageTemplateQuality = 65;
+		this->minAverageTemplateQuality = 70;
 	}
 };
 

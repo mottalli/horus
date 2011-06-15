@@ -117,17 +117,17 @@ Size IrisEncoder::getNormalizationSize()
 IrisTemplate IrisEncoder::averageTemplates(const vector<const IrisTemplate*>& templates)
 {
 	assert(templates.size() >= 1);
-	GrayscaleImage unpackedTemplate, unpackedMask;
-	GrayscaleImage acum, acumMask;
+	Mat1b unpackedTemplate, unpackedMask;
+	Mat1b acum, acumMask;
+
+	// Just retrieve the size of the templates
+	unpackedTemplate = templates[0]->getUnpackedTemplate();
+	acum = Mat1b::zeros(unpackedTemplate.size());
+	acumMask = Mat1b::zeros(unpackedTemplate.size());
 
 	for (size_t i = 0; i < templates.size(); i++) {
 		unpackedTemplate = templates[i]->getUnpackedTemplate();
 		unpackedMask = templates[i]->getUnpackedMask();
-
-		if (acum.empty()) {
-			acum = Mat_<float>::zeros(unpackedTemplate.size());
-			acumMask = Mat_<float>::zeros(unpackedTemplate.size());
-		}
 
 		assert(acum.size() == unpackedTemplate.size());
 
@@ -138,18 +138,17 @@ IrisTemplate IrisEncoder::averageTemplates(const vector<const IrisTemplate*>& te
 	Mat averageTemplate = Mat::zeros(acum.size(), CV_8UC1), averageMask;
 	Mat zeros, ones, zerosMask, onesMask;
 
+	// Calculate the average template
 	threshold(acum, zeros, templates.size()*0.25, 1, THRESH_BINARY_INV);
 	threshold(acum, ones, templates.size()*0.75, 1, THRESH_BINARY);
-
-	threshold(acumMask, zerosMask, templates.size()*0.25, 1, THRESH_BINARY_INV);
-	threshold(acumMask, onesMask, templates.size()*0.75, 1, THRESH_BINARY);
-
 	averageTemplate.setTo(1, ones);
 	averageTemplate.setTo(0, zeros);
 
+	// Calculate the average mask
+	threshold(acumMask, zerosMask, templates.size()*0.25, 1, THRESH_BINARY_INV);
+	threshold(acumMask, onesMask, templates.size()*0.75, 1, THRESH_BINARY);
 	bitwise_xor(zeros, ones, averageMask);				// EITHER 0 or 1 => consistent => mark as valid in mask
 	averageMask.setTo(0, zerosMask);					// Disable the bits that are usually disabled in the mask
-
 
 	return IrisTemplate(averageTemplate, averageMask, templates[0]->encoderSignature);
 }

@@ -56,7 +56,7 @@ void MatchingDialog::doMatch(IrisTemplate irisTemplate, const GrayscaleImage& im
 	ColorImage decorated, decoratedSmall;
 	Decorator decorator;
 
-	bool hasMatch = (matchingHD < 0.34);
+	bool hasMatch = (matchingHD < 0.30);
 
 	QString textoCant = (boost::format("Sobre un total de %i iris - Tiempo de busqueda: %.2f miliseg.") % DB.databaseSize() % totalTime).str().c_str();
 	this->ui->lblCantidadImagenes->setText(textoCant);

@@ -35,9 +35,7 @@ double TemplateComparator::compare(const IrisTemplate& otherTemplate)
 
 	assert(this->irisTemplate.encoderSignature == otherTemplate.encoderSignature);		// Must be the same "type" of template
 
-	//for (std::vector<IrisTemplate>::const_iterator it = this->rotatedTemplates.begin(); it != this->rotatedTemplates.end(); it++) {
 	for (size_t i = 0; i < this->rotatedTemplates.size(); i++) {
-		//const IrisTemplate& rotatedTemplate = (*it);
 		const IrisTemplate& rotatedTemplate = this->rotatedTemplates[i];
 		double hd = this->packedHammingDistance(rotatedTemplate.getPackedTemplate(), rotatedTemplate.getPackedMask(),
 				otherTemplate.getPackedTemplate(), otherTemplate.getPackedMask());
@@ -161,14 +159,6 @@ double TemplateComparator::packedHammingDistance(const GrayscaleImage& template1
 	int nonZeroBits = horus::tools::countNonZeroBits(xorBuffer);
 	int validBits = horus::tools::countNonZeroBits(maskIntersection);
 
-	/*//
-	int template1ValidBits = countNonZeroBits(mask1);
-	int template2ValidBits = countNonZeroBits(mask2);
-	cout << 100.0*double(template1ValidBits)/double(template1.cols*template1.rows*8) << '%' << " ";
-	cout << 100.0*double(template2ValidBits)/double(template1.cols*template1.rows*8) << '%' << " ";
-	cout << 100.0*double(validBits)/double(maskIntersection.cols*maskIntersection.rows*8) << '%' << endl;
-	//*/
-
 	if (validBits == 0) {
 		return 1.0;		// No bits to compare
 	}
@@ -184,16 +174,17 @@ const IrisTemplate& TemplateComparator::getBestRotatedTemplate()
 	return this->rotatedTemplates[this->minHDIdx];
 }
 
-GrayscaleImage TemplateComparator::getComparationImage()
+GrayscaleImage TemplateComparator::getComparationImage(const IrisTemplate& otherTemplate)
 {
-	IrisTemplate t1 = this->irisTemplate;
-	IrisTemplate t2 = this->getBestRotatedTemplate();
+	this->compare(otherTemplate);
+
+	const IrisTemplate& t1 = this->getBestRotatedTemplate();
+	const IrisTemplate& t2 = otherTemplate;
 
 	GrayscaleImage i1 = t1.getUnpackedTemplate();
 	GrayscaleImage i2 = t2.getUnpackedTemplate();
 	GrayscaleImage m1 = t1.getUnpackedMask();
 	GrayscaleImage m2 = t2.getUnpackedMask();
-
 
 	GrayscaleImage res;
 	i1.setTo(255, i1);
@@ -201,11 +192,12 @@ GrayscaleImage TemplateComparator::getComparationImage()
 	m1.setTo(255, m1);
 	m2.setTo(255, m2);
 
-	bitwise_not(m1, m1);
+	bitwise_not(m1, m1);				// Set to 1 the invalid bits
 	bitwise_not(m2, m2);
 
-	bitwise_xor(i1, i2, res);
+	bitwise_xor(i1, i2, res);			// Note: this sets to white the *different* bits
 	res.setTo(128, m1);
 	res.setTo(128, m2);
+
 	return res;
 }
