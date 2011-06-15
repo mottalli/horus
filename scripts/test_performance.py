@@ -40,9 +40,7 @@ while count < cant_total:
 
 			irisDatabaseCUDA.doMatch(codigo_base)
 			matchTimeCUDA = irisDatabaseCUDA.getMatchingTime()
-			print "irisDatabaseCUDA.doAContrarioMatch"
 			irisDatabaseCUDA.doAContrarioMatch(codigo_base)
-			print "irisDatabaseCUDA.fin"
 			aContrarioMatchTimeCUDA = irisDatabaseCUDA.getMatchingTime()
 			
 			rd = array(irisDatabase.getDistances())

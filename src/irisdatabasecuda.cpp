@@ -28,7 +28,6 @@ void IrisDatabaseCUDA::deleteTemplate(int templateId)
 
 void IrisDatabaseCUDA::calculatePartsDistances(const IrisTemplate& irisTemplate, int nParts, int nRots, int rotStep)
 {
-	cout << "CUDA::calculatePartsDistances" << endl;
 	size_t n = this->templates.size();
 
 	assert(this->resultPartsDistances.size() == nParts);
@@ -184,4 +183,98 @@ pair<uint8_t*, uint8_t*> IrisDatabaseCUDA::uploadRotatedTemplates(const vector<I
 	}
 
 	return pair<uint8_t*,uint8_t*>(d_rotatedTemplates, d_rotatedMasks);
+}
+
+void IrisDatabaseCUDA::doAContrarioMatch(const IrisTemplate& irisTemplate, int nParts, void (*)(int), int nRots, int rotStep)
+{
+	this->timer.restart();
+	unsigned const int BINS = this->templates.size()/2;
+	assert(BINS >= 1);
+	const float BIN_MIN = 0.0f;
+	const float BIN_MAX = 0.7f;
+
+	IplImage** distances = new IplImage*[nParts];			// Should be CvMat but OpenCV doesn't let you use CvMat for calculating histograms
+	size_t n = this->templates.size();
+	this->resultPartsDistances = vector< vector<double> >(nParts, vector<double>(n));		// This is a copy in a better format to interface with Python
+
+	this->calculatePartsDistances(irisTemplate, nParts, nRots, rotStep);
+
+	for (int p = 0; p < nParts; p++) {
+		//distances[p] = cvCreateMat(1, n, CV_32F);
+		distances[p] = cvCreateImage(cvSize(1, n), IPL_DEPTH_32F, 1);
+		for (size_t i = 0; i < n; i++) {
+			cvSetReal1D(distances[p], i, this->resultPartsDistances[p][i]);
+		}
+	}
+
+	// Calculate the histogram for the distances of each part
+	float l_range[] = {BIN_MIN, BIN_MAX};		// The histogram has BINS bins equally distributed between BIN_MIN and BIN_MAX
+	float* range[] = { l_range };
+	int size[] = { BINS };
+
+	CvHistogram** histograms = new CvHistogram*[nParts];
+
+	for (int p = 0; p < nParts; p++) {
+		histograms[p] = cvCreateHist(1, size, CV_HIST_ARRAY, range, 1);
+		IplImage* a[] = { distances[p] };
+		cvCalcHist(a, histograms[p]);
+	}
+
+	// Calculate the cumulative of the histograms
+	float** cumhists = new float*[nParts];
+	for (int p = 0; p < nParts; p++) {
+		float* cumhist = (float*)malloc(BINS*sizeof(float));
+
+		cumhist[0] = cvQueryHistValue_1D(histograms[p], 0);
+		for (unsigned int i = 1; i < BINS; i++) {
+			cumhist[i] = cumhist[i-1] + cvQueryHistValue_1D(histograms[p], i);
+		}
+
+		cumhists[p] = cumhist;
+	}
+
+
+	// Now calculate the NFA between the template and all the templates in the database
+	this->resultNFAs = vector<double>(n);
+	this->minNFA = INT_MAX;
+
+
+	size_t bestIdx = 0;
+	for (unsigned int i = 0; i < n; i++) {
+		this->resultNFAs[i] = log10(double(n));
+
+		for (int p = 0; p < nParts; p++) {
+			double distance = cvGetReal1D(distances[p], i);
+			unsigned int bin = floor( distance / ((BIN_MAX-BIN_MIN)/BINS) );
+			assert(bin < BINS);
+
+			this->resultNFAs[i] += log10( double(cumhists[p][bin]) / double(n) );		// The accumulated histogram has to be normalized, so we divide by n
+		}
+
+		int matchId = this->ids[i];
+
+		if (matchId != this->ignoreId && this->resultNFAs[i] < this->minNFA) {
+			this->minNFA = this->resultNFAs[i];
+			this->minNFAId = matchId;
+			bestIdx = i;
+		}
+	}
+
+	// Clean up
+	for (int p = 0; p < nParts; p++) {
+		cvReleaseHist(&histograms[p]);
+		cvReleaseImage(&distances[p]);
+		free(cumhists[p]);
+	}
+
+	delete[] distances;
+	delete[] histograms;
+	delete[] cumhists;
+
+	this->matchingTime = this->timer.elapsed();
+
+	// Generate the comparation image
+	TemplateComparator comparator(irisTemplate, nRots, rotStep);
+	comparator.compare(this->templates[bestIdx]);
+	this->comparationImage = comparator.getComparationImage();
 }

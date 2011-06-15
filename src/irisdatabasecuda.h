@@ -18,6 +18,7 @@ public:
 	virtual void addTemplate(int templateId, const IrisTemplate& irisTemplate);
 	virtual void deleteTemplate(int templateId);
 	virtual void doMatch(const IrisTemplate& irisTemplate, void (*statusCallback)(int) = NULL, int nRots=20, int rotStep=2);
+	virtual void doAContrarioMatch(const IrisTemplate& irisTemplate, int nParts=4, void (*statusCallback)(int) = NULL, int nRots=20, int rotStep=2);
 
 protected:
 	virtual void calculatePartsDistances(const IrisTemplate& irisTemplate, int nParts, int nRots, int rotStep);
