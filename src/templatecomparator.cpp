@@ -6,10 +6,9 @@
  */
 
 #include "templatecomparator.h"
+#include "tools.h"
 
 using namespace horus;
-
-int countNonZeroBits(const Mat& mat);
 
 TemplateComparator::TemplateComparator(int nRots, int rotStep)
 {
@@ -159,8 +158,8 @@ double TemplateComparator::packedHammingDistance(const GrayscaleImage& template1
 	bitwise_xor(template1, template2, this->xorBuffer);
 	bitwise_and(this->xorBuffer, this->maskIntersection, this->xorBuffer);
 
-	int nonZeroBits = countNonZeroBits(xorBuffer);
-	int validBits = countNonZeroBits(maskIntersection);
+	int nonZeroBits = horus::tools::countNonZeroBits(xorBuffer);
+	int validBits = horus::tools::countNonZeroBits(maskIntersection);
 
 	/*//
 	int template1ValidBits = countNonZeroBits(mask1);
@@ -179,69 +178,6 @@ double TemplateComparator::packedHammingDistance(const GrayscaleImage& template1
 	return double(nonZeroBits)/double(validBits);
 }
 
-
-/**
- * 0000 0
- * 0001 1
- * -------
- * 0010 1 = 0+1
- * 0011 2 = 1+1
- * -------
- * 0100 1 = 0+1
- * 0101 2 = 1+1
- * 0110 2 = 0+1+1
- * 0111 3 = 1+1+1
- * -------
- * 1000 1 = 0+1
- * 1001 2 = 1+1
- * 1010 2 = 0+1+1
- * 1011 3 = 1+1+1
- * 1100 2 = 0+1+1
- * 1101 3 = 1+1+1
- * 1110 3 = 0+1+1+1
- * 1111 4 = 1+1+1+1
- * --------
- * etc...
- */
-int countNonZeroBits(const Mat& mat)
-{
-	assert(mat.depth() == CV_8U);
-
-	static bool initialized = false;
-	static int nonZeroBits[256];		// Note: this could be hard-coded but it's too long and the algorithm to calculate it
-										// is quite simple and we only do it once
-	if (!initialized) {
-		// Calculate the number of bits set to 1 on an 8-bit value
-		nonZeroBits[0] = 0;
-		nonZeroBits[1] = 1;
-
-		// Sorry about non-meaningful variable names :)
-		int p = 2;
-		while (p < 256) {
-			for (int q = 0; q < p; q++) {
-				nonZeroBits[p+q] = nonZeroBits[q]+1;
-			}
-			p = 2*p;
-		}
-
-		initialized = true;
-	}
-
-	int res = 0;
-
-	for (int y = 0; y < mat.rows; y++) {
-		const uint8_t* row = mat.ptr(y);
-		int x;
-		for (x = 0; x < mat.cols-3; x += 4) {		// Optimization: aligned to 4 byes, extracted from cvCountNonZero
-			uint8_t val0 = row[x], val1 = row[x+1], val2 = row[x+2], val3 = row[x+3];
-			res += nonZeroBits[val0] + nonZeroBits[val1] + nonZeroBits[val2] + nonZeroBits[val3];
-		}
-		for (; x < mat.cols; x++) {
-			res += nonZeroBits[ row[x] ];
-		}
-	}
-	return res;
-}
 
 const IrisTemplate& TemplateComparator::getBestRotatedTemplate()
 {

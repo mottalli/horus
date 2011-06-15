@@ -84,3 +84,10 @@ void IrisTemplate::setPackedData(const GrayscaleImage& packedTemplate, const Gra
 	this->mask = packedMask;
 	this->encoderSignature = algorithmSignature;
 }
+
+unsigned IrisTemplate::getValidBitCount() const
+{
+	unsigned total = this->mask.cols*this->mask.rows*8;			// *8 because it's the byte-packed representation
+	unsigned nonzero = tools::countNonZeroBits(this->mask);
+	return (100*nonzero)/total;
+}

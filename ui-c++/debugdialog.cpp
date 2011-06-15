@@ -47,7 +47,7 @@ void DebugDialog::slotFrameProcessed(const VideoProcessor& videoProcessor)
 		this->ui->similarityImage->showImage(similarityImage);
 
 		GrayscaleImage adjustmentRing = videoProcessor.segmentator.pupilSegmentator.adjustmentRing.clone();
-		GrayscaleImage adjustmentRingGradient = Tools::normalizeImage(videoProcessor.segmentator.pupilSegmentator.adjustmentRingGradient);
+		GrayscaleImage adjustmentRingGradient = horus::tools::normalizeImage(videoProcessor.segmentator.pupilSegmentator.adjustmentRingGradient);
 		const Mat1f& adjustmentSnake = videoProcessor.segmentator.pupilSegmentator.adjustmentSnake;
 
 		int delta = adjustmentRingGradient.rows * 0.1;

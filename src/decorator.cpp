@@ -133,7 +133,7 @@ void Decorator::drawParabola(Image& image, const Parabola& parabola, int xMin, i
 void Decorator::drawTemplate(Image& image, const IrisTemplate& irisTemplate, Point p0)
 {
 	GrayscaleImage imgTemplate = irisTemplate.getTemplateImage();
-	Decorator::superimposeImage(imgTemplate, image, p0, true);
+	tools::superimposeImage(imgTemplate, image, p0, true);
 }
 
 void Decorator::setDrawingColors(Scalar pupilColor_, Scalar irisColor_, Scalar upperEyelidColor_, Scalar lowerEyelidColor_)
@@ -186,32 +186,7 @@ void Decorator::drawIrisTexture(const Mat& imageSrc, Mat& imageDest, Segmentatio
 	IrisEncoder::normalizeIris(srcBW, texture, mask, segmentationResult);
 
 	tools::stretchHistogram(texture, texture);
-	Decorator::superimposeImage(texture, imageDest, Point(0,0), false);
-}
-
-void Decorator::superimposeImage(const Image& imageSrc, Image& imageDest, Point p, bool drawBorder)
-{
-	Rect r = Rect(p.x, p.y, imageSrc.cols, imageSrc.rows);
-	assert(r.br().x < imageDest.cols && r.br().y < imageDest.rows);		// Inside the image
-
-	Image destRect = imageDest(r);
-
-	if (imageSrc.type() == imageDest.type()) {
-		imageSrc.copyTo(destRect);
-	} else if (imageSrc.channels() == 3) {
-		assert(imageDest.channels() == 1);
-		vector<Mat> channels(3, imageSrc);
-		merge(channels, destRect);
-	} else {
-		assert(imageSrc.channels() == 1 && imageDest.channels() == 3);
-		cvtColor(imageSrc, destRect, CV_GRAY2BGR);
-	}
-
-	if (drawBorder) {
-		Point tl(r.tl().x-1, r.tl().y-1);
-		Point br(r.br().x+1, r.br().y+1);
-		rectangle(imageDest, tl, br, CV_RGB(0,0,0), 1);
-	}
+	tools::superimposeImage(texture, imageDest, Point(0,0), false);
 }
 
 void Decorator::drawCaptureStatus(Image& image, const VideoProcessor& videoProcessor)

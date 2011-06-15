@@ -49,39 +49,6 @@ void horus::tools::unpackBits(const GrayscaleImage& src, GrayscaleImage& dest, i
 	}
 }
 
-void horus::tools::drawHistogram(const IplImage* img)
-{
-	int bins = 256;
-	int hsize[] = { bins };
-
-	float xranges[] = { 0, 256 };
-	float* ranges[] =  { xranges };
-
-	IplImage* copy = cvCloneImage(img);
-	IplImage* planes[] = { copy };
-
-	CvHistogram* hist = cvCreateHist(1, hsize, CV_HIST_ARRAY, ranges, 1);
-	cvCalcHist(planes, hist, false);
-
-	float min_value = 0, max_value = 0;
-	cvGetMinMaxHistValue(hist, &min_value, &max_value);
-
-	IplImage* imgHist = cvCreateImage(cvSize(bins, 50), IPL_DEPTH_8U, 1);
-	cvSet(imgHist, cvScalar(255,0,0,0));
-	for (int i = 0; i < bins; i++) {
-		float value = cvQueryHistValue_1D(hist, i);
-		int normalized = cvRound(imgHist->height*(value/max_value));
-		cvLine(imgHist, Point(i,imgHist->height), Point(i, imgHist->height-normalized), CV_RGB(0,0,0));
-	}
-
-	cvNamedWindow("histogram");
-	cvShowImage("histogram", imgHist);
-
-	cvReleaseImage(&imgHist);
-	cvReleaseHist(&hist);
-	cvReleaseImage(&copy);
-}
-
 vector< pair<Point, Point> > horus::tools::iterateIris(const SegmentationResult& segmentation, int width, int height, double theta0, double theta1, double radiusMin, double radiusMax)
 {
 	vector< pair<Point, Point> > res(width*height);
@@ -278,4 +245,92 @@ void horus::tools::toGrayscale(const Image& src, GrayscaleImage& dest, bool clon
 	} else if (src.type() == CV_8UC3) {
 		cvtColor(src, dest, CV_BGR2GRAY);
 	}
+}
+
+void horus::tools::superimposeImage(const Image& imageSrc, Image& imageDest, Point p, bool drawBorder)
+{
+	Rect r = Rect(p.x, p.y, imageSrc.cols, imageSrc.rows);
+	assert(r.br().x < imageDest.cols && r.br().y < imageDest.rows);		// Inside the image
+
+	Image destRect = imageDest(r);
+
+	if (imageSrc.type() == imageDest.type()) {
+		imageSrc.copyTo(destRect);
+	} else if (imageSrc.channels() == 3) {
+		assert(imageDest.channels() == 1);
+		vector<Mat> channels(3, imageSrc);
+		merge(channels, destRect);
+	} else {
+		assert(imageSrc.channels() == 1 && imageDest.channels() == 3);
+		cvtColor(imageSrc, destRect, CV_GRAY2BGR);
+	}
+
+	if (drawBorder) {
+		Point tl(r.tl().x-1, r.tl().y-1);
+		Point br(r.br().x+1, r.br().y+1);
+		rectangle(imageDest, tl, br, CV_RGB(0,0,0), 1);
+	}
+}
+
+/**
+ * 0000 0
+ * 0001 1
+ * -------
+ * 0010 1 = 0+1
+ * 0011 2 = 1+1
+ * -------
+ * 0100 1 = 0+1
+ * 0101 2 = 1+1
+ * 0110 2 = 0+1+1
+ * 0111 3 = 1+1+1
+ * -------
+ * 1000 1 = 0+1
+ * 1001 2 = 1+1
+ * 1010 2 = 0+1+1
+ * 1011 3 = 1+1+1
+ * 1100 2 = 0+1+1
+ * 1101 3 = 1+1+1
+ * 1110 3 = 0+1+1+1
+ * 1111 4 = 1+1+1+1
+ * --------
+ * etc...
+ */
+int horus::tools::countNonZeroBits(const Mat& mat)
+{
+	assert(mat.depth() == CV_8U);
+
+	static bool initialized = false;
+	static int nonZeroBits[256];		// Note: this could be hard-coded but it's too long and the algorithm to calculate it
+										// is quite simple and we only do it once
+	if (!initialized) {
+		// Calculate the number of bits set to 1 on an 8-bit value
+		nonZeroBits[0] = 0;
+		nonZeroBits[1] = 1;
+
+		// Sorry about non-meaningful variable names :)
+		int p = 2;
+		while (p < 256) {
+			for (int q = 0; q < p; q++) {
+				nonZeroBits[p+q] = nonZeroBits[q]+1;
+			}
+			p = 2*p;
+		}
+
+		initialized = true;
+	}
+
+	int res = 0;
+
+	for (int y = 0; y < mat.rows; y++) {
+		const uint8_t* row = mat.ptr(y);
+		int x;
+		for (x = 0; x < mat.cols-3; x += 4) {		// Optimization: aligned to 4 byes, extracted from cvCountNonZero
+			uint8_t val0 = row[x], val1 = row[x+1], val2 = row[x+2], val3 = row[x+3];
+			res += nonZeroBits[val0] + nonZeroBits[val1] + nonZeroBits[val2] + nonZeroBits[val3];
+		}
+		for (; x < mat.cols; x++) {
+			res += nonZeroBits[ row[x] ];
+		}
+	}
+	return res;
 }

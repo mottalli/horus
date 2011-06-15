@@ -179,10 +179,10 @@ double QualityChecker::getIrisQuality(const GrayscaleImage& /*image*/, const Seg
 	return segmentationResult.pupilContourQuality;
 }
 
-double QualityChecker::irisTemplateQuality(const IrisTemplate& /*irisTemplate*/)
+double QualityChecker::irisTemplateQuality(const IrisTemplate& irisTemplate)
 {
 	// TODO
-	return 100.0;
+	return irisTemplate.getValidBitCount();
 }
 
 double QualityChecker::matchQuality(const TemplateComparator& /*comparator*/)

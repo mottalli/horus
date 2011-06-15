@@ -44,7 +44,7 @@ protected:
 	virtual void calculatePartsDistances(const IrisTemplate& irisTemplate, unsigned int nParts, unsigned int nRots, unsigned int rotStep);
 
 	vector<IrisTemplate> templates;
-	map<int, int> positions;
+	map<int, int> positions;			// Maps an ID with the position in the template database
 
 	vector<MatchDistance> matchingDistances;
 	vector<double> distances;

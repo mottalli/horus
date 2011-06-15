@@ -35,11 +35,11 @@ public:
 		this->segmentationScoreThreshold = 1.7;
 		this->minimumContourQuality = 60;
 		this->segmentEyelids = false;
-		this->doEyeDetect = true;
+		this->doEyeDetect = false;
 		this->pauseAfterCapture = true;
 		this->pauseFrames = 40;
-		this->minCountForTemplateAveraging = 6;
-		this->minAverageTemplateQuality = 70;
+		this->minCountForTemplateAveraging = 10;
+		this->minAverageTemplateQuality = 65;
 	}
 };
 

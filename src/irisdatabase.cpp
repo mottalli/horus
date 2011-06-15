@@ -65,14 +65,15 @@ void IrisDatabase::doMatch(const IrisTemplate& irisTemplate, void (*statusCallba
 
 	// Sort the results from minimum to maximum distance
 	sort(this->matchingDistances.begin(), this->matchingDistances.end(), IrisDatabase::matchingDistanceComparator);
+	if (statusCallback) statusCallback(100);
 
-	//comparator.compare(*(this->templates[bestIdx]));
-	//this->comparationImage = comparator.getComparationImage();
+	const IrisTemplate& matchingTemplate = this->templates[ this->positions[this->getMinDistanceId()] ];
+	comparator.compare(matchingTemplate);
+	this->comparationImage = comparator.getComparationImage();
 }
 
 void IrisDatabase::calculatePartsDistances(const IrisTemplate& irisTemplate, unsigned int nParts, unsigned int nRots, unsigned int rotStep)
 {
-	cout << "IrisDatabase::calculatePartsDistances" << endl;
 	size_t n = this->templates.size();
 
 	assert(this->resultPartsDistances.size() == nParts);
