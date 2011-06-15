@@ -23,8 +23,10 @@ inline Mat* convertParam(PyObject* input)
 	
 	if (python_typename == "cv.cvmat") {
 		arg = ((cvmat_t*)input)->a;
+	} else if (python_typename == "CvMat") {
+		SWIG_ConvertPtr(input, (void**)&arg, SWIGTYPE_p_CvMat, 0);
 	} else {
-		string error = string("Don't know how to convert ") + python_typename + " to Mat object";
+		string error = string("SWIG - pyhorus::ConvertParam: Don't know how to convert ") + python_typename + " to Mat object";
 		throw std::runtime_error(error);
 	}
 	
@@ -32,6 +34,13 @@ inline Mat* convertParam(PyObject* input)
 }
 
 %}
+
+// This is done just to instantiate the CvMat type in SWIG (will provide the SWIGTYPE_p_CvMat type)
+CvMat __cvmat_unused;
+%{
+CvMat __cvmat_unused;
+%}
+
 
 %include "exception.i"
 
