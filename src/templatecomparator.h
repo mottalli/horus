@@ -27,7 +27,7 @@ public:
 
 	const IrisTemplate& getBestRotatedTemplate();
 
-	GrayscaleImage getComparationImage(const IrisTemplate& otherTemplate);
+	GrayscaleImage getComparationImage(const IrisTemplate& otherTemplate, bool showMask = true);
 
 	static inline const GrayscaleImage getPart(const IrisTemplate& irisTemplate, int part, int nParts, bool fromMask)
 	{

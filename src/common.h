@@ -14,6 +14,7 @@
 #include <stdint.h>
 #include <cassert>
 #include <stdexcept>
+#include <algorithm>
 
 // "Lo que no cuesta, no vale"
 

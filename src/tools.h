@@ -38,16 +38,59 @@ void toGrayscale(const Image& src, GrayscaleImage& dest, bool cloneIfAlreadyGray
 
 int countNonZeroBits(const Mat& mat);
 
-/*
- 10000000: 128
- 01000000: 64
- 00100000: 32
- 00010000: 16
- 00001000: 8
- 00000100: 4
- 00000010: 2
- 00000001: 1
+/**
+ * Custom function to calculate the histogram of a vector (OpenCV's function
+ * for calculating histograms is mind-bogglingly complicated).
  */
+class Histogram {
+public:
+	std::vector<double> values;
+	double vmin;
+	double vmax;
+	double binSize;
+
+	Histogram() { /* Default constructor -- undefined state */ }
+
+	Histogram(const std::vector<double>& v, size_t nBins) :
+		values(nBins, 0.0)
+	{
+		assert(nBins > 0);
+
+		vmax = *max_element(v.begin(), v.end());
+		vmin = *min_element(v.begin(), v.end());
+		binSize = (vmax-vmin)/nBins;
+
+		size_t n = v.size();
+
+		for (size_t i = 0; i < n; i++) {
+			size_t bin = this->binFor(v[i]);
+			this->values[bin]++;
+		}
+
+		for (size_t i = 0; i < this->values.size(); i++) {			// Normalizes values
+			this->values[i] /= double(n);
+		}
+	}
+
+	inline size_t binFor(double val)
+	{
+		if (val < vmin) return 0;
+		if (val >= vmax) return this->values.size()-1;
+		return floor( (val-vmin)/binSize );
+	}
+
+	Histogram cumulative()
+	{
+		Histogram res = *this;
+		for (size_t i = 1; i < res.values.size(); i++) {
+			res.values[i] += res.values[i-1];
+		}
+
+		// This condition SHOULD hold
+		//assert(res.values[res.values.size()-1] == 1.0);
+		return res;
+	}
+};
 
 const uint8_t BIT_MASK[] = {0x80, 0x40, 0x20, 0x10, 0x08, 0x04, 0x02, 0x01 };
 inline uint8_t setBit(uint8_t b, int bit, bool value)

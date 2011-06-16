@@ -77,7 +77,7 @@ void MatchingDialog::doMatch(IrisTemplate irisTemplate, const GrayscaleImage& im
 			decorator.drawTemplate(decoratedSmall, irisData.irisTemplate);
 
 			const GrayscaleImage& comparationImage = DB.getComparationImage();
-			Point p0(10, decoratedSmall.rows-comparationImage.rows-10);
+			Point p0(25, decoratedSmall.rows-comparationImage.rows-20);
 			horus::tools::superimposeImage(comparationImage, decoratedSmall, p0, true);
 
 			this->ui->dbImage->showImage(decoratedSmall);
