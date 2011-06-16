@@ -181,7 +181,6 @@ double QualityChecker::getIrisQuality(const GrayscaleImage& /*image*/, const Seg
 
 double QualityChecker::irisTemplateQuality(const IrisTemplate& irisTemplate)
 {
-	// TODO
 	return irisTemplate.getValidBitCount();
 }
 

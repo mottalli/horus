@@ -17,7 +17,7 @@ public:
     explicit RegisterDialog(QWidget *parent = 0);
     ~RegisterDialog();
 
-	void doRegister(IrisTemplate irisTemplate, const GrayscaleImage& image, SegmentationResult segmentationResult);
+	void doRegister(IrisTemplate irisTemplate, const GrayscaleImage& image, SegmentationResult segmentationResult, horus::VideoProcessor::CaptureBurst captureBurst=horus::VideoProcessor::CaptureBurst());
 
 private:
     Ui::RegisterDialog *ui;

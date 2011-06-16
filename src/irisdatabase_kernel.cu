@@ -15,6 +15,7 @@ __global__ void doGPUMatchKernel(const uint8_t* rotatedTemplates, const uint8_t*
 	__shared__ float hammingDistances[MAX_ROTS];
 
 	unsigned templateIdx = blockIdx.x;
+	unsigned rotationIdx = threadIdx.x;
 	
 	if (templateIdx > database.numberOfTemplates) {
 		return;
@@ -24,8 +25,8 @@ __global__ void doGPUMatchKernel(const uint8_t* rotatedTemplates, const uint8_t*
 	size_t templateWords = templateSize / 4;			// 4 == sizeof(uint32_t);
 	
 	// Cast from chars to words
-	uint32_t* rotatedTemplate = (uint32_t*)(rotatedTemplates + threadIdx.x*templateSize);
-	uint32_t* rotatedMask = (uint32_t*)(rotatedMasks + threadIdx.x*templateSize);
+	uint32_t* rotatedTemplate = (uint32_t*)(rotatedTemplates + rotationIdx*templateSize);
+	uint32_t* rotatedMask = (uint32_t*)(rotatedMasks + rotationIdx*templateSize);
 	uint32_t* otherTemplate = (uint32_t*)(database.d_templates + templateIdx*templateSize);
 	uint32_t* otherMask = (uint32_t*)(database.d_masks + templateIdx*templateSize);
 	
@@ -48,7 +49,7 @@ __global__ void doGPUMatchKernel(const uint8_t* rotatedTemplates, const uint8_t*
 		totalBits += __popc(mask1 & mask2);
 	}
 	
-	hammingDistances[threadIdx.x] = float(nonZeroBits) / float(totalBits);
+	hammingDistances[rotationIdx] = float(nonZeroBits) / float(totalBits);
 	
 	__syncthreads();
 	
@@ -68,13 +69,14 @@ __global__ void doGPUAContrarioMatchKernel(const uint8_t* rotatedTemplates, cons
 	unsigned templateIdx = blockIdx.x;
 	unsigned part = threadIdx.y;
 	unsigned nParts = blockDim.y;
+	unsigned rotationIdx = threadIdx.x;
 
 	//assert((database.templateWidth % 4) == 0);
 
 	size_t templateSize = database.templateWidth * database.templateHeight;
 
-	uint32_t* rotatedTemplate = (uint32_t*)(rotatedTemplates + threadIdx.x*templateSize);
-	uint32_t* rotatedMask = (uint32_t*)(rotatedMasks + threadIdx.x*templateSize);
+	uint32_t* rotatedTemplate = (uint32_t*)(rotatedTemplates + rotationIdx*templateSize);
+	uint32_t* rotatedMask = (uint32_t*)(rotatedMasks + rotationIdx*templateSize);
 	uint32_t* otherTemplate = (uint32_t*)(database.d_templates + templateIdx*templateSize);
 	uint32_t* otherMask = (uint32_t*)(database.d_masks + templateIdx*templateSize);
 

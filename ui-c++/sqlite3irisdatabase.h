@@ -29,8 +29,8 @@ public:
 
 
 	IrisData getIrisData(int userId) const;
-	void addUser(string userName, const IrisTemplate& irisTemplate, const SegmentationResult& segmentationResult, const Image& image);
-	void addImage(int userId, const Image& image, const SegmentationResult& segmentationResult, optional<IrisTemplate> averageTemplate = optional<IrisTemplate>());
+	int addUser(string userName, const IrisTemplate& irisTemplate, const SegmentationResult& segmentationResult, const Image& image, horus::VideoProcessor::CaptureBurst captureBurst=horus::VideoProcessor::CaptureBurst());
+	int addImage(int userId, const Image& image, const SegmentationResult& segmentationResult, optional<IrisTemplate> averageTemplate = optional<IrisTemplate>(), horus::VideoProcessor::CaptureBurst captureBurst=horus::VideoProcessor::CaptureBurst());
 
 private:
 	string dbPath;

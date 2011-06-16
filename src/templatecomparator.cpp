@@ -189,6 +189,7 @@ GrayscaleImage TemplateComparator::getComparationImage(const IrisTemplate& other
 	i2.setTo(255, i2);
 
 	bitwise_xor(i1, i2, res);			// Note: this sets to white the *different* bits
+	bitwise_not(res, res);
 
 	if (showMask) {
 		GrayscaleImage m1 = t1.getUnpackedMask();

@@ -39,7 +39,7 @@ public:
 		this->pauseAfterCapture = true;
 		this->pauseFrames = 40;
 		this->minCountForTemplateAveraging = 10;
-		this->minAverageTemplateQuality = 70;
+		this->minAverageTemplateQuality = 60;
 	}
 };
 
@@ -47,8 +47,8 @@ typedef struct {
 	GrayscaleImage image;
 	SegmentationResult segmentationResult;
 	IrisTemplate irisTemplate;
-	double quality;
-} CapturedTemplate;
+	double irisQuality;
+} CapturedImage;
 
 class VideoProcessor {
 public:
@@ -78,7 +78,7 @@ public:
 		PROCTIME_INTERLACE_CHECK,
 		PROCTIME_SEGMENTATION,
 		PROCTIME_IRIS_VALIDATION,
-		PROCTIME_UNUSED				/* Just to know how many time slots we need */
+		PROCTIME_UNUSED				/* Just to know how many proctime slots we need */
 	};
 
 	std::vector<double> processingTime;
@@ -108,7 +108,8 @@ public:
 
 	Rect eyeROI;
 
-	vector<CapturedTemplate> templateBuffer;
+	typedef std::vector<CapturedImage> CaptureBurst;
+	CaptureBurst captureBurst;
 
 private:
 	GrayscaleImage lastFrameBW;
@@ -131,7 +132,7 @@ private:
 		this->templateWaitCount = 0;
 		this->waitingTemplate = false;
 		this->bestTemplateIdx = -1;
-		this->templateBuffer.clear();
+		this->captureBurst.clear();
 	}
 
 	CascadeClassifier eyeClassifier;

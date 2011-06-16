@@ -17,7 +17,7 @@ public:
     explicit MatchingDialog(QWidget *parent = 0);
     ~MatchingDialog();
 
-	void doMatch(IrisTemplate irisTemplate, const GrayscaleImage& image, SegmentationResult segmentationResult);
+	void doMatch(IrisTemplate irisTemplate, const GrayscaleImage& image, SegmentationResult segmentationResult, horus::VideoProcessor::CaptureBurst captureBurst=horus::VideoProcessor::CaptureBurst());
 
 private slots:
 	void on_btnConfirmarIdentificacion_clicked();
@@ -32,6 +32,7 @@ private:
 	SQLite3IrisDatabase::IrisData lastMatch;
 	IrisTemplate lastTemplate;
 	SegmentationResult lastSegmentationResult;
+	horus::VideoProcessor::CaptureBurst lastBurst;
 };
 
 #endif // MATCHINGDIALOG_H

@@ -7,7 +7,7 @@ import Database
 from pylab import *
 
 def matchesPorSegundo(v):
-	return (v[-1, 0])/v[-1, 1];
+	return (1000.0*v[-1, 0])/v[-1, 1];
 
 base = Database.getDatabase('bath')
 irisDatabaseCUDA = pyhorus.IrisDatabaseCUDA()

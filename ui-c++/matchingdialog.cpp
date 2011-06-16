@@ -18,12 +18,13 @@ MatchingDialog::~MatchingDialog()
     delete ui;
 }
 
-void MatchingDialog::doMatch(IrisTemplate irisTemplate, const GrayscaleImage& image, SegmentationResult segmentationResult)
+void MatchingDialog::doMatch(IrisTemplate irisTemplate, const GrayscaleImage& image, SegmentationResult segmentationResult, horus::VideoProcessor::CaptureBurst captureBurst)
 {
 	// Guarda la información de la query
 	this->lastQueryImage = image.clone();
 	this->lastTemplate = irisTemplate;
 	this->lastSegmentationResult = segmentationResult;
+	this->lastBurst = captureBurst;
 
 	// Hace la identificación
 	DB.doMatch(irisTemplate);
@@ -93,19 +94,12 @@ void MatchingDialog::doMatch(IrisTemplate irisTemplate, const GrayscaleImage& im
 		this->ui->lblIdentification->setText("<font color='red'>Negativa</font>");
 	}
 
-	/*BOOST_FOREACH(MatchDistance d, DB.getMatchingDistances()) {
-		qDebug() << d.first << d.second;
-	}*/
-
 	this->show();
 }
 
 void MatchingDialog::on_btnConfirmarIdentificacion_clicked()
 {
-	int add = QMessageBox::question(this, "Agregar imagen", "Agregar la imagen a la base de datos?", QMessageBox::Yes, QMessageBox::No);
-	if (add == QMessageBox::Yes) {
-		DB.addImage(this->lastMatch.userId, this->lastQueryImage, this->lastSegmentationResult, this->lastTemplate);
-	}
+	DB.addImage(this->lastMatch.userId, this->lastQueryImage, this->lastSegmentationResult, this->lastTemplate, this->lastBurst);
 	this->accept();
 }
 

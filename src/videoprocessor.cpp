@@ -56,27 +56,27 @@ VideoProcessor::VideoStatus VideoProcessor::processFrame(const Mat& frame)
 			this->templateWaitCount++;
 
 			if (this->lastStatus == FOCUSED_IRIS) {
-				CapturedTemplate capturedTemplate;
-				capturedTemplate.image = this->lastFrameBW.clone();
-				capturedTemplate.irisTemplate = this->irisEncoder.generateTemplate(this->lastFrameBW, this->lastSegmentationResult);
-				capturedTemplate.irisTemplate.irisQuality = this->lastSegmentationResult.pupilContourQuality;
+				CapturedImage capturedImage;
+				capturedImage.image = this->lastFrameBW.clone();
+				capturedImage.irisTemplate = this->irisEncoder.generateTemplate(this->lastFrameBW, this->lastSegmentationResult);
+				capturedImage.irisTemplate.irisQuality = this->lastSegmentationResult.pupilContourQuality;
 				// Note that the "template quality" does not neccesarily have to be the valid bit count (could be something else)
 				// That's why we put it outside the IrisTemplate class
-				capturedTemplate.irisTemplate.templateQuality = capturedTemplate.irisTemplate.getValidBitCount();
-				capturedTemplate.quality = this->lastIrisQuality;
-				capturedTemplate.segmentationResult = this->lastSegmentationResult;
+				capturedImage.irisTemplate.templateQuality = capturedImage.irisTemplate.getValidBitCount();
+				capturedImage.irisQuality = this->lastIrisQuality;
+				capturedImage.segmentationResult = this->lastSegmentationResult;
 
-				this->templateBuffer.push_back(capturedTemplate);
+				this->captureBurst.push_back(capturedImage);
 
-				if (this->templateBuffer.size() == 1) {
+				if (this->captureBurst.size() == 1) {
 					this->bestTemplateIdx = 0;
-				} else if (this->lastIrisQuality > this->templateBuffer[this->bestTemplateIdx].quality) {		// Got a better quality image
-					this->bestTemplateIdx = templateBuffer.size()-1;
+				} else if (this->lastIrisQuality > this->captureBurst[this->bestTemplateIdx].irisQuality) {		// Got a better quality image
+					this->bestTemplateIdx = captureBurst.size()-1;
 				}
 
-				this->lastTemplate = capturedTemplate.irisTemplate;
+				this->lastTemplate = capturedImage.irisTemplate;
 
-				if (this->templateBuffer.size() < this->parameters.minCountForTemplateAveraging) {
+				if (this->captureBurst.size() < this->parameters.minCountForTemplateAveraging) {
 					this->templateWaitCount = 0;			// Reset the wait count (still capturing)
 				} else {
 					this->lastStatus = FINISHED_CAPTURE;
@@ -84,7 +84,7 @@ VideoProcessor::VideoStatus VideoProcessor::processFrame(const Mat& frame)
 			}
 
 			if (this->templateWaitCount >= this->parameters.templateWaitTimeout) {		// Finished the burst
-				if (this->templateBuffer.size() >= this->parameters.minCountForTemplateAveraging) {
+				if (this->captureBurst.size() >= this->parameters.minCountForTemplateAveraging) {
 					// Enough templates - Can calculate average!
 					// Check if we have a "good" template
 					IrisTemplate irisTemplate = this->getAverageTemplate();
@@ -209,12 +209,12 @@ VideoProcessor::VideoStatus VideoProcessor::doProcess(const GrayscaleImage& imag
 
 IrisTemplate VideoProcessor::getBestTemplate() const
 {
-	return this->templateBuffer[this->bestTemplateIdx].irisTemplate;
+	return this->captureBurst[this->bestTemplateIdx].irisTemplate;
 }
 
 IrisTemplate VideoProcessor::getAverageTemplate() const
 {
-	vector<CapturedTemplate> buffer = this->templateBuffer;			// Work with a copy
+	vector<CapturedImage> buffer = this->captureBurst;			// Work with a copy
 	vector<const IrisTemplate*> templates(buffer.size());
 	for (size_t i = 0; i < buffer.size(); i++) {
 		templates[i] = &(buffer[i].irisTemplate);
@@ -225,12 +225,12 @@ IrisTemplate VideoProcessor::getAverageTemplate() const
 GrayscaleImage VideoProcessor::getBestTemplateFrame() const
 {
 	GrayscaleImage res;
-	tools::stretchHistogram(this->templateBuffer[this->bestTemplateIdx].image, res, 0.01, 0);
+	tools::stretchHistogram(this->captureBurst[this->bestTemplateIdx].image, res, 0.01, 0);
 	return res;
 	//return this->templateBuffer[this->bestTemplateIdx].image;
 }
 
 const SegmentationResult& VideoProcessor::getBestTemplateSegmentation() const
 {
-	return this->templateBuffer[this->bestTemplateIdx].segmentationResult;
+	return this->captureBurst[this->bestTemplateIdx].segmentationResult;
 }

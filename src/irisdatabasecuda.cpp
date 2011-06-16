@@ -1,5 +1,6 @@
 #include "irisdatabasecuda.h"
 #include "templatecomparator.h"
+#include "tools.h"
 
 using namespace horus;
 using namespace cv;

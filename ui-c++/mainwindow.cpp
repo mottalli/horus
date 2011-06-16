@@ -54,6 +54,7 @@ void MainWindow::slotGotTemplate(const VideoProcessor& videoProcessor)
 	this->lastTemplate = videoProcessor.getAverageTemplate();
 	this->lastIrisFrameSegmentation = videoProcessor.getBestTemplateSegmentation();
 	this->lastIrisFrame = videoProcessor.getBestTemplateFrame().clone();
+	this->lastCaptureBurst = videoProcessor.captureBurst;
 
 	this->showTemplateImage();
 
@@ -85,14 +86,14 @@ void MainWindow::on_btnIdentificar_clicked()
 {
 	if (this->lastIrisFrame.empty()) return;				// Sólo hacer identificación si hay un iris
 
-	this->identifyTemplate(this->lastTemplate, this->lastIrisFrame, this->lastIrisFrameSegmentation);
+	this->identifyTemplate(this->lastTemplate, this->lastIrisFrame, this->lastIrisFrameSegmentation, this->lastCaptureBurst);
 }
 
 void MainWindow::on_btnRegistrar_clicked()
 {
 	if (this->lastIrisFrame.empty()) return;				// Sólo registrar si hay un iris
 
-	this->registerTemplate(this->lastTemplate, this->lastIrisFrame, this->lastIrisFrameSegmentation);
+	this->registerTemplate(this->lastTemplate, this->lastIrisFrame, this->lastIrisFrameSegmentation, this->lastCaptureBurst);
 }
 
 void MainWindow::on_btnGuardarImagen_clicked()
@@ -129,18 +130,18 @@ void MainWindow::on_btnForzarRegistracion_clicked()
 {
 }
 
-void MainWindow::identifyTemplate(const IrisTemplate& irisTemplate, const GrayscaleImage& image, const SegmentationResult& segmentationResult)
+void MainWindow::identifyTemplate(const IrisTemplate& irisTemplate, const GrayscaleImage& image, const SegmentationResult& segmentationResult, horus::VideoProcessor::CaptureBurst captureBurst)
 {
 	if (this->matchingDialog.isVisible()) return;
 
-	this->matchingDialog.doMatch(irisTemplate, image, segmentationResult);
+	this->matchingDialog.doMatch(irisTemplate, image, segmentationResult, captureBurst);
 }
 
-void MainWindow::registerTemplate(const IrisTemplate& irisTemplate, const GrayscaleImage& image, const SegmentationResult& segmentationResult)
+void MainWindow::registerTemplate(const IrisTemplate& irisTemplate, const GrayscaleImage& image, const SegmentationResult& segmentationResult, horus::VideoProcessor::CaptureBurst captureBurst)
 {
 	if (this->registerDialog.isVisible()) return;
 
-	this->registerDialog.doRegister(irisTemplate, image, segmentationResult);
+	this->registerDialog.doRegister(irisTemplate, image, segmentationResult, captureBurst);
 }
 
 

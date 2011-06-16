@@ -6,7 +6,7 @@ OPTION(USE_CUDA "Use CUDA acceleration" OFF)
 # ----------------------------------- SOURCE FILES --------------------------------------
 SET(HORUS_LIB_SOURCES 
 	${PROJECT_SOURCE_DIR}/src/decorator.cpp 
-	${PROJECT_SOURCE_DIR}/src/eyelidsegmentator.cpp 
+	${PROJECT_SOURCE_DIR}/src/eyelidsegmentator.cpp
 	${PROJECT_SOURCE_DIR}/src/irisdatabase.cpp 
 	${PROJECT_SOURCE_DIR}/src/irisencoder.cpp
 	${PROJECT_SOURCE_DIR}/src/irissegmentator.cpp 
@@ -72,7 +72,7 @@ IF (USE_CUDA AND CUDA_FOUND)
 	)
 	
 	SET(HORUS_LIB_SOURCES ${HORUS_LIB_SOURCES} ${PROJECT_SOURCE_DIR}/src/irisdatabasecuda.cpp)
-	SET(HORUS_LIB_HEADERS ${HORUS_LIB_SOURCES} ${PROJECT_SOURCE_DIR}/src/irisdatabasecuda.h)
+	SET(HORUS_LIB_HEADERS ${HORUS_LIB_HEADERS} ${PROJECT_SOURCE_DIR}/src/irisdatabasecuda.h)
 	
 	# Enable this to compile CUDA support in a dynamic library
 	SET(CUDA_NVCC_FLAGS --ptxas-options=-v --compiler-options '-fPIC')

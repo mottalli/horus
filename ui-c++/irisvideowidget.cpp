@@ -18,13 +18,11 @@ void IrisVideoWidget::slotFrameProcessed(const VideoProcessor& videoProcessor)
 		this->decorator.setDrawingColors(pupilColor, irisColor);
 		this->decorator.drawSegmentationResult(this->decoratedFrame, videoProcessor.lastSegmentationResult);
 
-		this->drawCrosshair(this->decoratedFrame, videoProcessor.lastSegmentationResult.irisCircle.center, 1);
-
 		this->decorator.drawCaptureStatus(this->decoratedFrame, videoProcessor);
 
 
 		if (status >= VideoProcessor::FOCUSED_IRIS) {
-			decorator.drawTemplate(this->decoratedFrame, videoProcessor.lastTemplate);
+			//decorator.drawTemplate(this->decoratedFrame, videoProcessor.lastTemplate);
 		}
 	}
 

@@ -39,8 +39,8 @@ private slots:
 	void on_debugWindow_clicked();
 
 private:
-	void identifyTemplate(const IrisTemplate& irisTemplate, const GrayscaleImage& image, const SegmentationResult& segmentationResult);
-	void registerTemplate(const IrisTemplate& irisTemplate, const GrayscaleImage& image, const SegmentationResult& segmentationResult);
+	void identifyTemplate(const IrisTemplate& irisTemplate, const GrayscaleImage& image, const SegmentationResult& segmentationResult, horus::VideoProcessor::CaptureBurst captureBurst=horus::VideoProcessor::CaptureBurst());
+	void registerTemplate(const IrisTemplate& irisTemplate, const GrayscaleImage& image, const SegmentationResult& segmentationResult, horus::VideoProcessor::CaptureBurst captureBurst=horus::VideoProcessor::CaptureBurst());
 	void mostrarEnfoque(double enfoque, double threshold, int width);
 	void showTemplateImage();
 
@@ -61,6 +61,8 @@ private:
 	MatchingDialog matchingDialog;
 	RegisterDialog registerDialog;
 	DebugDialog debugDialog;
+
+	horus::VideoProcessor::CaptureBurst lastCaptureBurst;
 };
 
 #endif // MAINWINDOW_H

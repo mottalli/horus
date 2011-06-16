@@ -67,7 +67,7 @@ SQLite3IrisDatabase::IrisData SQLite3IrisDatabase::getIrisData(int irisId) const
 	return res;
 }
 
-void SQLite3IrisDatabase::addUser(string userName, const IrisTemplate& irisTemplate, const SegmentationResult& segmentationResult, const Image& image)
+int SQLite3IrisDatabase::addUser(string userName, const IrisTemplate& irisTemplate, const SegmentationResult& segmentationResult, const Image& image, horus::VideoProcessor::CaptureBurst captureBurst)
 {
 	if (userName.empty()) {
 		throw runtime_error("El nombre no puede estar vacio");
@@ -90,13 +90,15 @@ void SQLite3IrisDatabase::addUser(string userName, const IrisTemplate& irisTempl
 		int userId = this->db.lastInsertRowid();
 
 		// Guardo la imagen
-		this->addImage(userId, image, segmentationResult, irisTemplate);
+		int irisId = this->addImage(userId, image, segmentationResult, irisTemplate, captureBurst);
+
+		return userId;
 	} catch (SQLException ex) {
 		throw ex;		//TODO - Manejar esto
 	}
 }
 
-void SQLite3IrisDatabase::addImage(int userId, const Image& image, const SegmentationResult& segmentationResult, optional<IrisTemplate> averageTemplate)
+int SQLite3IrisDatabase::addImage(int userId, const Image& image, const SegmentationResult& segmentationResult, optional<IrisTemplate> averageTemplate, horus::VideoProcessor::CaptureBurst captureBurst)
 {
 	string filename, sql;
 
@@ -122,4 +124,13 @@ void SQLite3IrisDatabase::addImage(int userId, const Image& image, const Segment
 
 	int irisId = this->db.lastInsertRowid();
 	this->addTemplate(irisId, ((averageTemplate) ? *averageTemplate : imageTemplate));
+
+	for (size_t i = 0; i < captureBurst.size(); i++) {
+		if (!captureBurst[i].image.empty()) {
+			string fullFilename = (boost::format("%s/burst_%i_%i_%i.jpg") % this->dbPath % userId % irisId % (i+1)).str();
+			imwrite(fullFilename, captureBurst[i].image);
+		}
+	}
+
+	return irisId;
 }

@@ -15,7 +15,7 @@ RegisterDialog::~RegisterDialog()
     delete ui;
 }
 
-void RegisterDialog::doRegister(IrisTemplate irisTemplate, const GrayscaleImage& image_, SegmentationResult segmentationResult)
+void RegisterDialog::doRegister(IrisTemplate irisTemplate, const GrayscaleImage& image_, SegmentationResult segmentationResult, horus::VideoProcessor::CaptureBurst captureBurst)
 {
 	Decorator decorator;
 
@@ -38,7 +38,7 @@ void RegisterDialog::doRegister(IrisTemplate irisTemplate, const GrayscaleImage&
 		qDebug() << "Insertando entrada en la base de datos...";
 
 		try {
-			DB.addUser(this->ui->txtUserName->text().toStdString(), irisTemplate, segmentationResult, this->image);
+			DB.addUser(this->ui->txtUserName->text().toStdString(), irisTemplate, segmentationResult, this->image, captureBurst);
 			break;
 		} catch (std::runtime_error ex) {
 			string msgError = string("<font color=\"#ff0000\">") + ex.what() + string("</font>");

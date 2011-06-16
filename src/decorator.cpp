@@ -198,7 +198,7 @@ void Decorator::drawCaptureStatus(Image& image, const VideoProcessor& videoProce
 
 	if (status >= VideoProcessor::FOCUSED_IRIS) {
 		// Science fiction effect!
-		double q = min<double>(1.0, double(videoProcessor.templateBuffer.size()) / double(videoProcessor.parameters.minCountForTemplateAveraging));
+		double q = min<double>(1.0, double(videoProcessor.captureBurst.size()) / double(videoProcessor.parameters.minCountForTemplateAveraging));
 		double angle = q*2*M_PI;
 		int width = int(400.0*q);
 		int height = (videoProcessor.lastSegmentationResult.irisCircle.radius-videoProcessor.lastSegmentationResult.pupilCircle.radius)/2 + 1;
