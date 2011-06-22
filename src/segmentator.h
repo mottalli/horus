@@ -33,7 +33,6 @@ public:
 	void unsetEyeROI() { this->eyeROI = Rect(0,0,0,0); }
 
 private:
-	Mat workingImage;
 	float resizeFactor;
 	Timer timer;
 	Rect eyeROI;

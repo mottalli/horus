@@ -34,7 +34,7 @@ int main(int argc, char *argv[])
 	w.show();
 
 	/******* Seteo parámetros *****/
-	//PROCESSING_THREAD.videoProcessor.parameters.doEyeDetect = false;
+	PROCESSING_THREAD.videoProcessor.parameters.doEyeDetect = false;
 	//PROCESSING_THREAD.videoProcessor.segmentator.pupilSegmentator.parameters.avoidPupilReflection = false;
 
 	/******* Inicializacion *******/

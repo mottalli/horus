@@ -40,7 +40,7 @@ SegmentationResult Segmentator::segmentImage(const Image& image) {
 	this->segmentationTime = timer.elapsed();
 
 	return result;
-};
+}
 
 void Segmentator::segmentEyelids(const Image& image, SegmentationResult& result)
 {

@@ -88,7 +88,12 @@ void MatchingDialog::doMatch(IrisTemplate irisTemplate, const GrayscaleImage& im
 		this->ui->lblUsername->setText(irisData.userName.c_str());
 		this->ui->lblIdentification->setText("<font color='green'>Positiva</font>");
 	} else {
-		this->ui->dbImage->showImage(MatchingDialog::getNoMatchImage());
+		Image decoratedSmall = MatchingDialog::getNoMatchImage();
+		const GrayscaleImage& comparationImage = DB.getComparationImage();
+		Point p0(25, decoratedSmall.rows-comparationImage.rows-20);
+		horus::tools::superimposeImage(comparationImage, decoratedSmall, p0, true);
+
+		this->ui->dbImage->showImage(decoratedSmall);
 		this->ui->lblHammingDistance->setText( (boost::format("%.5f (mas cercana)") % matchingHD).str().c_str() );
 		this->ui->lblUsername->setText("(Ninguna)");
 		this->ui->lblIdentification->setText("<font color='red'>Negativa</font>");

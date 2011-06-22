@@ -154,6 +154,7 @@ Circle horus::tools::approximateCircle(const Contour& contour)
 
 	int n = contour.size();
 
+	// Calculate the centroid of the contour
 	int sumX = 0, sumY = 0;
 	for (Contour::const_iterator it = contour.begin(); it != contour.end(); it++) {
 		sumX += (*it).x;

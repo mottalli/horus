@@ -125,6 +125,7 @@ int SQLite3IrisDatabase::addImage(int userId, const Image& image, const Segmenta
 	int irisId = this->db.lastInsertRowid();
 	this->addTemplate(irisId, ((averageTemplate) ? *averageTemplate : imageTemplate));
 
+	// Guarda el burst de captura
 	for (size_t i = 0; i < captureBurst.size(); i++) {
 		if (!captureBurst[i].image.empty()) {
 			string fullFilename = (boost::format("%s/burst_%i_%i_%i.jpg") % this->dbPath % userId % irisId % (i+1)).str();

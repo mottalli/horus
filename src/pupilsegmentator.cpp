@@ -30,7 +30,7 @@ PupilSegmentator::~PupilSegmentator()
 
 ContourAndCloseCircle PupilSegmentator::segmentPupil(const GrayscaleImage& image)
 {
-	assert(image.channels() == 1 && image.depth() == CV_8U);
+	assert(image.type() == CV_8UC1);
 
 	this->setupBuffers(image);
 	ContourAndCloseCircle result;
@@ -61,11 +61,6 @@ void PupilSegmentator::setupBuffers(const Image& image)
 		this->resizeFactor = double(bufferWidth) / double(width);
 		resize(image, this->workingImage, Size(), this->resizeFactor, this->resizeFactor);
 	}
-
-
-	this->adjustmentRing.create(Size(this->parameters.pupilAdjustmentRingWidth, this->parameters.pupilAdjustmentRingHeight));
-	this->adjustmentRingGradient.create(Size(this->parameters.pupilAdjustmentRingWidth, this->parameters.pupilAdjustmentRingHeight));
-	this->adjustmentSnake.create(Size(this->parameters.pupilAdjustmentRingWidth, 1));
 }
 
 Circle PupilSegmentator::approximatePupil(const GrayscaleImage& image)
@@ -96,6 +91,9 @@ Contour PupilSegmentator::adjustPupilContour(const GrayscaleImage& image, const 
 {
 	int radiusMin = approximateCircle.radius * 0.5, radiusMax =
 			approximateCircle.radius * 1.5;
+
+
+	this->adjustmentRing.create(Size(this->parameters.pupilAdjustmentRingWidth, this->parameters.pupilAdjustmentRingHeight));
 	tools::extractRing(image, this->adjustmentRing,
 			approximateCircle.center.x, approximateCircle.center.y, radiusMin, radiusMax);
 
@@ -125,8 +123,12 @@ Contour PupilSegmentator::adjustPupilContour(const GrayscaleImage& image, const 
 
 
 	// Calculate the vertical gradient
+	this->adjustmentRingGradient.create(Size(this->parameters.pupilAdjustmentRingWidth, this->parameters.pupilAdjustmentRingHeight));
 	Sobel(this->adjustmentRing, this->adjustmentRingGradient, this->adjustmentRingGradient.type(), 0, 1, 3);
 	blur(this->adjustmentRingGradient, this->adjustmentRingGradient, Size(3,3));
+
+	// Use an horizontal snake to represent the contour
+	this->adjustmentSnake.create(Size(this->parameters.pupilAdjustmentRingWidth, 1));
 
 	// Shortcut to avoid having huge lines
 	Mat_<int16_t>& gradient = this->adjustmentRingGradient;
@@ -431,6 +433,8 @@ uint8_t PupilSegmentator::circleAverage(const GrayscaleImage& image, int xc, int
 			x++;
 		}
 	}
+
+	assert(n > 0);
 
 	return (uint8_t) (S / n);
 }

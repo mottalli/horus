@@ -46,5 +46,15 @@ for nuevoId in range(1,n+1):
 		print "    * Moviendo %s a %s..." % (archivosViejos[i], archivosNuevos[i])
 		os.rename(archivosViejos[i], archivosNuevos[i])
 		base.execute('UPDATE base_iris SET imagen=? WHERE imagen=?', (archivosNuevos[i], archivosViejos[i]))
+	
+	# Mueve las capturas de bursts
+	archivosViejos = filter(lambda fname: re.match(r'^burst_%i_.+\.jpg' % (viejoId,), fname), os.listdir('.'))
+	archivosNuevos = map(lambda fname: re.sub('^burst_%i_' % (viejoId,), 'burst_%i_' % (nuevoId,), fname), archivosViejos) 
+	for i in range(len(archivosViejos)):
+		print "    * Moviendo %s a %s..." % (archivosViejos[i], archivosNuevos[i])
+		os.rename(archivosViejos[i], archivosNuevos[i])
 
 	base.commit()
+
+base.execute('VACUUM')
+base.commit()

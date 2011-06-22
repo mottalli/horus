@@ -121,7 +121,7 @@ void IrisDatabase::doAContrarioMatch(const IrisTemplate& irisTemplate, size_t nP
 			size_t bin = cumhists[p].binFor(distance);
 			double histval = cumhists[p].values[bin];
 
-			this->resultNFAs[i] += log10(histval);		// The accumulated histogram has to be normalized, so we divide by n
+			this->resultNFAs[i] += log10(histval);
 		}
 
 		int matchId = this->ids[i];
