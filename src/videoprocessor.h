@@ -32,7 +32,7 @@ public:
 		this->focusThreshold = 35;
 		this->interlacedVideo = true;
 		this->correlationThreshold = 92;
-		this->segmentationScoreThreshold = 1.7;
+		this->segmentationScoreThreshold = 1.7f;
 		this->minimumContourQuality = 60;
 		this->segmentEyelids = false;
 		this->doEyeDetect = false;

@@ -1,7 +1,12 @@
 #include <fstream>
 
 #include "eyedetect.h"
+
+#ifdef WIN32
+const string haarcascadeEye = "";			//TODO: load this somehow
+#else
 #include "eyedetect_haarcascades.h"
+#endif
 
 using namespace horus;
 

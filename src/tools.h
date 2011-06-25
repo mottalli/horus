@@ -76,7 +76,7 @@ public:
 	{
 		if (val < vmin) return 0;
 		if (val >= vmax) return this->values.size()-1;
-		return floor( (val-vmin)/binSize );
+		return (size_t)floor( (val-vmin)/binSize );
 	}
 
 	Histogram cumulative()

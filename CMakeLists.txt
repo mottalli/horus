@@ -50,8 +50,12 @@ SET(HORUS_LIB_HEADERS
 
 INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR}/src)
 
-# ----------------------------------- OpenCV 2.2 --------------------------------------
+# ----------------------------------- Compiler settings --------------------------------------
+IF (CMAKE_COMPILER_IS_GNUCXX)
+	SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x")		# Enable c++0x support (requires GCC >= 4.5)
+ENDIF()
 
+# ----------------------------------- OpenCV 2.2 --------------------------------------
 #FIND_PACKAGE(OpenCV 2.2 REQUIRED HINTS ".")			 # This doesn't work (see CMake manual)
 FIND_PACKAGE(OpenCV REQUIRED HINTS ".")
 IF (${OpenCV_VERSION_MAJOR} EQUAL 2 AND ${OpenCV_VERSION_MINOR} LESS 2)
@@ -62,10 +66,17 @@ ENDIF()
 
 INCLUDE_DIRECTORIES(${OpenCV_INCLUDE_DIRS})
 
-# ----------------------------------- CUDA --------------------------------------
+# ----------------------------------- Boost --------------------------------------
+IF (WIN32)
+	SET(Boost_USE_STATIC_LIBS ON)
+ENDIF()
 
-FIND_PACKAGE(CUDA)
-IF (USE_CUDA AND CUDA_FOUND)
+FIND_PACKAGE(Boost REQUIRED COMPONENTS system filesystem date_time program_options thread)
+INCLUDE_DIRECTORIES(${Boost_INCLUDE_DIRS})
+
+# ----------------------------------- CUDA --------------------------------------
+IF (USE_CUDA)
+	FIND_PACKAGE(CUDA REQUIRED)
 	ADD_DEFINITIONS("-DUSE_CUDA")
 	SET(CUDA_SOURCES
 		${PROJECT_SOURCE_DIR}/src/irisdatabase_kernel.cu
@@ -84,6 +95,7 @@ ENDIF ()
 
 # ----------------------------------- SHARED LIBRARY --------------------------------------
 ADD_LIBRARY(horus SHARED ${HORUS_LIB_SOURCES})
+TARGET_LINK_LIBRARIES(horus ${OpenCV_LIBS} ${Boost_LIBRARIES})
 
 IF (USE_CUDA)
 	TARGET_LINK_LIBRARIES(horus horus_cuda)
@@ -91,7 +103,7 @@ ENDIF (USE_CUDA)
 
 # ----------------------------------- INSTALLATION --------------------------------------
 
-INSTALL(TARGETS horus LIBRARY DESTINATION lib)
+INSTALL(TARGETS horus DESTINATION lib)
 INSTALL(FILES ${HORUS_LIB_HEADERS} DESTINATION include/horus)
 
 # ----------------------------------- SUBDIRS --------------------------------------

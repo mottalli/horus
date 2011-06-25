@@ -1,7 +1,4 @@
 SET(SOURCES main.cpp ${HORUS_LIB_SOURCES})
-SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x")
-
-FIND_PACKAGE(Boost REQUIRED COMPONENTS system filesystem date_time program_options thread)
 
 ADD_EXECUTABLE(test ${SOURCES})
 TARGET_LINK_LIBRARIES(test ${OpenCV_LIBS} ${Boost_LIBRARIES})

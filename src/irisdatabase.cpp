@@ -103,7 +103,7 @@ void IrisDatabase::doAContrarioMatch(const IrisTemplate& irisTemplate, size_t nP
 	this->resultPartsDistances = vector< vector<double> >(nParts, vector<double>(n));		// This is a copy in a better format to interface with Python
 	this->calculatePartsDistances(irisTemplate, nParts, nRots, rotStep);
 
-	tools::Histogram cumhists[nParts];
+	tools::Histogram* cumhists = new tools::Histogram[nParts];
 	for (size_t p = 0; p < nParts; p++) {
 		cumhists[p] = tools::Histogram(this->resultPartsDistances[p], BINS).cumulative();
 	}
@@ -132,6 +132,8 @@ void IrisDatabase::doAContrarioMatch(const IrisTemplate& irisTemplate, size_t nP
 			bestIdx = i;
 		}
 	}
+
+	delete[] cumhists;
 
 	this->matchingTime = this->timer.elapsed();
 }
