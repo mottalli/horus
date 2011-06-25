@@ -1,12 +1,16 @@
 #pragma once
+
+#ifdef WIN32
+
 #include <boost/timer.hpp>
+namespace horus {
+typedef boost::timer Timer;		// boost::timer does not have enough resolution on Linux!
+}
+
+#else
 #include <sys/time.h>
-#include <iostream>
 
 namespace horus {
-
-//typedef boost::timer Timer;		// boost::timer does not have enough resolution on Linux!
-
 class Timer {
 public:
 	Timer()
@@ -36,3 +40,4 @@ private:
 };
 
 }
+#endif	/* WIN32 */

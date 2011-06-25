@@ -158,7 +158,7 @@ IrisTemplate horus::serialization::unserializeIrisTemplate(const string& seriali
 	istringstream stream(serializedTemplate);
 	char comma;
 	string encodedMat, signature;
-	char buffer[serializedTemplate.length()];
+	char* buffer = new char[serializedTemplate.length()];
 	int encodedTemplateLength;
 
 	// Read the signature (all the text until the first comma)
@@ -178,6 +178,8 @@ IrisTemplate horus::serialization::unserializeIrisTemplate(const string& seriali
 
 	IrisTemplate res;
 	res.setPackedData(packedTemplate, packedMask, signature);
+
+	delete[] buffer;
 	return res;
 }
 
