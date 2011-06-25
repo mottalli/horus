@@ -75,7 +75,7 @@ IF (USE_CUDA AND CUDA_FOUND)
 	SET(HORUS_LIB_HEADERS ${HORUS_LIB_HEADERS} ${PROJECT_SOURCE_DIR}/src/irisdatabasecuda.h)
 	
 	# Enable this to compile CUDA support in a dynamic library
-	SET(CUDA_NVCC_FLAGS --ptxas-options=-v --compiler-options '-fPIC')
+	SET(CUDA_NVCC_FLAGS --ptxas-options=-v --compiler-options '-fPIC' --compiler-bindir=/opt/gcc-4.4)
 	CUDA_ADD_LIBRARY(horus_cuda ${CUDA_SOURCES})
 ELSE ()
 	SET(USE_CUDA OFF)

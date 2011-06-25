@@ -5,3 +5,7 @@ FIND_PACKAGE(Boost REQUIRED COMPONENTS system filesystem date_time program_optio
 
 ADD_EXECUTABLE(test ${SOURCES})
 TARGET_LINK_LIBRARIES(test ${OpenCV_LIBS} ${Boost_LIBRARIES})
+
+IF (USE_CUDA)
+	TARGET_LINK_LIBRARIES(test horus_cuda)
+ENDIF (USE_CUDA)
