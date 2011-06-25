@@ -2,6 +2,7 @@
 #include <QMetaType>
 #include <QDebug>
 #include <boost/program_options.hpp>
+#include <fstream>
 
 #include "mainwindow.h"
 #include "videothread.h"
@@ -83,6 +84,19 @@ void parseOptions(int argc, char** argv)
 	try {
 		options::variables_map vm;
 		options::store(options::parse_command_line(argc, argv, desc), vm);
+
+		// Read from "settings.ini" (if exists)
+		string configFilename = "settings.ini";
+		try {
+			if (filesystem::is_regular_file(configFilename)) {
+				ifstream input(configFilename.c_str());
+				qDebug() << "Leyendo configuración de" << configFilename.c_str();
+				options::store(options::parse_config_file(input, desc), vm);
+			}
+		} catch (...) {
+			qDebug() << "Error leyendo datos de" << configFilename.c_str();
+		}
+
 		options::notify(vm);
 
 		if (vm.count("help")) {
