@@ -1,7 +1,9 @@
 CMAKE_MINIMUM_REQUIRED(VERSION 2.8)
 PROJECT(Horus)
 
+# ----------------------------------- Program options --------------------------------------
 OPTION(USE_CUDA "Use CUDA acceleration" OFF)
+OPTION(PYTHON_INTERFACE "Generate Python interface" ON)
 
 # ----------------------------------- SOURCE FILES --------------------------------------
 SET(HORUS_LIB_SOURCES 
@@ -107,8 +109,9 @@ INSTALL(TARGETS horus DESTINATION lib)
 INSTALL(FILES ${HORUS_LIB_HEADERS} DESTINATION include/horus)
 
 # ----------------------------------- SUBDIRS --------------------------------------
-
-ADD_SUBDIRECTORY(python_interface)
+IF (PYTHON_INTERFACE)
+	ADD_SUBDIRECTORY(python_interface)
+ENDIF()
 ADD_SUBDIRECTORY(test)
 ADD_SUBDIRECTORY(ui-c++)
 
