@@ -51,7 +51,7 @@ void MainWindow::slotFrameProcessed(const VideoProcessor& videoProcessor)
 void MainWindow::slotGotTemplate(const VideoProcessor& videoProcessor)
 {
 	//this->lastTemplate = videoProcessor.getTemplate();
-	this->lastTemplate = videoProcessor.getAverageTemplate();
+	this->lastTemplate = videoProcessor.getCapturedTemplate();
 	this->lastIrisFrameSegmentation = videoProcessor.getBestTemplateSegmentation();
 	this->lastIrisFrame = videoProcessor.getBestTemplateFrame().clone();
 	this->lastCaptureBurst = videoProcessor.captureBurst;

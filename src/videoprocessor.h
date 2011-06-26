@@ -1,11 +1,14 @@
 #pragma once
 
+#include <boost/noncopyable.hpp>
+#include <boost/thread.hpp>
+#include <boost/shared_ptr.hpp>
+
 #include "common.h"
 #include "qualitychecker.h"
 #include "segmentator.h"
 #include "loggaborencoder.h"
 #include "gaborencoder.h"
-
 #include "eyedetect.h"
 
 namespace horus {
@@ -99,11 +102,9 @@ public:
 	double lastIrisQuality;
 	IrisTemplate lastTemplate;
 
-	IrisTemplate getAverageTemplate() const;
 	GrayscaleImage getBestTemplateFrame() const;
 	const SegmentationResult& getBestTemplateSegmentation() const;
-	IrisTemplate getBestTemplate() const;
-
+	IrisTemplate getCapturedTemplate() const;
 	Mat lastFrame;
 
 	Rect eyeROI;
@@ -136,6 +137,12 @@ private:
 	}
 
 	CascadeClassifier eyeClassifier;
+
+	IrisTemplate getAverageTemplate() const;
+	IrisTemplate getBestTemplate() const;
+	IrisTemplate lastCapturedTemplate;
+
+	mutable boost::shared_ptr<boost::mutex> mtx;
 
 };
 

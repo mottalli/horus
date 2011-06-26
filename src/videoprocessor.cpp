@@ -10,7 +10,7 @@
 
 using namespace horus;
 
-VideoProcessor::VideoProcessor()
+VideoProcessor::VideoProcessor() : mtx(new boost::mutex())
 {
 	this->lastStatus = DEFOCUSED;
 	this->templateWaitCount = 0;
@@ -25,6 +25,8 @@ VideoProcessor::~VideoProcessor()
 
 VideoProcessor::VideoStatus VideoProcessor::processFrame(const Mat& frame)
 {
+	boost::mutex::scoped_lock lock(*this->mtx);
+
 	this->processingTime = vector<double>(PROCTIME_UNUSED, 0.0);			// Initialize the timers to 0
 
 	try {
@@ -87,8 +89,8 @@ VideoProcessor::VideoStatus VideoProcessor::processFrame(const Mat& frame)
 				if (this->captureBurst.size() >= this->parameters.minCountForTemplateAveraging) {
 					// Enough templates - Can calculate average!
 					// Check if we have a "good" template
-					IrisTemplate irisTemplate = this->getAverageTemplate();
-					if (this->qualityChecker.irisTemplateQuality(irisTemplate) < this->parameters.minAverageTemplateQuality) {
+					this->lastCapturedTemplate = this->getAverageTemplate();
+					if (this->qualityChecker.irisTemplateQuality(this->lastCapturedTemplate) < this->parameters.minAverageTemplateQuality) {
 						// Bad template - try another one (repeats the whole process!)
 						this->lastStatus = BAD_TEMPLATE;
 						this->resetCapture();
@@ -232,5 +234,12 @@ GrayscaleImage VideoProcessor::getBestTemplateFrame() const
 
 const SegmentationResult& VideoProcessor::getBestTemplateSegmentation() const
 {
+	boost::mutex::scoped_lock lock(*this->mtx);
 	return this->captureBurst[this->bestTemplateIdx].segmentationResult;
+}
+
+IrisTemplate VideoProcessor::getCapturedTemplate() const
+{
+	boost::mutex::scoped_lock lock(*this->mtx);
+	return this->lastCapturedTemplate;
 }
