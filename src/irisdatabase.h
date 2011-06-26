@@ -1,13 +1,13 @@
 #pragma once
-#include <vector>
-#include <map>
+#include <boost/thread.hpp>
 
+#include "common.h"
 #include "iristemplate.h"
 #include "clock.h"
 
 namespace horus {
 
-typedef pair<int, double> MatchDistance;
+typedef std::pair<int, double> MatchDistance;
 
 class IrisDatabase
 {
@@ -25,8 +25,8 @@ public:
 	inline int getMinDistanceId() const { return this->matchingDistances[0].first; }
 	inline double getMinDistance() const { return this->matchingDistances[0].second; }
 	inline double getDistanceFor(int templateId) { return this->distances[this->positions[templateId]]; }
-	inline const vector<MatchDistance>& getMatchingDistances() const { return this->matchingDistances; }
-	inline const vector<double>& getDistances() const { return this->distances; }
+	inline const std::vector<MatchDistance>& getMatchingDistances() const { return this->matchingDistances; }
+	inline std::vector<double> getDistances() const { return this->distances; }
 	inline const GrayscaleImage& getComparationImage() const { return this->comparationImage; }
 
 	inline int getMinNFAId() const { return this->minNFAId; }
@@ -36,18 +36,18 @@ public:
 	double getMatchingTime() const { return this->matchingTime; }
 
 	//TODO: Move these as protected members
-	vector<int> ids;
-	vector<double> resultNFAs;
-	vector< vector<double> > resultPartsDistances;
+	std::vector<int> ids;
+	std::vector<double> resultNFAs;
+	std::vector< std::vector<double> > resultPartsDistances;
 
 protected:
 	virtual void calculatePartsDistances(const IrisTemplate& irisTemplate, unsigned int nParts, unsigned int nRots, unsigned int rotStep);
 
-	vector<IrisTemplate> templates;
-	map<int, int> positions;			// Maps an ID with the position in the template database
+	std::vector<IrisTemplate> templates;
+	std::map<int, int> positions;			// Maps an ID with the position in the template database
 
-	vector<MatchDistance> matchingDistances;
-	vector<double> distances;
+	std::vector<MatchDistance> matchingDistances;
+	std::vector<double> distances;
 	static inline bool matchingDistanceComparator(MatchDistance d1, MatchDistance d2) { return d1.second < d2.second; }
 
 	Timer timer;

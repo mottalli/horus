@@ -9,6 +9,7 @@
 
 using namespace horus;
 using namespace horus::tools;
+using namespace std;
 
 // Pack the binary in src into bits
 void horus::tools::packBits(const GrayscaleImage& src, GrayscaleImage& dest)

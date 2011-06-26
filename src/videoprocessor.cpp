@@ -9,6 +9,7 @@
 #include "tools.h"
 
 using namespace horus;
+using namespace std;
 
 VideoProcessor::VideoProcessor() : mtx(new boost::mutex())
 {

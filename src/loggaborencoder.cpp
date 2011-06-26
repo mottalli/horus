@@ -2,6 +2,7 @@
 #include "tools.h"
 
 using namespace horus;
+using namespace std;
 
 LogGabor1DFilter::LogGabor1DFilter()
 {

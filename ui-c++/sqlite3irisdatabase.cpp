@@ -61,7 +61,7 @@ SQLite3IrisDatabase::IrisData SQLite3IrisDatabase::getIrisData(int irisId) const
 		res.irisTemplate = serialization::unserializeIrisTemplate(serializedTemplate);
 		res.image = imread(fullPath, 1);
 	} else {
-		throw runtime_error("Invalid iris ID");
+		throw runtime_error( (boost::format("Invalid iris ID: %i") % irisId).str() );
 	}
 
 	return res;

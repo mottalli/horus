@@ -14,18 +14,18 @@ namespace horus {
 namespace serialization {
 
 std::string serializeSegmentationResult(const SegmentationResult& sr);
-	std::string serializeContour(const Contour& contour);
-	std::string serializeParabola(const Parabola& parabola);
+std::string serializeContour(const Contour& contour);
+std::string serializeParabola(const Parabola& parabola);
 
-	SegmentationResult unserializeSegmentationResult(const std::string& s);
-	Contour unserializeContour(std::istringstream& stream);
-	Parabola unserializeParabola(std::istringstream& stream);
+SegmentationResult unserializeSegmentationResult(const std::string& s);
+Contour unserializeContour(std::istringstream& stream);
+Parabola unserializeParabola(std::istringstream& stream);
 
-	SegmentationResult unserializeSegmentationResultOLD(const std::string& s);
-	Contour unserializeContourOLD(std::istringstream& stream);
+SegmentationResult unserializeSegmentationResultOLD(const std::string& s);
+Contour unserializeContourOLD(std::istringstream& stream);
 
-	string serializeIrisTemplate(const IrisTemplate& irisTemplate);
-	IrisTemplate unserializeIrisTemplate(const std::string& serializedTemplate);
+std::string serializeIrisTemplate(const IrisTemplate& irisTemplate);
+IrisTemplate unserializeIrisTemplate(const std::string& serializedTemplate);
 
 }
 }

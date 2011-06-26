@@ -1,6 +1,7 @@
 #include "eyelidsegmentator.h"
 
 using namespace horus;
+using namespace std;
 
 EyelidSegmentator::EyelidSegmentator()
 {

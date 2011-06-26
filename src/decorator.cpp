@@ -11,6 +11,7 @@
 #include "tools.h"
 
 using namespace horus;
+using namespace std;
 
 const Scalar Decorator::DEFAULT_PUPIL_COLOR = CV_RGB(255,0,0);
 const Scalar Decorator::DEFAULT_IRIS_COLOR = CV_RGB(0,255,0);

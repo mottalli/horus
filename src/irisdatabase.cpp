@@ -52,7 +52,7 @@ void IrisDatabase::doMatch(const IrisTemplate& irisTemplate, void (*statusCallba
 	this->matchingDistances = vector<MatchDistance>(n);
 	this->distances = vector<double>(n);
 
-	for (size_t i = 0; i < n; i++) {
+	/*for (size_t i = 0; i < n; i++) {
 		double hammingDistance = comparator.compare(this->templates[i]);
 		int matchId = this->ids[i];
 		this->matchingDistances[i] = MatchDistance(matchId, hammingDistance);
@@ -60,7 +60,30 @@ void IrisDatabase::doMatch(const IrisTemplate& irisTemplate, void (*statusCallba
 
 		int percentage = (90*i)/n;			// The extra 10% is for sorting
 		if (statusCallback && ((i % ((n/10)+1)) == 0)) statusCallback(percentage);
+	}*/
+
+	// Do a multi-threaded search
+	boost::thread_group tg;
+	const size_t nThreads = boost::thread::hardware_concurrency();			// Number of threads
+	size_t step = (n/nThreads) + 1;												// Number of items to process per thread
+
+	for (size_t i = 0; i < nThreads; i++) {
+		size_t i0 = i*step;
+		size_t i1 = min((i+1)*step, n);
+
+		tg.create_thread([&,i0,i1]{
+			for (size_t j = i0; j < i1; j++) {
+				double hammingDistance = comparator.compare(this->templates[j]);
+				int matchId = this->ids[j];
+				this->matchingDistances[j] = MatchDistance(matchId, hammingDistance);
+				this->distances[j] = hammingDistance;
+			}
+		});
+
+		// If i == nThreads-1 => i1 == n (on the last thread, it must process up to the last element)
+		assert(i != nThreads-1 || i1 == n);
 	}
+	tg.join_all();
 
 	this->matchingTime = this->timer.elapsed();
 
@@ -69,7 +92,7 @@ void IrisDatabase::doMatch(const IrisTemplate& irisTemplate, void (*statusCallba
 	if (statusCallback) statusCallback(100);
 
 	const IrisTemplate& matchingTemplate = this->templates[ this->positions[this->getMinDistanceId()] ];
-	this->comparationImage = comparator.getComparationImage(matchingTemplate, true);
+	this->comparationImage = TemplateComparator::getComparationImage(matchingTemplate, true);
 }
 
 void IrisDatabase::calculatePartsDistances(const IrisTemplate& irisTemplate, unsigned int nParts, unsigned int nRots, unsigned int rotStep)

@@ -12,7 +12,6 @@
 #include <opencv/cxcore.h>
 #include <stdint.h>
 
-using namespace std;
 using namespace cv;
 
 typedef vector<Point> Contour;
@@ -24,7 +23,7 @@ typedef struct {
 } Circle;
 
 
-typedef pair<Contour, Circle> ContourAndCloseCircle;
+typedef std::pair<Contour, Circle> ContourAndCloseCircle;
 typedef Mat_<uint8_t> GrayscaleImage;
 typedef Mat_<Vec3b> ColorImage;
 typedef Mat Image;									// Either grayscale or color image

@@ -26,7 +26,7 @@ public:
 							Scalar upperEyelidColor = DEFAULT_EYELID_COLOR,
 							Scalar lowerEyelidColor = DEFAULT_EYELID_COLOR
 						  );
-	void drawFocusScores(Image& image, const list<double>& focusScores, Rect rect, double threshold);
+	void drawFocusScores(Image& image, const std::list<double>& focusScores, Rect rect, double threshold);
 	void drawIrisTexture(const Image& imageSrc, Image& imageDest, SegmentationResult segmentationResult);
 	void drawCaptureStatus(Image& image, const VideoProcessor& videoProcessor);
 

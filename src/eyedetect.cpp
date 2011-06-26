@@ -9,6 +9,7 @@ const string haarcascadeEye = "";			//TODO: load this somehow
 #endif
 
 using namespace horus;
+using namespace std;
 
 EyeDetect::EyeDetect()
 {

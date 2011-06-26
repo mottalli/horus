@@ -5,6 +5,7 @@
 #include "tools.h"
 
 using namespace horus;
+using namespace std;
 
 const double IrisEncoder::THETA0 = -M_PI/4.0;
 const double IrisEncoder::THETA1 = (5.0/4.0) * M_PI;

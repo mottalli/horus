@@ -4,6 +4,7 @@
 
 using namespace horus;
 using namespace horus::serialization;
+using namespace std;
 
 string horus::serialization::serializeSegmentationResult(const SegmentationResult& sr)
 {

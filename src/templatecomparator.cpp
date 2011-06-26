@@ -14,7 +14,6 @@ TemplateComparator::TemplateComparator(int nRots, int rotStep)
 {
 	this->nRots = nRots;
 	this->rotStep = rotStep;
-	this->minHDIdx = -1;
 }
 
 TemplateComparator::TemplateComparator(const IrisTemplate& irisTemplate, int nRots, int rotStep)
@@ -29,7 +28,7 @@ TemplateComparator::~TemplateComparator()
 {
 }
 
-double TemplateComparator::compare(const IrisTemplate& otherTemplate)
+double TemplateComparator::compare(const IrisTemplate& otherTemplate) const
 {
 	double minHD = 1.0;
 
@@ -37,11 +36,10 @@ double TemplateComparator::compare(const IrisTemplate& otherTemplate)
 
 	for (size_t i = 0; i < this->rotatedTemplates.size(); i++) {
 		const IrisTemplate& rotatedTemplate = this->rotatedTemplates[i];
-		double hd = this->packedHammingDistance(rotatedTemplate.getPackedTemplate(), rotatedTemplate.getPackedMask(),
+		double hd = TemplateComparator::packedHammingDistance(rotatedTemplate.getPackedTemplate(), rotatedTemplate.getPackedMask(),
 				otherTemplate.getPackedTemplate(), otherTemplate.getPackedMask());
 		if (hd < minHD) {
 			minHD = hd;
-			this->minHDIdx = i;
 		}
 	}
 
@@ -92,11 +90,6 @@ void TemplateComparator::setSrcTemplate(const IrisTemplate& irisTemplate)
 	Mat rotatedMask = unpackedMask.clone();
 	
 	assert(irisTemplate.getPackedTemplate().size() == irisTemplate.getPackedMask().size());
-
-	int packedWidth = irisTemplate.getPackedMask().cols;
-	int packedHeight = irisTemplate.getPackedMask().rows;
-	this->maskIntersection.create(packedHeight, packedWidth);
-	this->xorBuffer.create(packedHeight, packedWidth);
 
 	this->rotatedTemplates.clear();
 	this->rotatedTemplates.push_back(irisTemplate);
@@ -151,10 +144,12 @@ double TemplateComparator::packedHammingDistance(const GrayscaleImage& template1
 	assert(template1.size() == mask1.size());
 	assert(template2.size() == mask2.size());
 	assert(template1.size() == template2.size());
-	
-	bitwise_and(mask1, mask2, this->maskIntersection);
-	bitwise_xor(template1, template2, this->xorBuffer);
-	bitwise_and(this->xorBuffer, this->maskIntersection, this->xorBuffer);
+
+	Mat1b maskIntersection, xorBuffer;
+
+	bitwise_and(mask1, mask2, maskIntersection);
+	bitwise_xor(template1, template2, xorBuffer);
+	bitwise_and(xorBuffer, maskIntersection, xorBuffer);
 
 	int nonZeroBits = horus::tools::countNonZeroBits(xorBuffer);
 	int validBits = horus::tools::countNonZeroBits(maskIntersection);
@@ -168,15 +163,12 @@ double TemplateComparator::packedHammingDistance(const GrayscaleImage& template1
 	return double(nonZeroBits)/double(validBits);
 }
 
-
-const IrisTemplate& TemplateComparator::getBestRotatedTemplate()
-{
-	return this->rotatedTemplates[this->minHDIdx];
-}
-
 GrayscaleImage TemplateComparator::getComparationImage(const IrisTemplate& otherTemplate, bool showMask)
 {
-	this->compare(otherTemplate);
+	//TODO
+	return otherTemplate.getUnpackedTemplate();
+
+	/*this->compare(otherTemplate);
 
 	const IrisTemplate& t1 = this->getBestRotatedTemplate();
 	const IrisTemplate& t2 = otherTemplate;
@@ -202,5 +194,5 @@ GrayscaleImage TemplateComparator::getComparationImage(const IrisTemplate& other
 		res.setTo(128, m2);
 	}
 
-	return res;
+	return res;*/
 }

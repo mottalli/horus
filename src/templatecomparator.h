@@ -19,15 +19,13 @@ public:
 	virtual ~TemplateComparator();
 
 	void setSrcTemplate(const IrisTemplate& irisTemplate);
-	double compare(const IrisTemplate& otherTemplate);
+	double compare(const IrisTemplate& otherTemplate) const;
 	
 	// For "a contrario" matching
 	std::vector<double> compareParts(const IrisTemplate& otherTemplate, int nParts = 4);
 	std::vector<IrisTemplate> rotatedTemplates;
 
-	const IrisTemplate& getBestRotatedTemplate();
-
-	GrayscaleImage getComparationImage(const IrisTemplate& otherTemplate, bool showMask = true);
+	static GrayscaleImage getComparationImage(const IrisTemplate& otherTemplate, bool showMask = true);
 
 	static inline const GrayscaleImage getPart(const IrisTemplate& irisTemplate, int part, int nParts, bool fromMask)
 	{
@@ -59,13 +57,9 @@ private:
 	static void rotateMatrix(const Mat& src, Mat& dest, int step);
 	IrisTemplate irisTemplate;
 
-	GrayscaleImage maskIntersection;
-	GrayscaleImage xorBuffer;
-
-	double packedHammingDistance(const GrayscaleImage& template1, const GrayscaleImage& mask1, const GrayscaleImage& template2, const GrayscaleImage& mask2);
+	static double packedHammingDistance(const GrayscaleImage& template1, const GrayscaleImage& mask1, const GrayscaleImage& template2, const GrayscaleImage& mask2);
 
 	int nRots, rotStep;
-	int minHDIdx;
 };
 
 }
