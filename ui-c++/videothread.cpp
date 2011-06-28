@@ -35,7 +35,7 @@ void VideoThread::run()
 		flip(_frame, _frame, 1);		// El flip es para que el video no salga al revés (es anti-intuitivo para los usuarios)
 
 		// Extraigo una sub-ventana porque los bordes suelen venir negros
-		Mat subwindow = _frame(Range(25, _frame.rows), Range(10, _frame.cols-62));
+		Mat subwindow = _frame(Range(30, _frame.rows), Range(10, _frame.cols-70));
 
 		emit(signalFrameAvailable(subwindow));
 		//emit(signalFrameAvailable(_frame));

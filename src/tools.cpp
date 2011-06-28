@@ -269,7 +269,7 @@ void horus::tools::superimposeImage(const Image& imageSrc, Image& imageDest, Poi
 
 	if (drawBorder) {
 		Point tl(r.tl().x-1, r.tl().y-1);
-		Point br(r.br().x+1, r.br().y+1);
+		Point br(r.br().x, r.br().y);
 		rectangle(imageDest, tl, br, CV_RGB(0,0,0), 1);
 	}
 }
