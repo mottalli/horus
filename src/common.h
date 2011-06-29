@@ -15,6 +15,7 @@
 #include <cassert>
 #include <stdexcept>
 #include <algorithm>
+#include <boost/serialization/serialization.hpp>
 
 // "Lo que no cuesta, no vale"
 

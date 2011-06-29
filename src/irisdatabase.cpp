@@ -65,7 +65,7 @@ void IrisDatabase::doMatch(const IrisTemplate& irisTemplate, void (*statusCallba
 	// Do a multi-threaded search
 	boost::thread_group tg;
 	const size_t nThreads = boost::thread::hardware_concurrency();			// Number of threads
-	size_t step = (n/nThreads) + 1;												// Number of items to process per thread
+	size_t step = (n/nThreads) + 1;											// Number of items to process per thread
 
 	for (size_t i = 0; i < nThreads; i++) {
 		size_t i0 = i*step;
