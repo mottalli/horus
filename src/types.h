@@ -14,6 +14,8 @@
 
 using namespace cv;
 
+namespace horus {
+
 typedef vector<Point> Contour;
 
 typedef struct {
@@ -64,3 +66,5 @@ struct SegmentationResult {
 
 	bool eyelidsSegmented;
 };
+
+}

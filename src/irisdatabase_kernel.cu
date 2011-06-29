@@ -42,7 +42,7 @@ __global__ void doGPUMatchKernel(const uint8_t* rotatedTemplates, const uint8_t*
 			mask2 = otherMask[i];
 		}
 		__syncthreads();
-		
+
 		// __popc(x) returns the number of bits that are set to 1 in the binary representation of 32-bit integer parameter x.
 		uint32_t x = XOR(word1, word2, mask1, mask2);
 		nonZeroBits += __popc(x);
@@ -85,7 +85,8 @@ __global__ void doGPUAContrarioMatchKernel(const uint8_t* rotatedTemplates, cons
 
 	size_t nonZeroBits = 0, totalBits = 0;
 	uint32_t word1, mask1;
-	__shared__ uint32_t words2[MAX_ROTS], masks2[MAX_ROTS], word2, mask2;
+	__shared__ uint32_t words2[MAX_ROTS], masks2[MAX_ROTS];
+	uint32_t word2, mask2;
 
 	unsigned w0row = floor((float(widthRows)/float(nParts))*float(part));			// Offset of the first word in the part for each row
 

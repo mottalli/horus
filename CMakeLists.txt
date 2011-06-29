@@ -89,6 +89,7 @@ IF (USE_CUDA)
 	
 	# Enable this to compile CUDA support in a dynamic library
 	SET(CUDA_NVCC_FLAGS --ptxas-options=-v --compiler-options '-fPIC' --compiler-bindir=/opt/gcc-4.4)
+	SET(CUDA_PROPAGATE_HOST_FLAGS OFF)			# To disable a problem with the -std=c++0x flag
 	CUDA_ADD_LIBRARY(horus_cuda ${CUDA_SOURCES})
 ELSE ()
 	SET(USE_CUDA OFF)
