@@ -10,8 +10,7 @@
 #include "common.h"
 #include "iristemplate.h"
 
-namespace horus {
-namespace serialization {
+namespace horus { namespace serialization {
 
 std::string serializeSegmentationResult(const SegmentationResult& sr);
 std::string serializeContour(const Contour& contour);
@@ -27,5 +26,4 @@ Contour unserializeContourOLD(std::istringstream& stream);
 std::string serializeIrisTemplate(const IrisTemplate& irisTemplate);
 IrisTemplate unserializeIrisTemplate(const std::string& serializedTemplate);
 
-}
-}
+} } /* Namespaces end */

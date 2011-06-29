@@ -13,9 +13,7 @@
 #include "iristemplate.h"
 #include "irisencoder.h"
 
-namespace horus {
-
-namespace tools {
+namespace horus { namespace tools {
 
 void packBits(const GrayscaleImage& src, GrayscaleImage& dest);
 void unpackBits(const GrayscaleImage& src, GrayscaleImage& dest, int trueval = 1);
@@ -109,8 +107,7 @@ inline bool getBit(uint8_t b, int bit)
 	return (b & BIT_MASK[bit]) ? true : false;
 }
 
-}	/* Namespaces end */
-}
+} }	/* Namespaces end */
 
 
 template<class T>
