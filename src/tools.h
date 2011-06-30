@@ -28,7 +28,7 @@ template<class T> Mat_<T> base64DecodeMat(const std::string &s);
 void stretchHistogram(const Image& image, Image& dest, float marginMin=0.0, float marginMax=0.0);
 
 //std::vector< std::pair<Point, Point> > iterateIris(const SegmentationResult& segmentation, int width, int height, double theta0=0.0, double theta1=2.0*M_PI, double radiusMin = 0.0, double radiusMax=1.0);
-void superimposeTexture(GrayscaleImage& image, const GrayscaleImage& texture, const SegmentationResult& segmentation, double theta0=0.0, double theta1=2.0*M_PI, double radius=1.0, bool blend=true, double blendStart = 0.7);
+void superimposeTexture(GrayscaleImage& image, const GrayscaleImage& texture, const SegmentationResult& segmentation, double theta0=0.0, double theta1=2.0*M_PI, double minRadius=0.0, double maxRadius=1.0, bool blend=true, double blendStart = 0.7);
 void superimposeImage(const Image& imageSrc, Image& imageDest, Point p=Point(1,1), bool drawBorder=true);
 
 GrayscaleImage normalizeImage(const Mat& image, uint8_t min=0, uint8_t max=255);	// Normalizes an image to the given range

@@ -457,9 +457,6 @@ void PupilSegmentator::similarityTransform(const GrayscaleImage& src, GrayscaleI
 		for (int i = 0; i < 256; i++) {
 			num = (double(i) - mu) * (double(i) - mu);
 			res = exp(-num / denom) * 255.0;
-			if (i < 10) {
-				std::cout << int(res) << std::endl;
-			}
 			pLUT[i] = (uchar) (res);
 		}
 	}

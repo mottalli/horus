@@ -19,7 +19,7 @@ vector<IrisTemplate> templates;
 
 void procesarImagen(Mat& imagen)
 {
-	Mat imagenBW;
+	GrayscaleImage imagenBW;
 	cvtColor(imagen, imagenBW, CV_BGR2GRAY);
 	SegmentationResult sr = segmentator.segmentImage(imagenBW);
 	decorator.drawSegmentationResult(imagen, sr);
@@ -39,7 +39,10 @@ void procesarImagen(Mat& imagen)
 	IrisTemplate averageTemplate = IrisEncoder::averageTemplates(lastTemplates);
 	decorator.drawTemplate(imagen, averageTemplate, Point(15, 400));
 
-	imshow("imagen", imagen);
+	tools::superimposeTexture(imagenBW, averageTemplate.getTemplateImage(), sr,
+							  IrisEncoder::THETA0, IrisEncoder::THETA1, IrisEncoder::MIN_RADIUS_TO_USE, IrisEncoder::MAX_RADIUS_TO_USE, false);
+
+	imshow("imagen", imagenBW);
 
 	imshow("equalized", segmentator.pupilSegmentator.equalizedImage);
 	imshow("similarity", segmentator.pupilSegmentator.similarityImage);

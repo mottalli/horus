@@ -91,15 +91,19 @@ void horus::tools::unpackBits(const GrayscaleImage& src, GrayscaleImage& dest, i
 	return res;
 }*/
 
-void horus::tools::superimposeTexture(GrayscaleImage& image, const GrayscaleImage& texture, const SegmentationResult& segmentation, double theta0, double theta1, double radius, bool blend, double blendStart)
+void horus::tools::superimposeTexture(GrayscaleImage& image, const GrayscaleImage& texture, const SegmentationResult& segmentation, double theta0, double theta1, double minRadius, double maxRadius, bool blend, double blendStart)
 {
 	assert(texture.type() == CV_8U);
 	assert(image.type() == CV_8U);
 
-	SegmentationResult::iterator it = segmentation.iterateIris(texture.size(), theta0, theta1, radius);
+	SegmentationResult::iterator it = segmentation.iterateIris(texture.size(), theta0, theta1, minRadius, maxRadius);
 	do {
 		int xsrc = it.texturePoint.x, ysrc = it.texturePoint.y;
 		int xdest = floor(it.imagePoint.x + 0.5), ydest = floor(it.imagePoint.y + 0.5);
+
+		if (xdest < 0 || xdest >= image.cols || ydest < 0 || ydest >= image.rows) {
+			continue;
+		}
 
 		double orig = image(ydest, xdest);
 		double new_ = texture(ysrc, xsrc);
