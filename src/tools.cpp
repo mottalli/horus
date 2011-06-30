@@ -50,7 +50,7 @@ void horus::tools::unpackBits(const GrayscaleImage& src, GrayscaleImage& dest, i
 	}
 }
 
-vector< pair<Point, Point> > horus::tools::iterateIris(const SegmentationResult& segmentation, int width, int height, double theta0, double theta1, double radiusMin, double radiusMax)
+/*vector< pair<Point, Point> > horus::tools::iterateIris(const SegmentationResult& segmentation, int width, int height, double theta0, double theta1, double radiusMin, double radiusMax)
 {
 	vector< pair<Point, Point> > res(width*height);
 	const Contour& pupilContour = segmentation.pupilContour;
@@ -89,17 +89,17 @@ vector< pair<Point, Point> > horus::tools::iterateIris(const SegmentationResult&
 	}
 
 	return res;
-}
+}*/
 
 void horus::tools::superimposeTexture(GrayscaleImage& image, const GrayscaleImage& texture, const SegmentationResult& segmentation, double theta0, double theta1, double radius, bool blend, double blendStart)
 {
 	assert(texture.type() == CV_8U);
 	assert(image.type() == CV_8U);
 
-	vector< pair<Point, Point> > irisIt = iterateIris(segmentation, texture.cols, texture.rows, theta0, theta1, radius);
-	for (size_t i = 0; i < irisIt.size(); i++) {
-		int xsrc = irisIt[i].first.x, ysrc = irisIt[i].first.y;
-		int xdest = floor(irisIt[i].second.x + 0.5), ydest = floor(irisIt[i].second.y + 0.5);
+	SegmentationResult::iterator it = segmentation.iterateIris(texture.size(), theta0, theta1, radius);
+	do {
+		int xsrc = it.texturePoint.x, ysrc = it.texturePoint.y;
+		int xdest = floor(it.imagePoint.x + 0.5), ydest = floor(it.imagePoint.y + 0.5);
 
 		double orig = image(ydest, xdest);
 		double new_ = texture(ysrc, xsrc);
@@ -107,11 +107,10 @@ void horus::tools::superimposeTexture(GrayscaleImage& image, const GrayscaleImag
 		if (blend && ysrc >= (texture.rows*blendStart)) {
 			double q = 1.0 - ( double(ysrc-texture.rows*blendStart)/double(texture.rows-texture.rows*blendStart) );
 			new_ = q*new_ + (1.0-q)*orig;
-			//new_ = 255;
 		}
 
 		image(ydest, xdest) = uint8_t(new_);
-	}
+	} while (it.next());
 }
 
 void horus::tools::extractRing(const GrayscaleImage& src, GrayscaleImage& dest, int x0, int y0, int radiusMin, int radiusMax)

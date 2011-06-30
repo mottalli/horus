@@ -2,6 +2,7 @@
 
 #include "common.h"
 #include "iristemplate.h"
+#include "segmentator.h"
 
 /**
  * Abstract class -- must implement texture encoding algorithm
@@ -29,17 +30,13 @@ public:
 	 */
 	static IrisTemplate averageTemplates(const vector<const IrisTemplate*>& templates);
 
-	GrayscaleImage normalizedTexture;
-
 protected:
 	static Size getOptimumTemplateSize(int width, int height);		// Returns the optimum template size that is closer to (width, height)
 
-	GrayscaleImage normalizedNoiseMask;
-
-	void extendMask();
+	void extendMask(const GrayscaleImage& texture, GrayscaleImage& mask);
 
 	virtual IrisTemplate encodeTexture(const GrayscaleImage& texture, const GrayscaleImage& mask) = 0;
-	virtual Size getNormalizationSize();
+	virtual Size getNormalizationSize() const;
 };
 
 }

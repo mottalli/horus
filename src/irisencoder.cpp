@@ -30,54 +30,45 @@ IrisTemplate IrisEncoder::generateTemplate(const Image& image, const Segmentatio
 	tools::toGrayscale(image, bwimage, false);
 
 	Size normalizedSize = this->getNormalizationSize();
-
-	this->normalizedTexture.create(normalizedSize);
-	this->normalizedNoiseMask.create(normalizedSize);
-
-	IrisEncoder::normalizeIris(bwimage, this->normalizedTexture, this->normalizedNoiseMask, segmentationResult, IrisEncoder::THETA0, IrisEncoder::THETA1, IrisEncoder::MIN_RADIUS_TO_USE, IrisEncoder::MAX_RADIUS_TO_USE);
+	GrayscaleImage normalizedTexture(normalizedSize), normalizedNoiseMask(normalizedSize);
+	IrisEncoder::normalizeIris(bwimage, normalizedTexture, normalizedNoiseMask, segmentationResult, IrisEncoder::THETA0, IrisEncoder::THETA1, IrisEncoder::MIN_RADIUS_TO_USE, IrisEncoder::MAX_RADIUS_TO_USE);
 
 	// Improve the iris mask
-	this->extendMask();
+	this->extendMask(normalizedTexture, normalizedNoiseMask);
 
-	return this->encodeTexture(this->normalizedTexture, this->normalizedNoiseMask);
+	return this->encodeTexture(normalizedTexture, normalizedNoiseMask);
 }
 
-void IrisEncoder::extendMask()
+void IrisEncoder::extendMask(const GrayscaleImage& texture, GrayscaleImage& mask)
 {
 	// Mask away pixels too far from the mean
 	Scalar smean, sdev;
-	meanStdDev(this->normalizedTexture, smean, sdev, this->normalizedNoiseMask);
+	meanStdDev(texture, smean, sdev, mask);
 
 	double mean = smean.val[0], dev = sdev.val[0];
 	uint8_t uthresh = uint8_t(mean+1.5*dev);
 	uint8_t lthresh = uint8_t(mean-1.5*dev);
 
-	for (int y = 0; y < this->normalizedTexture.rows; y++) {
-		uint8_t* row = this->normalizedTexture.ptr(y);
-		for (int x = 0; x < this->normalizedTexture.cols; x++) {
+	for (int y = 0; y < texture.rows; y++) {
+		const uint8_t* row = texture.ptr(y);
+		for (int x = 0; x < texture.cols; x++) {
 			uint8_t val = row[x];
 			if (val < lthresh || val > uthresh) {
-				this->normalizedNoiseMask(y, x) = 0;
+				mask(y, x) = 0;
 			}
 		}
 	}
 }
 
-void IrisEncoder::normalizeIris(const GrayscaleImage& image_, GrayscaleImage& dest_, GrayscaleImage& destMask_, const SegmentationResult& segmentationResult, double theta0, double theta1, double radiusMin, double radiusMax)
+void IrisEncoder::normalizeIris(const GrayscaleImage& image, GrayscaleImage& dest, GrayscaleImage& destMask, const SegmentationResult& segmentationResult, double theta0, double theta1, double radiusMin, double radiusMax)
 {
-	GrayscaleImage image = image_, dest = dest_, destMask = destMask_;
-
-	int normalizedWidth = dest.cols, normalizedHeight = dest.rows;
-
-	vector< pair<Point, Point> > irisPoints = tools::iterateIris(segmentationResult,
-		normalizedWidth, normalizedHeight, theta0, theta1, radiusMin, radiusMax);
-
 	// Initialize the mask to 1 (all bits enabled)
 	destMask.setTo(Scalar(1));
 
-	for (size_t i = 0; i < irisPoints.size(); i++) {
-		Point imagePoint = irisPoints[i].second;
-		Point coord = irisPoints[i].first;
+	SegmentationResult::iterator it = segmentationResult.iterateIris(dest.size(), theta0, theta1, radiusMin, radiusMax);
+	do {
+		Point imagePoint = it.imagePoint;
+		Point coord = it.texturePoint;
 
 		int ximage0 = imagePoint.x;
 		int ximage1 = imagePoint.x+1;
@@ -85,23 +76,21 @@ void IrisEncoder::normalizeIris(const GrayscaleImage& image_, GrayscaleImage& de
 		int yimage1 = imagePoint.y+1;
 
 		if (ximage0 < 0 || ximage1 >= image.cols || yimage0 < 0 || yimage1 >= image.rows) {
-			dest(coord.y, coord.x) = 0;
-			destMask(coord.y, coord.x) = 0;
+			dest(coord) = 0;
+			destMask(coord) = 0;
 		} else {
-			double v1 = image(yimage0, ximage0);
-			double v2 = image(yimage0, ximage1);
-			double v3 = image(yimage1, ximage0);
-			double v4 = image(yimage1, ximage1);
-			dest(coord.y, coord.x) = (v1+v2+v3+v4)/4.0;
+			unsigned v1 = image(yimage0, ximage0);
+			unsigned v2 = image(yimage0, ximage1);
+			unsigned v3 = image(yimage1, ximage0);
+			unsigned v4 = image(yimage1, ximage1);
+			dest(coord) = uint8_t((v1+v2+v3+v4)/4);
 		}
 
 		// See if (x,y) is occluded by an eyelid
-		if (segmentationResult.eyelidsSegmented) {
-			if (imagePoint.y <= segmentationResult.upperEyelid.value(imagePoint.x) || imagePoint.y >= segmentationResult.lowerEyelid.value(imagePoint.x)) {
-				destMask(coord.y, coord.x) = 0;
-			}
+		if (it.isOccluded) {
+			destMask(coord) = 0;
 		}
-	}
+	} while (it.next());
 }
 
 Size IrisEncoder::getOptimumTemplateSize(int width, int height)
@@ -110,7 +99,7 @@ Size IrisEncoder::getOptimumTemplateSize(int width, int height)
 	return Size(optimumWidth, height);
 }
 
-Size IrisEncoder::getNormalizationSize()
+Size IrisEncoder::getNormalizationSize() const
 {
 	return Size(512, 80);
 }

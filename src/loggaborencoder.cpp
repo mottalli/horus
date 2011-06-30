@@ -11,8 +11,8 @@ LogGabor1DFilter::LogGabor1DFilter()
 }
 
 
-LogGabor1DFilter::LogGabor1DFilter(double f0, double sigmanOnF, FilterType type):
-	f0(f0), sigmaOnF(sigmanOnF), type(type)
+LogGabor1DFilter::LogGabor1DFilter(double f0_, double sigmanOnF_, FilterType type_):
+	f0(f0_), sigmaOnF(sigmanOnF_), type(type_)
 {
 }
 
@@ -20,11 +20,16 @@ LogGabor1DFilter::~LogGabor1DFilter()
 {
 }
 
-void LogGabor1DFilter::applyFilter(const GrayscaleImage& image, Mat1d& dest, const GrayscaleImage& mask, GrayscaleImage& destMask)
+void LogGabor1DFilter::applyFilter(const GrayscaleImage& image, Mat1d& dest, const GrayscaleImage& mask, Mat1b& destMask) const
 {
 	assert(image.size() == mask.size());
 
-	this->initializeFilter(image);
+	if (this->filter.empty()) {
+		this->filter = LogGabor1DFilter::createRowFilter(image.size(), this->f0, this->sigmaOnF);
+		assert(this->filter.channels() == 2);
+	}
+
+	Mat_<Complexd> imageFourier, multipliedSpectrums, filterResult;
 
 	Mat1d imageFloat;
 	image.convertTo(imageFloat, imageFloat.type());
@@ -34,23 +39,52 @@ void LogGabor1DFilter::applyFilter(const GrayscaleImage& image, Mat1d& dest, con
 	assert(image.cols == this->filter.cols);
 
 	// Calculate the Fourier spectrum for each row of the input image
-	dft(imageFloat, this->filterResult, DFT_ROWS + DFT_COMPLEX_OUTPUT, imageFloat.rows);
+	dft(imageFloat, imageFourier, DFT_ROWS | DFT_COMPLEX_OUTPUT);
 	// Convolve each row of the image with the filter by multiplying the spectrums
-	mulSpectrums(this->filter, this->filterResult, this->filterResult, DFT_ROWS);
-
+	mulSpectrums(this->filter, imageFourier, multipliedSpectrums, DFT_ROWS);
 	// Perform the inverse transform
-	dft(this->filterResult, this->filterResult, DFT_INVERSE | DFT_ROWS, 0);
+	dft(multipliedSpectrums, filterResult, DFT_INVERSE | DFT_ROWS, 0);
 
-	assert(this->filterResult.channels() == 2);
+	/////
+	/*Mat tmp;
+	vector<Mat1d> parts2;
+	split(this->filter, parts2);
+	idft(this->filter, tmp, DFT_COMPLEX_OUTPUT | DFT_ROWS);
+	split(tmp, parts2);
 
-	// Split real and imaginary parts
+	struct { Mat operator()(Mat1d m) {
+		Rect rIzq(0, 0, m.cols/2, m.rows);
+		Rect rDer(m.cols/2, 0, m.cols/2, m.rows);
+		Mat1d parteIzq = m(rIzq);
+		Mat1d parteDer = m(rDer);
+
+		Mat1d res(m.size());
+		res.setTo(0);
+
+		Mat1d resDer = res(rDer);
+		Mat1d resIzq = res(rIzq);
+
+		parteIzq.copyTo(resDer);
+		parteDer.copyTo(resIzq);
+
+		return res;
+	} } acomodar;
+
+
+	imshow("im1", tools::normalizeImage(acomodar(parts2[0])));
+	imshow("im2", tools::normalizeImage(acomodar(parts2[1])));*/
+	/////
+
+	assert(filterResult.channels() == 2);
+
+	// Split the result into real and imaginary parts
 	vector<Mat1d> parts;
-	split(this->filterResult, parts);
+	split(filterResult, parts);
 	assert(parts.size() == 2);
 	Mat1d& real = parts[0];
 	Mat1d& imag = parts[1];
 
-	dest = (this->type == FILTER_REAL ? real : imag);
+	(this->type == FILTER_REAL ? real : imag).copyTo(dest);
 
 	// Filter out elements with low response to the filter (low magnitude)
 	GrayscaleImage responseMask;
@@ -60,31 +94,32 @@ void LogGabor1DFilter::applyFilter(const GrayscaleImage& image, Mat1d& dest, con
 	bitwise_and(mask, responseMask, destMask);
 }
 
-void LogGabor1DFilter::initializeFilter(const GrayscaleImage image)
+Mat_<Complexd> LogGabor1DFilter::createRowFilter(Size size, double f0, double sigmaOnF)
 {
-	double q = 2.0*log(this->sigmaOnF)*log(this->sigmaOnF);
-	this->filter.create(image.size());
+	Mat_<Complexd> filter(size);
+	Mat_<Complexd> row(1, size.width);
 
-	Mat_<Complexd> row(1, image.cols);
-
+	double q = 2.0*log(sigmaOnF)*log(sigmaOnF);
 	const double x0 = 0.0, x1 = 0.5;
 
-	for (int i = 0; i < image.cols; i++) {
-		double r = ((x1-x0)/double(image.cols-1)) * double(i);
+	for (int i = 0; i < size.width; i++) {
+		double r = ((x1-x0)/double(size.width-1)) * double(i);
 		double value = exp( -(log(r/f0)*log(r/f0)) / q);
 		row(0, i) = Complexd(value, 0);
 	}
 
-	for (int y = 0; y < image.rows; y++) {
-		Mat_<Complexd> destRow = this->filter.row(y);
-		row.copyTo(destRow);
+	for (int y = 0; y < size.height; y++) {
+		for (int x = 0; x < size.width; x++) {
+			filter(y, x) = row(0, x);
+		}
 	}
+
+	return filter;
 }
 
 LogGaborEncoder::LogGaborEncoder()
 {
 	this->filterBank.push_back(LogGabor1DFilter(1.0/32.0, 0.5, LogGabor1DFilter::FILTER_IMAG));
-	//this->filterBank.push_back(LogGabor1DFilter(1/16.0, 0.7, LogGabor1DFilter::FILTER_IMAG));
 }
 
 LogGaborEncoder::~LogGaborEncoder()
@@ -106,12 +141,13 @@ IrisTemplate LogGaborEncoder::encodeTexture(const GrayscaleImage& texture, const
 	size_t nSlots = templateSize.width / nFilters;
 	int slotSize = nFilters;
 
-	this->resultTemplate.create(templateSize);
-	this->resultMask.create(templateSize);
+	GrayscaleImage resultTemplate(templateSize), resultMask(templateSize);
+	Mat1d filteredTexture(textureSize);
+	Mat1b filteredMask(textureSize);
 
 	for (size_t f = 0; f < nFilters; f++) {
 		LogGabor1DFilter& filter = this->filterBank[f];
-		filter.applyFilter(texture, this->filteredTexture, mask, this->filteredMask);
+		filter.applyFilter(texture, filteredTexture, mask, filteredMask);
 
 		for (size_t s = 0; s < nSlots; s++) {
 			int xtemplate = s*slotSize + f;
@@ -120,15 +156,16 @@ IrisTemplate LogGaborEncoder::encodeTexture(const GrayscaleImage& texture, const
 				int ytexture = (textureSize.height/templateSize.height) * ytemplate;
 				assert(xtexture < textureSize.width && ytexture < textureSize.height);
 
-				unsigned char templateBit = (this->filteredTexture(ytexture, xtexture) > 0 ? 1 : 0);
-				unsigned char maskBit1 = this->filteredMask(ytexture, xtexture);
-				unsigned char maskBit2 = (abs(this->filteredTexture(ytexture, xtexture)) < 0.001 ? 0 : 1);
+				unsigned char templateBit = (filteredTexture(ytexture, xtexture) > 0 ? 1 : 0);
+				unsigned char maskBit1 = filteredMask(ytexture, xtexture);
+				unsigned char maskBit2 = (abs(filteredTexture(ytexture, xtexture)) < 0.001 ? 0 : 1);
 
 				resultTemplate(ytemplate, xtemplate) = templateBit;
 				resultMask(ytemplate, xtemplate) = maskBit1 & maskBit2;
 			}
 		}
 	}
+
 
 	IrisTemplate result(resultTemplate, resultMask, this->getEncoderSignature());
 

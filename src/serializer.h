@@ -9,6 +9,7 @@
 
 #include "common.h"
 #include "iristemplate.h"
+#include "segmentator.h"
 
 namespace horus { namespace serialization {
 

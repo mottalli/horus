@@ -16,9 +16,9 @@ void IrisVideoWidget::slotFrameProcessed(const VideoProcessor& videoProcessor)
 		this->decorator.lineWidth = (status >= VideoProcessor::FOCUSED_IRIS ? 2 : 1);
 
 		this->decorator.setDrawingColors(pupilColor, irisColor);
-		this->decorator.drawSegmentationResult(this->decoratedFrame, videoProcessor.lastSegmentationResult);
 
 		this->decorator.drawCaptureStatus(this->decoratedFrame, videoProcessor);
+		this->decorator.drawSegmentationResult(this->decoratedFrame, videoProcessor.lastSegmentationResult);
 
 
 		if (status >= VideoProcessor::FOCUSED_IRIS) {

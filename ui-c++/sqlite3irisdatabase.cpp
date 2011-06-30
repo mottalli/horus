@@ -25,7 +25,7 @@ SQLite3IrisDatabase::SQLite3IrisDatabase(const string& dbPath) :
 			throw runtime_error("Se detectó una imagen no codificada");
 		}
 
-		this->addTemplate(idTemplate, serialization::unserializeIrisTemplate(serializedTemplate));
+		this->addTemplate(idTemplate, horus::serialization::unserializeIrisTemplate(serializedTemplate));
 	}
 
 	qDebug() << "Fin carga";

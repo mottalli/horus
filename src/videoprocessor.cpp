@@ -61,7 +61,12 @@ VideoProcessor::VideoStatus VideoProcessor::processFrame(const Mat& frame)
 			if (this->lastStatus == FOCUSED_IRIS) {
 				CapturedImage capturedImage;
 				capturedImage.image = this->lastFrameBW.clone();
-				capturedImage.irisTemplate = this->irisEncoder.generateTemplate(this->lastFrameBW, this->lastSegmentationResult);
+
+				// Delete this!
+				LogGaborEncoder irisEncoder_;
+				capturedImage.irisTemplate = irisEncoder_.generateTemplate(this->lastFrameBW, this->lastSegmentationResult);
+				//capturedImage.irisTemplate = this->irisEncoder.generateTemplate(this->lastFrameBW, this->lastSegmentationResult);
+
 				capturedImage.irisTemplate.irisQuality = this->lastSegmentationResult.pupilContourQuality;
 				// Note that the "template quality" does not neccesarily have to be the valid bit count (could be something else)
 				// That's why we put it outside the IrisTemplate class

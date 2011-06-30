@@ -39,7 +39,7 @@ void VideoThread::run()
 
 		emit(signalFrameAvailable(subwindow));
 		//emit(signalFrameAvailable(_frame));
-		msleep(30);
+		msleep(10);
 	}
 
 	_cap.release();

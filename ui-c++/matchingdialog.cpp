@@ -111,7 +111,7 @@ void MatchingDialog::on_btnConfirmarIdentificacion_clicked()
 Image MatchingDialog::getNoMatchImage(Size size)
 {
 	ColorImage image(size);
-	image.setTo(Vec3f(0,0,0));
+	image.setTo(Scalar(0,0,0));
 
 	line(image, Point(0,0), Point(image.cols-1,image.rows-1), CV_RGB(255,255,255), 1);
 	line(image, Point(image.cols-1,0), Point(0,image.rows-1), CV_RGB(255,255,255), 1);

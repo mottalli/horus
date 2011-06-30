@@ -88,6 +88,7 @@ namespace std
 	%template(vectord) vector<double>;
 	%template(vectori) vector<int>;
 	%template(vectorvectord) vector< vector<double> >;
+	%template(vectorpoint) vector< cv::Point >;
 }
 
 %include "../src/common.h"

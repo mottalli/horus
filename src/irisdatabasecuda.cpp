@@ -144,7 +144,7 @@ void IrisDatabaseCUDA::uploadDBToDevice()
 		const Mat1b& packedTemplate = this->templates[i].getPackedTemplate();
 		const Mat1b& packedMask = this->templates[i].getPackedMask();
 
-		assert(packedTemplate.isContinous() && packedMask.isContinuous());			// Must be continuous to use cudaMemcpy
+		assert(packedTemplate.isContinuous() && packedMask.isContinuous());			// Must be continuous to use cudaMemcpy
 
 		uint8_t* ptrTemplateDevice = this->gpuDatabase.d_templates + i*templateLength;
 		uint8_t* ptrMaskDevice = this->gpuDatabase.d_masks + i*templateLength;

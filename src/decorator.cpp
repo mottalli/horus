@@ -45,17 +45,17 @@ void Decorator::drawEncodingZone(Image& image, const SegmentationResult& segment
 {
 	const int width = 512, height = 80;
 
-	vector< pair<Point, Point> > irisPoints = tools::iterateIris(segmentationResult,
-		width, height, IrisEncoder::THETA0,
-		IrisEncoder::THETA1, IrisEncoder::MIN_RADIUS_TO_USE, IrisEncoder::MAX_RADIUS_TO_USE);
+	SegmentationResult::iterator it = segmentationResult.iterateIris(Size(width, height), IrisEncoder::THETA0, IrisEncoder::THETA1,
+		IrisEncoder::MIN_RADIUS_TO_USE, IrisEncoder::MAX_RADIUS_TO_USE);
 
 	Contour outerContour(width), innerContour(width);
 	pair<Point, Point> firstBorder, secondBorder;
 
-	for (size_t i = 0; i < irisPoints.size(); i++) {
-		Point imagePoint = irisPoints[i].second;
-		Point coord = irisPoints[i].first;
+	do {
+		Point imagePoint = it.imagePoint;
+		Point coord = it.texturePoint;
 		int x = imagePoint.x, y = imagePoint.y;
+
 
 		if (x < 0 || x >= image.size().width  || y < 0 || y > image.size().height) {
 			continue;
@@ -78,7 +78,7 @@ void Decorator::drawEncodingZone(Image& image, const SegmentationResult& segment
 		}
 
 		//TODO: fill
-	}
+	} while (it.next());
 
 	line(image, firstBorder.first, firstBorder.second, CV_RGB(255,255,0), this->lineWidth);
 	line(image, secondBorder.first, secondBorder.second, CV_RGB(255,255,0), this->lineWidth);
@@ -199,15 +199,17 @@ void Decorator::drawCaptureStatus(Image& image, const VideoProcessor& videoProce
 
 	if (status >= VideoProcessor::FOCUSED_IRIS) {
 		// Science fiction effect!
-		double q = min<double>(1.0, double(videoProcessor.captureBurst.size()) / double(videoProcessor.parameters.minCountForTemplateAveraging));
+		double q = min(1.0, double(videoProcessor.captureBurst.size()) / double(videoProcessor.parameters.minCountForTemplateAveraging));
 		double angle = q*2*M_PI;
 		int width = int(400.0*q);
 		int height = (videoProcessor.lastSegmentationResult.irisCircle.radius-videoProcessor.lastSegmentationResult.pupilCircle.radius)/2 + 1;
-		vector< pair<Point, Point> > pts = tools::iterateIris(videoProcessor.lastSegmentationResult, width, height, -M_PI/2, angle-M_PI/2);
-		for (size_t i = 0; i < pts.size(); i++) {
-			Point p = pts[i].second;
-			Vec3f val = image.at<Vec3b>(p);
-			Vec3f color;
+		double radiusMin = 0.0, radiusMax = 1.0;
+
+		drawTemplate(image, videoProcessor.lastTemplate);
+
+		SegmentationResult::iterator it = videoProcessor.lastSegmentationResult.iterateIris(Size(width,height), -M_PI/2.0, angle-M_PI/2.0, radiusMin, radiusMax);
+		do {
+			Vec3f color, val = image.at<Vec3b>(it.imagePoint);
 			double alpha;
 			if (status == VideoProcessor::FINISHED_CAPTURE) {
 				color =  Vec3f(0,128,0);
@@ -218,8 +220,8 @@ void Decorator::drawCaptureStatus(Image& image, const VideoProcessor& videoProce
 			}
 			Vec3b final = Vec3f( val[0]*alpha+color[0]*(1.0-alpha), val[1]*alpha+color[1]*(1.0-alpha), val[2]*alpha+color[2]*(1.0-alpha) );
 
-			image.at<Vec3b>(p) = final;
-		}
+			image.at<Vec3b>(it.imagePoint) = final;
+		} while (it.next());
 	}
 
 }

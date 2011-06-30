@@ -16,7 +16,34 @@ using namespace cv;
 
 namespace horus {
 
-typedef vector<Point> Contour;
+class Contour : public std::vector<Point>
+{
+public:
+	Contour(size_t size) : std::vector<Point>(size) {}
+	Contour() : std::vector<Point>() {}
+
+	/**
+	 * Given a value between 0 and 1, returns the point the contour in that position (linear interpolation)
+	 */
+	inline Point2d getPoint(double x) const {
+		// assert(0 <= prop && prop <= 1);
+		double w = x * double(size());
+		size_t i0 = size_t(w) % size();
+		size_t i1 = size_t(w) % size();
+
+		if (i0 == i1) {
+			return this->at(i0);
+		} else {
+			// assert(abs(i0-i1) == 1);
+			Point2d p0 = this->at(i0), p1 = this->at(i1);
+			double prop = w-floor(w);
+
+			double xp = p0.x + (p1.x-p0.x)*prop;
+			double yp = p0.y + (p1.y-p0.y)*prop;
+			return Point2d(xp, yp);
+		}
+	}
+};
 
 typedef struct {
 	Point center;
@@ -52,19 +79,6 @@ public:
 	}
 private:
 	double a, b, c;
-};
-
-struct SegmentationResult {
-	Contour irisContour;
-	Contour pupilContour;
-	Circle pupilCircle;
-	Circle irisCircle;
-	Parabola upperEyelid;
-	Parabola lowerEyelid;
-
-	double pupilContourQuality;
-
-	bool eyelidsSegmented;
 };
 
 }

@@ -3,6 +3,7 @@
 #include "common.h"
 #include "iristemplate.h"
 #include "templatecomparator.h"
+#include "segmentator.h"
 
 namespace horus {
 

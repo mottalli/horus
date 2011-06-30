@@ -10,23 +10,38 @@
 using namespace std;
 using namespace cv;
 using namespace horus;
-using namespace boost;
-
-//Segmentator segmentator;
-//VideoProcessor videoProcessor;
-//Decorator decorator;
 
 int main(int, char**)
 {
-	thread_group tg;
+	VideoCapture cap(0);
+	cap.set(CV_CAP_PROP_FRAME_WIDTH, 720);
+	cap.set(CV_CAP_PROP_FRAME_HEIGHT, 576);
 
-	for (int i = 0; i < 10; i++) {
-		tg.create_thread([i]() {
-			cout << i << endl;
-		});
-	}
+	Segmentator segmentator;
+	VideoProcessor videoProcessor;
+	Decorator decorator;
+	LogGaborEncoder encoder;
 
-	tg.join_all();
+	Mat tmp, frame;
+	GrayscaleImage frameBW;
+	//Mat1b imagen = imread("/home/marcelo/iris/horus/base-iris/15_2.jpg", 0);
+
+	do {
+		cap >> tmp;
+		flip(tmp, tmp, 1);
+		frame = tmp(Rect(10, 0, tmp.cols-2*10, tmp.rows));
+		cvtColor(frame, frameBW, CV_BGR2GRAY);
+
+		SegmentationResult sr = segmentator.segmentImage(frameBW);
+		decorator.drawSegmentationResult(frame, sr);
+		//cout << segmentator.segmentationTime << endl;
+
+		IrisTemplate irisTemplate = encoder.generateTemplate(frameBW, sr);
+		decorator.drawTemplate(frame, irisTemplate);
+
+		imshow("video", frame);
+	} while (char(waitKey(5)) != 'q');
+
 
 	return 0;
 }

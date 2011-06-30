@@ -18,16 +18,22 @@ IrisTemplate::IrisTemplate()
 
 IrisTemplate::IrisTemplate(const GrayscaleImage& binaryTemplate, const GrayscaleImage& binaryMask, string encoderSignature_)
 {
-	assert(binaryTemplate.size() == binaryMask.size());
 	assert(binaryTemplate.depth() == CV_8U);
-	assert(binaryMask.depth() == CV_8U);
 	assert(binaryTemplate.channels() == 1);
-	assert(binaryMask.channels() == 1);
-
 	assert(binaryTemplate.cols % 8 == 0);
 
+	if (!binaryMask.empty()) {
+		assert(binaryMask.size() == binaryTemplate.size());
+		assert(binaryMask.depth() == CV_8U);
+		assert(binaryMask.channels() == 1);
+		tools::packBits(binaryMask, this->mask);
+	} else {
+		Mat1b emptyMask(binaryTemplate.size());
+		emptyMask.setTo(Scalar(1));				// All bits enabled by default if the mask is not set
+		tools::packBits(emptyMask, this->mask);
+	}
+
 	tools::packBits(binaryTemplate, this->irisTemplate);
-	tools::packBits(binaryMask, this->mask);
 
 	this->encoderSignature = encoderSignature_;
 	this->irisQuality = 0;

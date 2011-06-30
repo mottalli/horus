@@ -12,17 +12,15 @@ public:
 	LogGabor1DFilter(double f0, double sigmanOnF, FilterType type=FILTER_IMAG);
 	virtual ~LogGabor1DFilter();
 
-	void applyFilter(const GrayscaleImage& image, Mat1d& dest, const GrayscaleImage& mask, GrayscaleImage& destMask);
+	void applyFilter(const GrayscaleImage& image, Mat1d& dest, const GrayscaleImage& mask, Mat1b& destMask) const;
 
 	double f0, sigmaOnF;
 	FilterType type;
 
 private:
-	Mat_<Complexd> filter;		// Filter in the frequency domain
-	Mat_<Complexd> complexInput;
-	Mat_<Complexd> filterResult;
+	mutable Mat_<Complexd> filter;		// Filter in the frequency domain
 
-	void initializeFilter(const GrayscaleImage image);		// Must release the result
+	static Mat_<Complexd> createRowFilter(Size size, double f0, double sigmaOnF);
 };
 
 
@@ -37,15 +35,10 @@ public:
 	string getEncoderSignature() const;
 
 protected:
-	Mat1d filteredTexture;
-	GrayscaleImage filteredMask;
-	GrayscaleImage resultTemplate;
-	GrayscaleImage resultMask;
-
 	vector<LogGabor1DFilter> filterBank;
 
 	virtual IrisTemplate encodeTexture(const GrayscaleImage& texture, const GrayscaleImage& mask);
-	virtual Size getNormalizationSize() { return LogGaborEncoder::getTemplateSize(); }
+	virtual Size getNormalizationSize() const { return LogGaborEncoder::getTemplateSize(); }
 };
 
 }
