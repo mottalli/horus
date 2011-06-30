@@ -24,8 +24,15 @@ void LogGabor1DFilter::applyFilter(const GrayscaleImage& image, Mat1d& dest, con
 {
 	assert(image.size() == mask.size());
 
-	std::pair<Mat1d, Mat1d> filters = LogGabor1DFilter::createSpatialFilter(image.cols, this->f0, this->sigmaOnF);
-	Mat1d& filter = (this->type == FILTER_REAL ? filters.first : filters.second);
+	if (this->realFilter.cols != image.cols) {
+		// Filters not initialized
+		std::pair<Mat1d, Mat1d> filters = LogGabor1DFilter::createSpatialFilter(image.cols, this->f0, this->sigmaOnF);
+		this->realFilter = filters.first;
+		this->imagFilter = filters.second;
+	}
+
+
+	Mat1d& filter = (this->type == FILTER_REAL ? this->realFilter : this->imagFilter);
 
 	Mat1d flippedFilter;			// Flip the filter because filter2D calculates correlation, not convolution
 	flip(filter, flippedFilter, 1);
@@ -33,6 +40,7 @@ void LogGabor1DFilter::applyFilter(const GrayscaleImage& image, Mat1d& dest, con
 	Mat1d imageDouble;
 	image.convertTo(imageDouble, imageDouble.type());
 
+	// Do the convolution between the texture and the log-gabor filter in the spatial domain
 	filter2D(imageDouble, dest, dest.type(), flippedFilter, Point(-1,-1), 0, BORDER_DEFAULT);
 
 	// Don't change the mask
@@ -62,13 +70,13 @@ std::pair<Mat1d, Mat1d> LogGabor1DFilter::createSpatialFilter(size_t size, doubl
 	Mat_<Complexd> tmp;
 	vector<Mat1d> parts;
 	idft(frequencyFilter, tmp, DFT_COMPLEX_OUTPUT | DFT_ROWS);
-	assert(tmp.channels() == 2 && tmp.rows == 1 && tmp.cols == size);
+	assert(tmp.channels() == 2 && tmp.rows == 1 && tmp.cols == (int)size);
 	split(tmp, parts);			// Split into real and imaginary filters
 	Mat1d& real = parts[0];
 	Mat1d& imag = parts[1];
 
 	// Functor that shifts the left and right parts of the vector
-	// (similar to Matlab's "fftshift"
+	// (similar to Matlab's "fftshift")
 	auto fftshift = [](Mat1d& m) {
 		Rect rLeft(0, 0, m.cols/2, m.rows);
 		Rect rRight(m.cols/2, 0, m.cols/2, m.rows);

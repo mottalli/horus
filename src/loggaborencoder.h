@@ -18,7 +18,7 @@ public:
 	FilterType type;
 
 private:
-	mutable Mat_<Complexd> frequencyFilter;		// Filter in the frequency domain
+	mutable Mat1d realFilter, imagFilter;		// Filters in the spatial domain
 
 	static Mat_<Complexd> createFrequencyFilter(size_t size, double f0, double sigmaOnF);
 	static std::pair<Mat1d, Mat1d> createSpatialFilter(size_t, double f0, double sigmaOnF);
