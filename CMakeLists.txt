@@ -4,6 +4,7 @@ PROJECT(Horus)
 # ----------------------------------- Program options --------------------------------------
 OPTION(USE_CUDA "Use CUDA acceleration" OFF)
 OPTION(PYTHON_INTERFACE "Generate Python interface" ON)
+OPTION(BUILD_UI "Build UI app" ON)
 
 # ----------------------------------- SOURCE FILES --------------------------------------
 SET(HORUS_LIB_SOURCES 
@@ -68,12 +69,12 @@ ENDIF()
 
 INCLUDE_DIRECTORIES(${OpenCV_INCLUDE_DIRS})
 
-# ----------------------------------- Boost --------------------------------------
+# ----------------------------------- Global options for Boost ------------------
 IF (WIN32)
 	SET(Boost_USE_STATIC_LIBS ON)
 ENDIF()
 
-FIND_PACKAGE(Boost REQUIRED COMPONENTS system filesystem date_time program_options thread)
+FIND_PACKAGE(Boost REQUIRED COMPONENTS thread)
 INCLUDE_DIRECTORIES(${Boost_INCLUDE_DIRS})
 
 # ----------------------------------- CUDA --------------------------------------
@@ -114,7 +115,9 @@ IF (PYTHON_INTERFACE)
 	ADD_SUBDIRECTORY(python_interface)
 ENDIF()
 ADD_SUBDIRECTORY(test)
-ADD_SUBDIRECTORY(ui-c++)
+IF (BUILD_UI)
+	ADD_SUBDIRECTORY(ui-c++)
+ENDIF()
 
 # ----------------------------------- UNINSTALL --------------------------------------
 

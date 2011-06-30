@@ -1,33 +1,34 @@
-# Create the ui-c++.pro QMake project file for developing in QT Creator.
-# It tries to take care of the paths automatically so it will be less a 
-# PITA to work in Windows.
+PROJECT(ui)
 
-FIND_PACKAGE(Boost REQUIRED COMPONENTS system filesystem date_time program_options)
+FIND_PACKAGE(Qt4 REQUIRED)
+INCLUDE(${QT_USE_FILE})
+ADD_DEFINITIONS(${QT_DEFINITIONS})
 
-FOREACH (SOURCE ${HORUS_LIB_SOURCES})
-	SET(SEP_HORUS_LIB_SOURCES "${SEP_HORUS_LIB_SOURCES} ${SOURCE}")
-ENDFOREACH()
+SET(ui_HEADERS common.h imagewidget.h irisvideowidget.h matchingdialog.h registerdialog.h sqlite3wrapper.h
+		debugdialog.h irisvideocapture.h mainwindow.h processingthread.h sqlite3irisdatabase.h videothread.h
+		external/sqlite3/sqlite3.h
+)
 
-FOREACH (HEADER ${HORUS_LIB_HEADERS})
-	SET(SEP_HORUS_LIB_HEADERS "${SEP_HORUS_LIB_HEADERS} ${HEADER}")
-ENDFOREACH()
+SET(ui_SOURCES debugdialog.cpp irisvideocapture.cpp main.cpp matchingdialog.cpp registerdialog.cpp sqlite3wrapper.cpp
+		imagewidget.cpp irisvideowidget.cpp mainwindow.cpp processingthread.cpp sqlite3irisdatabase.cpp videothread.cpp
+		external/sqlite3/sqlite3.c
+)
 
-FOREACH (INCDIR ${OpenCV_INCLUDE_DIRS})
-	SET(SEP_OpenCV_INCLUDE_DIRS "${SEP_OpenCV_INCLUDE_DIRS} ${INCDIR}")
-ENDFOREACH()
+SET(ui_FORMS debugdialog.ui mainwindow.ui matchingdialog.ui registerdialog.ui)
 
-SET(OpenCV_FINAL_LIBS ${OpenCV_LIBS})
-LIST(REMOVE_ITEM OpenCV_FINAL_LIBS "debug" "optimized")
-LIST(REMOVE_DUPLICATES OpenCV_FINAL_LIBS)
-FOREACH (LIB ${OpenCV_FINAL_LIBS})
-	SET(SEP_OpenCV_LIBS "${SEP_OpenCV_LIBS} -l${LIB}")
-ENDFOREACH()
+QT4_WRAP_CPP(ui_HEADERS_MOC ${ui_HEADERS})
+QT4_WRAP_UI(ui_FORMS_HEADERS ${ui_FORMS})
 
-SET(Boost_FINAL_LIBS ${Boost_LIBRARIES})
-LIST(REMOVE_ITEM Boost_FINAL_LIBS "debug" "optimized")
-LIST(REMOVE_DUPLICATES Boost_FINAL_LIBS)
-FOREACH (LIB ${Boost_FINAL_LIBS})
-	SET(SEP_Boost_LIBS "${SEP_Boost_LIBS} ${LIB}")
-ENDFOREACH()
+FIND_PACKAGE(Boost REQUIRED COMPONENTS system filesystem date_time program_options thread)
 
-CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/ui-c++.pro.in ${CMAKE_CURRENT_SOURCE_DIR}/ui-c++.pro)
+INCLUDE_DIRECTORIES(${Boost_INCLUDE_DIRS})
+INCLUDE_DIRECTORIES(${CMAKE_CURRENT_BINARY_DIR})
+INCLUDE_DIRECTORIES(${CMAKE_CURRENT_SOURCE_DIR})		# Without this, it cannot include the .h files (!)
+
+ADD_EXECUTABLE(ui ${ui_SOURCES}
+	${ui_HEADERS_MOC}
+	${ui_HEADERS}
+	${ui_FORMS_HEADERS}
+)
+
+TARGET_LINK_LIBRARIES(ui horus ${QT_LIBRARIES} ${OpenCV_LIBS} ${Boost_LIBRARIES})
