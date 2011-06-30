@@ -28,7 +28,7 @@ public:
 	/**
 	 * Given a list of templates, returns an "averaged" template
 	 */
-	static IrisTemplate averageTemplates(const vector<const IrisTemplate*>& templates);
+	static IrisTemplate averageTemplates(const vector<IrisTemplate>& templates);
 
 protected:
 	static Size getOptimumTemplateSize(int width, int height);		// Returns the optimum template size that is closer to (width, height)

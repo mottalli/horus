@@ -104,20 +104,20 @@ Size IrisEncoder::getNormalizationSize() const
 	return Size(512, 80);
 }
 
-IrisTemplate IrisEncoder::averageTemplates(const vector<const IrisTemplate*>& templates)
+IrisTemplate IrisEncoder::averageTemplates(const vector<IrisTemplate>& templates)
 {
 	assert(templates.size() >= 1);
 	Mat1b unpackedTemplate, unpackedMask;
 	Mat1b acum, acumMask;
 
 	// Just retrieve the size of the templates
-	unpackedTemplate = templates[0]->getUnpackedTemplate();
+	unpackedTemplate = templates[0].getUnpackedTemplate();
 	acum = Mat1b::zeros(unpackedTemplate.size());
 	acumMask = Mat1b::zeros(unpackedTemplate.size());
 
 	for (size_t i = 0; i < templates.size(); i++) {
-		unpackedTemplate = templates[i]->getUnpackedTemplate();
-		unpackedMask = templates[i]->getUnpackedMask();
+		unpackedTemplate = templates[i].getUnpackedTemplate();
+		unpackedMask = templates[i].getUnpackedMask();
 
 		assert(acum.size() == unpackedTemplate.size());
 
@@ -140,5 +140,5 @@ IrisTemplate IrisEncoder::averageTemplates(const vector<const IrisTemplate*>& te
 	bitwise_xor(zeros, ones, averageMask);				// EITHER 0 or 1 => consistent => mark as valid in mask
 	averageMask.setTo(0, zerosMask);					// Disable the bits that are usually disabled in the mask
 
-	return IrisTemplate(averageTemplate, averageMask, templates[0]->encoderSignature);
+	return IrisTemplate(averageTemplate, averageMask, templates[0].encoderSignature);
 }

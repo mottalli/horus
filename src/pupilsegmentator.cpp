@@ -66,12 +66,12 @@ Circle PupilSegmentator::approximatePupil(const GrayscaleImage& image)
 {
 	// First, equalize the image and apply the similarity transform
 	//equalizeHist(image, this->equalizedImage);
-	tools::stretchHistogram(image, this->equalizedImage, 0.01, 0.0);
-	this->similarityTransform();
+	tools::stretchHistogram(image, this->equalizedImage, 0.005, 0.0);
+	this->similarityTransform(this->equalizedImage, this->similarityImage);
 	blur(this->similarityImage, this->similarityImage, Size(7, 7));
 
 	if (this->parameters.avoidPupilReflection) {
-		morphologyEx(this->similarityImage, this->similarityImage, MORPH_DILATE, matStructElem, Point(-1,-1), 4);
+		morphologyEx(this->similarityImage, this->similarityImage, MORPH_DILATE, matStructElem, Point(-1,-1), 2);
 	}
 
 	// Now perform the cascaded integro-differential operator (use the ROI if any)
@@ -438,7 +438,7 @@ uint8_t PupilSegmentator::circleAverage(const GrayscaleImage& image, int xc, int
 	return (uint8_t) (S / n);
 }
 
-void PupilSegmentator::similarityTransform()
+void PupilSegmentator::similarityTransform(const GrayscaleImage& src, GrayscaleImage& dest)
 {
 	double sigma = this->parameters.sigmaPupil;
 	double mu = this->parameters.muPupil;
@@ -457,11 +457,14 @@ void PupilSegmentator::similarityTransform()
 		for (int i = 0; i < 256; i++) {
 			num = (double(i) - mu) * (double(i) - mu);
 			res = exp(-num / denom) * 255.0;
+			if (i < 10) {
+				std::cout << int(res) << std::endl;
+			}
 			pLUT[i] = (uchar) (res);
 		}
 	}
 
-	LUT(this->equalizedImage, this->_LUT, this->similarityImage);
+	LUT(src, this->_LUT, dest);
 }
 
 int PupilSegmentator::calculatePupilContourQuality(const GrayscaleImage& region, const Mat_<uint16_t>& regionGradient, const Mat_<float>& contourSnake)

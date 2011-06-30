@@ -15,6 +15,7 @@ Segmentator segmentator;
 VideoProcessor videoProcessor;
 Decorator decorator;
 LogGaborEncoder encoder;
+vector<IrisTemplate> templates;
 
 void procesarImagen(Mat& imagen)
 {
@@ -25,31 +26,47 @@ void procesarImagen(Mat& imagen)
 
 	IrisTemplate irisTemplate = encoder.generateTemplate(imagenBW, sr);
 	decorator.drawTemplate(imagen, irisTemplate);
+	templates.push_back(irisTemplate);
+
+	size_t n = 10;
+	vector<IrisTemplate> lastTemplates(n);
+	if (templates.size() < n) {
+		lastTemplates = templates;
+	} else {
+		std::copy(templates.end()-n, templates.end(), lastTemplates.begin());
+	}
+
+	IrisTemplate averageTemplate = IrisEncoder::averageTemplates(lastTemplates);
+	decorator.drawTemplate(imagen, averageTemplate, Point(15, 400));
 
 	imshow("imagen", imagen);
+
+	imshow("equalized", segmentator.pupilSegmentator.equalizedImage);
+	imshow("similarity", segmentator.pupilSegmentator.similarityImage);
 }
 
 int main(int, char**)
 {
-	/*VideoCapture cap(0);
+	VideoCapture cap(0);
 	cap.set(CV_CAP_PROP_FRAME_WIDTH, 720);
 	cap.set(CV_CAP_PROP_FRAME_HEIGHT, 576);
 
 	Mat tmp, frame;
+	int dx = 10, dy = 10;
 
 	do {
 		cap >> tmp;
 		flip(tmp, tmp, 1);
-		frame = tmp(Rect(10, 0, tmp.cols-2*10, tmp.rows));
+		frame = tmp(Rect(dx, dy, tmp.cols-2*dx, tmp.rows-2*dy));
 
 		procesarImagen(frame);
 
 ;
-	} while (char(waitKey(5)) != 'q');*/
+	} while (char(waitKey(5)) != 'q');
 
-	Mat imagen = imread("/home/marcelo/iris/horus/base-iris/15_2.jpg", 1);
+	/*Mat imagen = imread("/home/marcelo/iris/horus/base-iris/15_2.jpg", 1);
 	procesarImagen(imagen);
-	while (char(waitKey(5)) != 'q') {};
+	while (char(waitKey(5)) != 'q') {};*/
 
 	return 0;
 }

@@ -28,7 +28,7 @@ public:
 	{
 		this->bufferWidth = 320;
 		this->muPupil = 0.0;
-		this->sigmaPupil = 2.0;
+		this->sigmaPupil = 1.0;
 		this->minimumPupilRadius = 7;
 		this->maximumPupilRadius = 80;
 		this->pupilAdjustmentRingWidth = 256;
@@ -67,7 +67,7 @@ public:
 
 private:
 	void setupBuffers(const Image& image);
-	void similarityTransform();
+	void similarityTransform(const GrayscaleImage& src, GrayscaleImage& dest);
 	Circle approximatePupil(const GrayscaleImage& image);
 	Circle cascadedIntegroDifferentialOperator(const GrayscaleImage& image, Rect ROI=Rect());
 	int calculatePupilContourQuality(const GrayscaleImage& region, const Mat_<uint16_t>& regionGradient, const Mat_<float>& contourSnake);
