@@ -24,97 +24,66 @@ void LogGabor1DFilter::applyFilter(const GrayscaleImage& image, Mat1d& dest, con
 {
 	assert(image.size() == mask.size());
 
-	if (this->filter.empty()) {
-		this->filter = LogGabor1DFilter::createRowFilter(image.size(), this->f0, this->sigmaOnF);
-		assert(this->filter.channels() == 2);
-	}
+	std::pair<Mat1d, Mat1d> filters = LogGabor1DFilter::createSpatialFilter(image.cols, this->f0, this->sigmaOnF);
+	Mat1d& filter = (this->type == FILTER_REAL ? filters.first : filters.second);
 
-	Mat_<Complexd> imageFourier, multipliedSpectrums, filterResult;
+	Mat1d flippedFilter;			// Flip the filter because filter2D calculates correlation, not convolution
+	flip(filter, flippedFilter, 1);
 
-	Mat1d imageFloat;
-	image.convertTo(imageFloat, imageFloat.type());
-	//blur(imageFloat, imageFloat, Size(3,3));			// Blur a bit (improves result for some reason)
+	Mat1d imageDouble;
+	image.convertTo(imageDouble, imageDouble.type());
 
-	assert(this->filter.channels() == 2);
-	assert(image.cols == this->filter.cols);
+	filter2D(imageDouble, dest, dest.type(), flippedFilter, Point(-1,-1), 0, BORDER_DEFAULT);
 
-	// Calculate the Fourier spectrum for each row of the input image
-	dft(imageFloat, imageFourier, DFT_ROWS | DFT_COMPLEX_OUTPUT);
-	// Convolve each row of the image with the filter by multiplying the spectrums
-	mulSpectrums(this->filter, imageFourier, multipliedSpectrums, DFT_ROWS);
-	// Perform the inverse transform
-	dft(multipliedSpectrums, filterResult, DFT_INVERSE | DFT_ROWS, 0);
-
-	/////
-	/*Mat tmp;
-	vector<Mat1d> parts2;
-	split(this->filter, parts2);
-	idft(this->filter, tmp, DFT_COMPLEX_OUTPUT | DFT_ROWS);
-	split(tmp, parts2);
-
-	struct { Mat operator()(Mat1d m) {
-		Rect rIzq(0, 0, m.cols/2, m.rows);
-		Rect rDer(m.cols/2, 0, m.cols/2, m.rows);
-		Mat1d parteIzq = m(rIzq);
-		Mat1d parteDer = m(rDer);
-
-		Mat1d res(m.size());
-		res.setTo(0);
-
-		Mat1d resDer = res(rDer);
-		Mat1d resIzq = res(rIzq);
-
-		parteIzq.copyTo(resDer);
-		parteDer.copyTo(resIzq);
-
-		return res;
-	} } acomodar;
-
-
-	imshow("im1", tools::normalizeImage(acomodar(parts2[0])));
-	imshow("im2", tools::normalizeImage(acomodar(parts2[1])));*/
-	/////
-
-	assert(filterResult.channels() == 2);
-
-	// Split the result into real and imaginary parts
-	vector<Mat1d> parts;
-	split(filterResult, parts);
-	assert(parts.size() == 2);
-	Mat1d& real = parts[0];
-	Mat1d& imag = parts[1];
-
-	(this->type == FILTER_REAL ? real : imag).copyTo(dest);
-
-	// Filter out elements with low response to the filter (low magnitude)
-	GrayscaleImage responseMask;
-	Mat1d mag;
-	magnitude(real, imag, mag);
-	compare(mag, 0.01, responseMask, CMP_GE);
-	bitwise_and(mask, responseMask, destMask);
+	// Don't change the mask
+	mask.copyTo(destMask);
 }
 
-Mat_<Complexd> LogGabor1DFilter::createRowFilter(Size size, double f0, double sigmaOnF)
+Mat_<Complexd> LogGabor1DFilter::createFrequencyFilter(size_t size, double f0, double sigmaOnF)
 {
-	Mat_<Complexd> filter(size);
-	Mat_<Complexd> row(1, size.width);
+	Mat_<Complexd> filter(1, size);
 
 	double q = 2.0*log(sigmaOnF)*log(sigmaOnF);
 	const double x0 = 0.0, x1 = 0.5;
 
-	for (int i = 0; i < size.width; i++) {
-		double r = ((x1-x0)/double(size.width-1)) * double(i);
+	for (size_t i = 0; i < size; i++) {
+		double r = ((x1-x0)/double(size-1)) * double(i);
 		double value = exp( -(log(r/f0)*log(r/f0)) / q);
-		row(0, i) = Complexd(value, 0);
-	}
-
-	for (int y = 0; y < size.height; y++) {
-		for (int x = 0; x < size.width; x++) {
-			filter(y, x) = row(0, x);
-		}
+		filter(0, i) = Complexd(value, 0.0);
 	}
 
 	return filter;
+}
+
+std::pair<Mat1d, Mat1d> LogGabor1DFilter::createSpatialFilter(size_t size, double f0, double sigmaOnF)
+{
+	Mat_<Complexd> frequencyFilter = LogGabor1DFilter::createFrequencyFilter(size, f0, sigmaOnF);
+
+	Mat_<Complexd> tmp;
+	vector<Mat1d> parts;
+	idft(frequencyFilter, tmp, DFT_COMPLEX_OUTPUT | DFT_ROWS);
+	assert(tmp.channels() == 2 && tmp.rows == 1 && tmp.cols == size);
+	split(tmp, parts);			// Split into real and imaginary filters
+	Mat1d& real = parts[0];
+	Mat1d& imag = parts[1];
+
+	// Functor that shifts the left and right parts of the vector
+	// (similar to Matlab's "fftshift"
+	auto fftshift = [](Mat1d& m) {
+		Rect rLeft(0, 0, m.cols/2, m.rows);
+		Rect rRight(m.cols/2, 0, m.cols/2, m.rows);
+		Mat1d partLeft = m(rLeft).clone();
+		Mat1d partRight = m(rRight).clone();
+		Mat1d resRight = m(rRight);
+		partLeft.copyTo(resRight);
+		Mat1d resLeft = m(rLeft);
+		partRight.copyTo(resLeft);
+	};
+
+	fftshift(real);
+	fftshift(imag);
+
+	return std::pair<Mat1d, Mat1d>(real, imag);
 }
 
 LogGaborEncoder::LogGaborEncoder()

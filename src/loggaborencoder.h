@@ -18,9 +18,11 @@ public:
 	FilterType type;
 
 private:
-	mutable Mat_<Complexd> filter;		// Filter in the frequency domain
+	mutable Mat_<Complexd> frequencyFilter;		// Filter in the frequency domain
 
-	static Mat_<Complexd> createRowFilter(Size size, double f0, double sigmaOnF);
+	static Mat_<Complexd> createFrequencyFilter(size_t size, double f0, double sigmaOnF);
+	static std::pair<Mat1d, Mat1d> createSpatialFilter(size_t, double f0, double sigmaOnF);
+
 };
 
 
