@@ -43,7 +43,6 @@ CvMat __cvmat_unused;
 
 
 %include "exception.i"
-
 %exception {
 	try {
 		$action
@@ -54,6 +53,15 @@ CvMat __cvmat_unused;
 
 
 %include "std_vector.i"
+// Initialize used vector types
+namespace std
+{
+	%template(vectord) vector<double>;
+	%template(vectori) vector<int>;
+	%template(vectorvectord) vector< vector<double> >;
+	%template(vectorpoint) vector< Point >;
+}
+
 %include "std_string.i"
 
 // Without this Swig complains about knowing nothing about the namespace "cv"
@@ -76,24 +84,11 @@ namespace cv {
 	delete $1;
 }
 
-/*%typemap(out) Mat_<uint8_t> {
-	// TODO: Fix this memory leak (typemap(freearg) does not work)
-	CvMat* m = new CvMat($1);
-	$result = SWIG_NewPointerObj(m, SWIGTYPE_p_CvMat, 0);
-}*/
-
-// Initialize used vector types
-namespace std
-{
-	%template(vectord) vector<double>;
-	%template(vectori) vector<int>;
-	%template(vectorvectord) vector< vector<double> >;
-	%template(vectorpoint) vector< cv::Point >;
-}
-
+%include "../src/types.h"
 %include "../src/common.h"
 %include "../src/clock.h"
 %include "../src/decorator.h"
+%include "../src/segmentator.h"
 %include "../src/eyelidsegmentator.h"
 %include "../src/irissegmentator.h"
 %include "../src/iristemplate.h"
