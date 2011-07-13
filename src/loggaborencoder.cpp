@@ -8,6 +8,7 @@ LogGabor1DFilter::LogGabor1DFilter()
 {
 	this->f0 = 1/32.0;
 	this->sigmaOnF = 0.5;
+	this->type = LogGabor1DFilter::FILTER_IMAG;
 }
 
 

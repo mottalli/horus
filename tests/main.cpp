@@ -4,6 +4,7 @@
 #include <opencv/cv.h>
 #include <iomanip>
 #include <boost/thread.hpp>
+#include <boost/circular_buffer.hpp>
 
 #include "horus.h"
 
@@ -15,12 +16,13 @@ Segmentator segmentator;
 VideoProcessor videoProcessor;
 Decorator decorator;
 LogGaborEncoder encoder;
-vector<IrisTemplate> templates;
+boost::circular_buffer<IrisTemplate> templates(10);
 
 void procesarImagen(Mat& imagen)
 {
 	GrayscaleImage imagenBW;
 	cvtColor(imagen, imagenBW, CV_BGR2GRAY);
+	//horus::tools::stretchHistogram(imagenBW, imagenBW, 0.01, 0.01);
 	SegmentationResult sr = segmentator.segmentImage(imagenBW);
 	decorator.drawSegmentationResult(imagen, sr);
 
@@ -28,16 +30,11 @@ void procesarImagen(Mat& imagen)
 	decorator.drawTemplate(imagen, irisTemplate);
 	templates.push_back(irisTemplate);
 
-	size_t n = 10;
-	vector<IrisTemplate> lastTemplates(n);
-	if (templates.size() < n) {
-		lastTemplates = templates;
-	} else {
-		std::copy(templates.end()-n, templates.end(), lastTemplates.begin());
-	}
+	vector<IrisTemplate> vectorTemplates(templates.size());
+	std::copy(templates.begin(), templates.end(), vectorTemplates.begin());
 
-	IrisTemplate averageTemplate = IrisEncoder::averageTemplates(lastTemplates);
-	decorator.drawTemplate(imagen, averageTemplate, Point(15, 400));
+	IrisTemplate averageTemplate = IrisEncoder::averageTemplates(vectorTemplates);
+	decorator.drawTemplate(imagenBW, averageTemplate, Point(15, 400));
 
 	tools::superimposeTexture(imagenBW, averageTemplate.getTemplateImage(), sr,
 							  IrisEncoder::THETA0, IrisEncoder::THETA1, IrisEncoder::MIN_RADIUS_TO_USE, IrisEncoder::MAX_RADIUS_TO_USE, false);
@@ -63,13 +60,7 @@ int main(int, char**)
 		frame = tmp(Rect(dx, dy, tmp.cols-2*dx, tmp.rows-2*dy));
 
 		procesarImagen(frame);
-
-;
 	} while (char(waitKey(5)) != 'q');
-
-	/*Mat imagen = imread("/home/marcelo/iris/horus/base-iris/15_2.jpg", 1);
-	procesarImagen(imagen);
-	while (char(waitKey(5)) != 'q') {};*/
 
 	return 0;
 }

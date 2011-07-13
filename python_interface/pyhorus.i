@@ -68,18 +68,18 @@ namespace std
 namespace cv {
 };
 
+// --------------
 %typemap(in) Mat const & {
 	$1 = convertParam($input);
 }
-
 %typemap(freearg) Mat const & {
 	delete $1;
 }
 
+// --------------
 %typemap(in) Mat & {
 	$1 = convertParam($input);
 }
-
 %typemap(freearg) Mat & {
 	delete $1;
 }
@@ -87,8 +87,8 @@ namespace cv {
 %include "../src/types.h"
 %include "../src/common.h"
 %include "../src/clock.h"
-%include "../src/decorator.h"
 %include "../src/segmentator.h"
+%include "../src/decorator.h"
 %include "../src/eyelidsegmentator.h"
 %include "../src/irissegmentator.h"
 %include "../src/iristemplate.h"
@@ -110,4 +110,22 @@ namespace cv {
 %include "../src/irisdatabasecuda.h"
 #endif
 
+// ---------------- Wrappers for functions with default arguments -----------------
 
+void normalizeIrisWRAP(const Mat& image, Mat& dest, Mat& destMask, const horus::SegmentationResult& segmentationResult, double theta0, double theta1, double radiusMin, double radiusMax);
+%{
+void normalizeIrisWRAP(const Mat& image_, Mat& dest_, Mat& destMask_, const SegmentationResult& segmentationResult, double theta0, double theta1, double radiusMin, double radiusMax)
+{
+	GrayscaleImage image(image_), dest(dest_), destMask(destMask_);
+	horus::IrisEncoder::normalizeIris(image,dest,destMask,segmentationResult,theta0,theta1,radiusMin,radiusMax);
+}
+%}
+
+void superimposeTextureWRAP(Mat& image, const Mat& texture, const horus::SegmentationResult& segmentation, double theta0, double theta1, double minRadius, double maxRadius, bool blend, double blendStart);
+%{
+void superimposeTextureWRAP(Mat& image_, const Mat& texture_, const horus::SegmentationResult& segmentation, double theta0, double theta1, double minRadius, double maxRadius, bool blend, double blendStart)
+{
+	GrayscaleImage image(image_), texture(texture_);
+	horus::tools::superimposeTexture(image,texture,segmentation,theta0,theta1,minRadius,maxRadius,blend,blendStart);
+}
+%}
