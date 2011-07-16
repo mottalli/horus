@@ -13,6 +13,7 @@ using namespace std;
 
 EyeDetect::EyeDetect()
 {
+#ifndef WIN32
 	char *tempFilename = tempnam(NULL, "haarcascade");
 	ofstream tempFile(tempFilename);
 	if (!tempFile.is_open()) {
@@ -31,6 +32,7 @@ EyeDetect::EyeDetect()
 	unlink(tempFilename);
 
 	this->eyeRect = Rect();
+#endif
 }
 
 EyeDetect::~EyeDetect()
