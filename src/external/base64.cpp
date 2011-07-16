@@ -1,16 +1,12 @@
 #include "base64.h"
 
-static const std::string base64_chars =
-			 "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-			 "abcdefghijklmnopqrstuvwxyz"
-			 "0123456789+/";
-
 static inline bool is_base64(unsigned char c) {
   return (isalnum(c) || (c == '+') || (c == '/'));
 }
 
 std::string Tools::base64Encode(unsigned char const* bytes_to_encode, size_t in_len)
 {
+  const std::string base64_chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
   std::string ret;
   int i = 0;
   int j = 0;
@@ -54,6 +50,7 @@ std::string Tools::base64Encode(unsigned char const* bytes_to_encode, size_t in_
 }
 
 std::string Tools::base64Decode(std::string const& encoded_string) {
+  const std::string base64_chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
   int in_len = encoded_string.size();
   int i = 0;
   int j = 0;
