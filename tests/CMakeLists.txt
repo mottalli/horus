@@ -1,9 +1,12 @@
 PROJECT(tests)
 
 SET(test_SOURCES main.cpp)
-ADD_EXECUTABLE(test ${test_SOURCES})
-TARGET_LINK_LIBRARIES(test horus ${OpenCV_LIBS})
 
-SET(dual_cap_SOURCES dual_cap.cpp)
-ADD_EXECUTABLE(dual_cap ${dual_cap_SOURCES})
-TARGET_LINK_LIBRARIES(dual_cap horus ${OpenCV_LIBS})
+IF (HORUS_SHARED_LIB)
+	ADD_EXECUTABLE(test ${test_SOURCES})
+	TARGET_LINK_LIBRARIES(test horus ${OpenCV_LIBS} ${Boost_LIBRARIES})
+ELSE ()
+	ADD_EXECUTABLE(test ${test_SOURCES} ${HORUS_LIB_SOURCES} ${HORUS_LIB_HEADERS})
+	TARGET_LINK_LIBRARIES(test ${OpenCV_LIBS} ${Boost_LIBRARIES})
+ENDIF()
+

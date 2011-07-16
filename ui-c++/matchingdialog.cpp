@@ -2,7 +2,7 @@
 #include "matchingdialog.h"
 #include "ui_matchingdialog.h"
 
-#define A_CONTRARIO_MATCH false
+#define A_CONTRARIO_MATCH 0
 
 extern SQLite3IrisDatabase DB;
 

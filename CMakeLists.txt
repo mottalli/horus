@@ -3,7 +3,13 @@ PROJECT(Horus)
 
 # ----------------------------------- Program options --------------------------------------
 OPTION(USE_CUDA "Use CUDA acceleration" OFF)
-OPTION(PYTHON_INTERFACE "Generate Python interface" ON)
+IF (WIN32)
+	OPTION(PYTHON_INTERFACE "Generate Python interface" OFF)
+	OPTION(HORUS_SHARED_LIB "Build as shared library" OFF)
+ELSE()
+	OPTION(PYTHON_INTERFACE "Generate Python interface" ON)
+	OPTION(HORUS_SHARED_LIB "Build as shared library" ON)
+ENDIF()
 OPTION(BUILD_UI "Build UI app" ON)
 
 # ----------------------------------- SOURCE FILES --------------------------------------
@@ -74,7 +80,7 @@ IF (WIN32)
 	SET(Boost_USE_STATIC_LIBS ON)
 ENDIF()
 
-FIND_PACKAGE(Boost REQUIRED COMPONENTS thread)
+FIND_PACKAGE(Boost REQUIRED COMPONENTS date_time thread)
 INCLUDE_DIRECTORIES(${Boost_INCLUDE_DIRS})
 
 # ----------------------------------- CUDA --------------------------------------
@@ -96,19 +102,20 @@ ELSE ()
 	SET(USE_CUDA OFF)
 ENDIF ()
 
-
+IF (HORUS_SHARED_LIB)
 # ----------------------------------- SHARED LIBRARY --------------------------------------
-ADD_LIBRARY(horus SHARED ${HORUS_LIB_SOURCES})
-TARGET_LINK_LIBRARIES(horus ${OpenCV_LIBS} ${Boost_LIBRARIES})
+	ADD_LIBRARY(horus SHARED ${HORUS_LIB_SOURCES})
+	TARGET_LINK_LIBRARIES(horus ${OpenCV_LIBS} ${Boost_LIBRARIES})
 
-IF (USE_CUDA)
-	TARGET_LINK_LIBRARIES(horus horus_cuda)
-ENDIF (USE_CUDA)
+	IF (USE_CUDA)
+		TARGET_LINK_LIBRARIES(horus horus_cuda)
+	ENDIF (USE_CUDA)
 
 # ----------------------------------- INSTALLATION --------------------------------------
 
-INSTALL(TARGETS horus DESTINATION lib)
-INSTALL(FILES ${HORUS_LIB_HEADERS} DESTINATION include/horus)
+	INSTALL(TARGETS horus DESTINATION lib)
+	INSTALL(FILES ${HORUS_LIB_HEADERS} DESTINATION include/horus)
+ENDIF ()
 
 # ----------------------------------- SUBDIRS --------------------------------------
 IF (PYTHON_INTERFACE)
