@@ -346,11 +346,6 @@ uint8_t PupilSegmentator::circleAverage(const GrayscaleImage& image, int xc, int
 			i++;
 			w = (i - 1) * 8 + 1;
 
-			row1 = image.ptr(yc+y);
-			row2 = image.ptr(yc-y);
-			row3 = image.ptr(yc+x);
-			row4 = image.ptr(yc-x);
-
 			bool row1in = ((yc + y) >= 0 && (yc + y) < height);
 			bool row2in = ((yc - y) >= 0 && (yc - y) < height);
 			bool row3in = ((yc + x) >= 0 && (yc + x) < height);
@@ -359,6 +354,12 @@ uint8_t PupilSegmentator::circleAverage(const GrayscaleImage& image, int xc, int
 			bool xcmxin = ((xc - x) >= 0 && (xc - x) < width);
 			bool xcMyin = ((xc + y) >= 0 && (xc + y) < width);
 			bool xcmyin = ((xc - y) >= 0 && (xc - y) < width);
+			
+			
+			if (row1in) row1 = image.ptr(yc+y);
+			if (row2in) row2 = image.ptr(yc-y);
+			if (row3in) row3 = image.ptr(yc+x);
+			if (row4in) row4 = image.ptr(yc-x);
 
 			if (row1in && xcMxin) {
 				S += unsigned(row1[xc + x]);
