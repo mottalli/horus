@@ -1,4 +1,7 @@
 #include <algorithm>
+#ifdef HORUS_MULTITHREAD_SEARCH
+#include <boost/thread.hpp>
+#endif
 
 #include "common.h"
 #include "irisdatabase.h"
@@ -65,6 +68,7 @@ void IrisDatabase::doMatch(const IrisTemplate& irisTemplate, void (*statusCallba
 		}
 	} matchingThread;
 
+#ifdef HORUS_MULTITHREAD_SEARCH
 	// Do a multi-threaded search
 	boost::thread_group tg;
 	const size_t nThreads = boost::thread::hardware_concurrency();			// Number of threads
@@ -81,6 +85,10 @@ void IrisDatabase::doMatch(const IrisTemplate& irisTemplate, void (*statusCallba
 		assert(i != nThreads-1 || i1 == n);
 	}
 	tg.join_all();
+#else
+	// Do a single-threaded search in the current thread
+	matchingThread(0, n, comparator, this);
+#endif
 
 	this->matchingTime = this->timer.elapsed();
 

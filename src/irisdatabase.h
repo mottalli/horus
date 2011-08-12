@@ -1,6 +1,4 @@
 #pragma once
-#include <boost/thread.hpp>
-
 #include "common.h"
 #include "iristemplate.h"
 #include "clock.h"
