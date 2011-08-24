@@ -137,6 +137,5 @@ public abstract class CameraViewBase extends SurfaceView implements SurfaceHolde
 				}
 			}
 		}
-		
 	}
 }
