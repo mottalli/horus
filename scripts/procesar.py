@@ -1,16 +1,16 @@
 #!/usr/bin/python
 # -*- coding: UTF8 -*-
 
-import horus
+import pyhorus
 import sys
 from opencv.highgui import *
 from opencv import cvCloneImage, cvCreateImage, cvGetSize, IPL_DEPTH_8U, cvCvtColor, CV_GRAY2BGR
 
 paths = sys.argv[1:]
-segmentator = horus.Segmentator()
-decorator = horus.Decorator()
-encoder = horus.LogGaborEncoder()
-#encoder = horus.GaborEncoder()
+segmentator = pyhorus.Segmentator()
+decorator = pyhorus.Decorator()
+encoder = pyhorus.LogGaborEncoder()
+#encoder = pyhorus.GaborEncoder()
 
 
 imagenes = []
@@ -27,13 +27,13 @@ while True:
 		decorada = cvCreateImage(cvGetSize(imagenes[i]), IPL_DEPTH_8U, 3)
 		cvCvtColor(imagenes[i], decorada, CV_GRAY2BGR)
 		decorator.drawSegmentationResult(decorada, rs)
-		decorator.drawTemplate(decorada, templates[i])
+		#decorator.drawTemplate(decorada, templates[i])
 		decorator.drawEncodingZone(decorada, rs)
 		cvNamedWindow(paths[i])
 		cvShowImage(paths[i], decorada)
 	
 	for i in range(len(imagenes)):
-		comparator = horus.TemplateComparator(templates[i])
+		comparator = pyhorus.TemplateComparator(templates[i])
 		for j in range(len(imagenes)):
 			if i == j: continue
 			
