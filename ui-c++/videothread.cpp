@@ -14,7 +14,9 @@ void VideoThread::run()
 		//_cap.open("/home/marcelo/iris/BBDD/Videos/bursztyn1/20080501-230748.mpg");
 		//_cap.open("/home/marcelo/iris/BBDD/Videos/marcelo1/marcelo1.mpg");
 	} else {
+		qDebug() << "Abriendo dispositivo de video" << _cam;
 		_cap.open(_cam);
+		qDebug() << _cap.isOpened();
 		_cap.set(CV_CAP_PROP_FRAME_WIDTH, 720);
 		_cap.set(CV_CAP_PROP_FRAME_HEIGHT, 576);
 	}

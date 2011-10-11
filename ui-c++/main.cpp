@@ -12,8 +12,8 @@
 
 /******* Globales *******/
 
-//const string pathBase = "/home/marcelo/iris/horus/base-iris";
-const string pathBase = "c:/Users/Marcelo/Desktop/horus/base-iris";
+const string pathBase = "/home/marcelo/iris/horus/base-iris";
+//const string pathBase = "c:/Users/Marcelo/Desktop/horus/base-iris";
 
 SQLite3IrisDatabase DB(pathBase);
 VideoThread IRIS_VIDEO_THREAD;
