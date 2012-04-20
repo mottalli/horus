@@ -78,16 +78,18 @@ std::pair<Mat1d, Mat1d> LogGabor1DFilter::createSpatialFilter(size_t size, doubl
 
 	// Functor that shifts the left and right parts of the vector
 	// (similar to Matlab's "fftshift")
-	auto fftshift = [](Mat1d& m) {
-		Rect rLeft(0, 0, m.cols/2, m.rows);
-		Rect rRight(m.cols/2, 0, m.cols/2, m.rows);
-		Mat1d partLeft = m(rLeft).clone();
-		Mat1d partRight = m(rRight).clone();
-		Mat1d resRight = m(rRight);
-		partLeft.copyTo(resRight);
-		Mat1d resLeft = m(rLeft);
-		partRight.copyTo(resLeft);
-	};
+	struct {
+		void operator ()(Mat1d& m) {
+			Rect rLeft(0, 0, m.cols/2, m.rows);
+			Rect rRight(m.cols/2, 0, m.cols/2, m.rows);
+			Mat1d partLeft = m(rLeft).clone();
+			Mat1d partRight = m(rRight).clone();
+			Mat1d resRight = m(rRight);
+			partLeft.copyTo(resRight);
+			Mat1d resLeft = m(rLeft);
+			partRight.copyTo(resLeft);
+		}
+	} fftshift;
 
 	fftshift(real);
 	fftshift(imag);
