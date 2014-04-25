@@ -80,7 +80,7 @@ IF (WIN32)
 	SET(Boost_USE_STATIC_LIBS ON)
 ENDIF()
 
-FIND_PACKAGE(Boost REQUIRED COMPONENTS date_time thread)
+FIND_PACKAGE(Boost REQUIRED COMPONENTS system date_time thread)
 INCLUDE_DIRECTORIES(${Boost_INCLUDE_DIRS})
 
 # ----------------------------------- CUDA --------------------------------------

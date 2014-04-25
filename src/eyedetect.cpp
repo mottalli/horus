@@ -1,4 +1,5 @@
 #include <fstream>
+#include <unistd.h>
 
 #include "eyedetect.h"
 
