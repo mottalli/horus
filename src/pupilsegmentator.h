@@ -41,6 +41,7 @@ public:
 class PupilSegmentator {
 public:
 	PupilSegmentator();
+	PupilSegmentator(PupilSegmentatorParameters params);
 	virtual ~PupilSegmentator();
 
 	ContourAndCloseCircle segmentPupil(const GrayscaleImage& image);

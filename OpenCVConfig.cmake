@@ -38,7 +38,7 @@
 SET(OpenCV_COMPUTE_CAPABILITIES )
 
 # Some additional settings are required if OpenCV is built as static libs
-set(OpenCV_SHARED OFF)
+set(OpenCV_SHARED TRUE)
 
 # Enables mangled install paths, that help with side by side installs
 set(OpenCV_USE_MANGLED_PATHS )

@@ -61,7 +61,7 @@ INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR}/src)
 
 # ----------------------------------- Compiler settings --------------------------------------
 IF (CMAKE_COMPILER_IS_GNUCXX)
-#	SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x")		# Enable c++0x support (requires GCC >= 4.5)
+	SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")		# Enable c++0x support (requires GCC >= 4.5)
 ENDIF()
 
 # ----------------------------------- OpenCV 2.2 --------------------------------------

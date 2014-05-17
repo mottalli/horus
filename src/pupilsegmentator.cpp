@@ -23,6 +23,12 @@ PupilSegmentator::PupilSegmentator()
 	this->matStructElem = GrayscaleImage(6, 6, strel).clone();
 }
 
+PupilSegmentator::PupilSegmentator(PupilSegmentatorParameters params) :
+    PupilSegmentator()
+{
+    this->parameters = params;
+}
+
 PupilSegmentator::~PupilSegmentator()
 {
 }
