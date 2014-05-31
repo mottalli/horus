@@ -31,6 +31,9 @@ SET(HORUS_LIB_SOURCES
 	${PROJECT_SOURCE_DIR}/src/gaborencoder.cpp 
 	${PROJECT_SOURCE_DIR}/src/eyedetect.cpp
 	${PROJECT_SOURCE_DIR}/src/external/base64.cpp 
+	${PROJECT_SOURCE_DIR}/src/drivers/basedriver.cpp
+	${PROJECT_SOURCE_DIR}/src/drivers/v4ldriver.cpp
+	${PROJECT_SOURCE_DIR}/src/drivers/ueyedriver.cpp
 )
 
 SET(HORUS_LIB_HEADERS 
@@ -55,6 +58,9 @@ SET(HORUS_LIB_HEADERS
 	${PROJECT_SOURCE_DIR}/src/external/base64.h
 	${PROJECT_SOURCE_DIR}/src/eyedetect.h
 	${PROJECT_SOURCE_DIR}/src/horus.h
+	${PROJECT_SOURCE_DIR}/src/drivers/basedriver.hpp
+	${PROJECT_SOURCE_DIR}/src/drivers/v4ldriver.hpp
+	${PROJECT_SOURCE_DIR}/src/drivers/ueyedriver.hpp
 )
 
 INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR}/src)
@@ -105,7 +111,7 @@ ENDIF ()
 IF (HORUS_SHARED_LIB)
 # ----------------------------------- SHARED LIBRARY --------------------------------------
 	ADD_LIBRARY(horus SHARED ${HORUS_LIB_SOURCES})
-	TARGET_LINK_LIBRARIES(horus ${OpenCV_LIBS} ${Boost_LIBRARIES})
+	TARGET_LINK_LIBRARIES(horus ${OpenCV_LIBS} ${Boost_LIBRARIES} ueye_api)
 
 	IF (USE_CUDA)
 		TARGET_LINK_LIBRARIES(horus horus_cuda)
@@ -125,6 +131,9 @@ ADD_SUBDIRECTORY(tests)
 IF (BUILD_UI)
 	ADD_SUBDIRECTORY(ui-c++)
 ENDIF()
+
+# REMOVE THIS IF IT DOESN'T COMPILE
+ADD_SUBDIRECTORY(bin/calibrate)
 
 # ----------------------------------- UNINSTALL --------------------------------------
 

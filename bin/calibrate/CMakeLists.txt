@@ -1,0 +1,24 @@
+CMAKE_MINIMUM_REQUIRED(VERSION 2.8.11)
+
+PROJECT(horus-calibrate)
+
+SET(CMAKE_INCLUDE_CURRENT_DIR ON)
+SET(CMAKE_AUTOMOC ON)
+
+FIND_PACKAGE(Qt5Widgets)
+
+FIND_PACKAGE(Boost REQUIRED COMPONENTS system filesystem)
+INCLUDE_DIRECTORIES(${Boost_INCLUDE_DIR})
+
+ADD_EXECUTABLE(horus-calibrate
+    ${HORUS_LIB_SOURCES}
+    ${HORUS_LIB_HEADERS}
+    main.cpp
+)
+
+TARGET_LINK_LIBRARIES(horus-calibrate 
+    ueye_api
+    ${Boost_LIBRARIES}
+    ${OpenCV_LIBS}    
+    Qt5::Widgets
+)
