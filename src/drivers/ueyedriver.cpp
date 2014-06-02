@@ -22,6 +22,7 @@ UEyeVideoDriver::UEyeVideoDriver() :
 
 UEyeVideoDriver::~UEyeVideoDriver()
 {
+    this->_release();
 }
 
 std::vector<BaseVideoDriver::VideoCamera> UEyeVideoDriver::queryCameras()
@@ -116,7 +117,7 @@ ColorImage UEyeVideoDriver::_captureFrame()
     return im;
 }
 
-void UEyeVideoDriver::_doDestroy()
+void UEyeVideoDriver::_release()
 {
     this->_unlockCurrentBuffer();
     CHECK_CALL(is_ExitCamera(this->_ueyeCamid));

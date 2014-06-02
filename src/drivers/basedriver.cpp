@@ -42,9 +42,4 @@ void BaseVideoDriver::stopCaptureThread()
     this->_stopCapture = true;
 }
 
-void BaseVideoDriver::release()
-{
-    this->_doDestroy();
-}
-
 } // namespace horus

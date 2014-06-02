@@ -21,7 +21,7 @@ public:
 protected:
     virtual ColorImage _captureFrame();
     virtual void       _doInitialization();
-    virtual void       _doDestroy();
+    void               _release();
     void               _unlockCurrentBuffer();
 
     cv::VideoCapture   _capture;

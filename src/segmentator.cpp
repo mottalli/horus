@@ -6,51 +6,71 @@
 
 using namespace horus;
 
-Segmentator::Segmentator() :
-	eyeROI(0,0,0,0)
+Segmentator::Segmentator()
 {
 }
 
 Segmentator::~Segmentator() {
 }
 
-SegmentationResult Segmentator::segmentImage(const Image& image) {
-	assert(image.depth() == CV_8U);
+SegmentationResult Segmentator::segmentImage(const Image& image, cv::Rect ROI)
+{
+    assert(image.depth() == CV_8U);
 
-	timer.restart();
-	
-	SegmentationResult result;
-	
-	GrayscaleImage imageBW;
-	tools::toGrayscale(image, imageBW, false);
+    timer.restart();
 
-	this->pupilSegmentator.setROI(this->eyeROI);
+    SegmentationResult result;
 
-	ContourAndCloseCircle pupilResult = this->pupilSegmentator.segmentPupil(imageBW);
-	ContourAndCloseCircle irisResult = this->irisSegmentator.segmentIris(imageBW, pupilResult);
+    GrayscaleImage imageBW;
+    tools::toGrayscale(image, imageBW, true);
 
-	result.pupilContour = pupilResult.first;
-	result.pupilCircle = pupilResult.second;
-	result.irisContour = irisResult.first;
-	result.irisCircle = irisResult.second;
-	result.pupilContourQuality = this->pupilSegmentator.getPupilContourQuality();
+    GrayscaleImage imageROI;
+    bool hasROI = (ROI.width > 0);
+    if (hasROI) {
+        imageROI = imageBW(ROI);
+    } else {
+        imageROI = imageBW;
+    }
 
-	result.eyelidsSegmented = false;
+    ContourAndCloseCircle pupilResult = this->pupilSegmentator.segmentPupil(imageROI);
 
-	this->segmentationTime = timer.elapsed();
+    // If there was a ROI, adjust the coordinates of the result
+    if (hasROI) {
+        Contour& pupilContour = pupilResult.first;
+        for (cv::Point& p : pupilContour) {
+            p.x += ROI.x;
+            p.y += ROI.y;
+        }
 
-	return result;
+        Circle& pupilCircle = pupilResult.second;
+        pupilCircle.center.x += ROI.x;
+        pupilCircle.center.y += ROI.y;
+    }
+
+    ContourAndCloseCircle irisResult = this->irisSegmentator.segmentIris(imageBW, pupilResult);
+
+    result.pupilContour = pupilResult.first;
+    result.pupilCircle = pupilResult.second;
+    result.irisContour = irisResult.first;
+    result.irisCircle = irisResult.second;
+    result.pupilContourQuality = this->pupilSegmentator.getPupilContourQuality();
+
+    result.eyelidsSegmented = false;
+
+    this->segmentationTime = timer.elapsed();
+
+    return result;
 }
 
 void Segmentator::segmentEyelids(const Image& image, SegmentationResult& result)
 {
-	GrayscaleImage imageBW;
-	tools::toGrayscale(image, imageBW, false);
+    GrayscaleImage imageBW;
+    tools::toGrayscale(image, imageBW, false);
 
-	assert(image.depth() == CV_8U);
+    assert(image.depth() == CV_8U);
 
-	std::pair<Parabola, Parabola> eyelids = this->eyelidSegmentator.segmentEyelids(imageBW, result.pupilCircle, result.irisCircle);
-	result.upperEyelid = eyelids.first;
-	result.lowerEyelid = eyelids.second;
-	result.eyelidsSegmented = true;
+    std::pair<Parabola, Parabola> eyelids = this->eyelidSegmentator.segmentEyelids(imageBW, result.pupilCircle, result.irisCircle);
+    result.upperEyelid = eyelids.first;
+    result.lowerEyelid = eyelids.second;
+    result.eyelidsSegmented = true;
 }

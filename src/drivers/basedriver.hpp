@@ -42,7 +42,6 @@ protected:
 
     virtual ColorImage _captureFrame() = 0;
     virtual void       _doInitialization() = 0;
-    virtual void       _doDestroy() = 0;
 
     FrameCallback _frameCallback;
     ColorImage    _lastFrame;
