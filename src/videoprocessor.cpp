@@ -181,9 +181,9 @@ VideoProcessor::VideoStatus VideoProcessor::doProcess(const GrayscaleImage& imag
     /***************** 4. Segment the frame  ***************/
     Timer t4;
     this->lastSegmentationResult = segmentator.segmentImage(image, this->eyeROI);
-    if (this->parameters.segmentEyelids) {
+    /*if (this->parameters.segmentEyelids) {
         segmentator.segmentEyelids(image, this->lastSegmentationResult);
-    }
+    }*/
     this->processingTime[PROCTIME_SEGMENTATION] = t4.elapsed();
 
 

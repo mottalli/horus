@@ -19,7 +19,7 @@ struct VideoProcessor
     VideoProcessor(horus::BaseVideoDriver& driver_) :
         driver(driver_), _rgbChannels(3)
     {
-        videoProcessor.parameters.doEyeDetect = true;
+        //videoProcessor.parameters.doEyeDetect = true;
     }
 
     void processFrame(horus::ColorImage& frame)
@@ -82,9 +82,30 @@ struct VideoProcessor
 
         cv::imshow("frame", image);
 
-
-        if ('q' == (char)cvWaitKey(20))
+        char k = (char) cvWaitKey(20);
+        switch (k) {
+        case 's':
+            videoProcessor.segmentator.pupilSegmentator.parameters.muPupil += 1;
+            std::clog << "Mu pupil: " << videoProcessor.segmentator.pupilSegmentator.parameters.muPupil << std::endl;
+            break;
+        case 'a':
+            videoProcessor.segmentator.pupilSegmentator.parameters.muPupil -= 1;
+            std::clog << "Mu pupil: " << videoProcessor.segmentator.pupilSegmentator.parameters.muPupil << std::endl;
+            break;
+        case 'x':
+            videoProcessor.segmentator.pupilSegmentator.parameters.sigmaPupil += 0.5;
+            std::clog << "Sigma pupil: " << videoProcessor.segmentator.pupilSegmentator.parameters.sigmaPupil << std::endl;
+            break;
+        case 'z':
+            videoProcessor.segmentator.pupilSegmentator.parameters.sigmaPupil -= 0.5;
+            std::clog << "Sigma pupil: " << videoProcessor.segmentator.pupilSegmentator.parameters.sigmaPupil << std::endl;
+            break;
+        case 'q':
             driver.stopCaptureThread();
+            break;
+        default:
+            break;
+        }
     }
 };
 

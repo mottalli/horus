@@ -3,24 +3,25 @@
 ProcessingThread::ProcessingThread(QObject *parent) :
     QThread(parent)
 {
+    //videoProcessor.parameters.doEyeDetect = true;
 }
 
 void ProcessingThread::run()
 {
-	Timer t;
-	VideoProcessor::VideoStatus status = this->videoProcessor.processFrame(_frame);
-	signalFrameProcessed(this->videoProcessor);
+    Timer t;
+    VideoProcessor::VideoStatus status = this->videoProcessor.processFrame(_frame);
+    signalFrameProcessed(this->videoProcessor);
 
-	//qDebug() << "FP: " << t.elapsed();
+    //qDebug() << "FP: " << t.elapsed();
 
-	if (status == VideoProcessor::GOT_TEMPLATE) {
-		signalGotTemplate(this->videoProcessor);
-	}
+    if (status == VideoProcessor::GOT_TEMPLATE) {
+        signalGotTemplate(this->videoProcessor);
+    }
 }
 
 void ProcessingThread::slotProcessFrame(const ColorImage& frame)
 {
-	_frame = frame.clone();
-	start();
+    _frame = frame.clone();
+    start();
 }
 

@@ -12,12 +12,12 @@ public:
 signals:
 
 public slots:
-	void slotFrameProcessed(const VideoProcessor& videoProcessor);
+    void slotFrameProcessed(const VideoProcessor& videoProcessor);
 
 private:
-	static void drawCrosshair(Image& image, Point p, int thickness = 1, int size=25, Scalar color=CV_RGB(255,255,255));
-	ColorImage decoratedFrame;
-	Decorator decorator;
+    static void drawCrosshair(Image& image, Point p, int thickness = 1, int size=25, Scalar color=CV_RGB(255,255,255));
+    ColorImage decoratedFrame, previewImage;
+    Decorator decorator;
 
 };
 

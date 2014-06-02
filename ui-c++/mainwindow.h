@@ -20,49 +20,49 @@ public:
     explicit MainWindow(QWidget *parent = 0);
     ~MainWindow();
 
-	void ofrecerGuardarImagen(const Image& imagen);
+    void ofrecerGuardarImagen(const Image& imagen);
 
 public slots:
-	void slotFrameAvailable(const ColorImage& frame);
-	void slotFrameProcessed(const VideoProcessor& videoProcessor);
-	void slotGotTemplate(const VideoProcessor& videoProcessor);
+    void slotFrameAvailable(const ColorImage& frame);
+    void slotFrameProcessed(const VideoProcessor& videoProcessor);
+    void slotGotTemplate(const VideoProcessor& videoProcessor);
 
 private slots:
-	void on_btnIdentificar_clicked();
-	void on_btnRegistrar_clicked();
-	void on_btnGuardarImagen_clicked();
-	void on_btnCapturar_clicked();
-	void on_btnForzarRegistracion_clicked();
+    void on_btnIdentificar_clicked();
+    void on_btnRegistrar_clicked();
+    void on_btnGuardarImagen_clicked();
+    void on_btnCapturar_clicked();
+    void on_btnForzarRegistracion_clicked();
 
-	void on_btnForzarIdentificacion_clicked();
+    void on_btnForzarIdentificacion_clicked();
 
-	void on_debugWindow_clicked();
+    void on_debugWindow_clicked();
 
 private:
-	void identifyTemplate(const IrisTemplate& irisTemplate, const GrayscaleImage& image, const SegmentationResult& segmentationResult, horus::VideoProcessor::CaptureBurst captureBurst=horus::VideoProcessor::CaptureBurst());
-	void registerTemplate(const IrisTemplate& irisTemplate, const GrayscaleImage& image, const SegmentationResult& segmentationResult, horus::VideoProcessor::CaptureBurst captureBurst=horus::VideoProcessor::CaptureBurst());
-	void mostrarEnfoque(double enfoque, double threshold, int width);
-	void showTemplateImage();
+    void identifyTemplate(const IrisTemplate& irisTemplate, const GrayscaleImage& image, const SegmentationResult& segmentationResult, horus::VideoProcessor::CaptureBurst captureBurst=horus::VideoProcessor::CaptureBurst());
+    void registerTemplate(const IrisTemplate& irisTemplate, const GrayscaleImage& image, const SegmentationResult& segmentationResult, horus::VideoProcessor::CaptureBurst captureBurst=horus::VideoProcessor::CaptureBurst());
+    void mostrarEnfoque(double enfoque, double threshold, int width);
+    void showTemplateImage();
 
-	static QString statusToString(VideoProcessor::VideoStatus status);
+    static QString statusToString(const VideoProcessor& videoProcessor);
 
-	Image lastProcessedFrame;
+    Image lastProcessedFrame;
 
     Ui::MainWindow *ui;
-	Decorator decorator;
+    Decorator decorator;
 
-	ColorImage decoratedFrame, resizedFrame;
-	GrayscaleImage lastIrisFrame;
-	ColorImage imagenEnfoque;
-	SegmentationResult lastIrisFrameSegmentation;
-	IrisTemplate lastTemplate;
-	list<double> lastFocusScores;
+    ColorImage decoratedFrame, resizedFrame;
+    GrayscaleImage lastIrisFrame;
+    ColorImage imagenEnfoque;
+    SegmentationResult lastIrisFrameSegmentation;
+    IrisTemplate lastTemplate;
+    list<double> lastFocusScores;
 
-	MatchingDialog matchingDialog;
-	RegisterDialog registerDialog;
-	DebugDialog debugDialog;
+    MatchingDialog matchingDialog;
+    RegisterDialog registerDialog;
+    DebugDialog debugDialog;
 
-	horus::VideoProcessor::CaptureBurst lastCaptureBurst;
+    horus::VideoProcessor::CaptureBurst lastCaptureBurst;
 };
 
 #endif // MAINWINDOW_H
