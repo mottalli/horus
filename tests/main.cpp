@@ -1,12 +1,9 @@
 #include <iostream>
-#include <bitset>
 #include <opencv/highgui.h>
 #include <opencv/cv.h>
 #include <iomanip>
-#include <boost/thread.hpp>
-#include <boost/circular_buffer.hpp>
 
-#include "horus.h"
+#include "../src/horus/horus.h"
 
 using namespace std;
 using namespace cv;
@@ -16,35 +13,35 @@ Segmentator segmentator;
 VideoProcessor videoProcessor;
 Decorator decorator;
 LogGaborEncoder encoder;
-boost::circular_buffer<IrisTemplate> templates(10);
 
-void procesarImagen(Mat& imagen)
+pair<IrisTemplate, TemplateComparator> procesarImagen(Mat& imagen)
 {
 	GrayscaleImage imagenBW;
-	cvtColor(imagen, imagenBW, CV_BGR2GRAY);
+    if (imagen.channels() == 3) {
+    	cvtColor(imagen, imagenBW, CV_BGR2GRAY);
+    } else {
+        imagenBW = imagen.clone();
+    }
 	//horus::tools::stretchHistogram(imagenBW, imagenBW, 0.01, 0.01);
 	SegmentationResult sr = segmentator.segmentImage(imagenBW);
 	decorator.drawSegmentationResult(imagen, sr);
 
+    std::cout << sr.irisCircle.center.x << "," << sr.irisCircle.center.y << "-" << sr.irisCircle.radius << std::endl;
+
 	IrisTemplate irisTemplate = encoder.generateTemplate(imagenBW, sr);
 	decorator.drawTemplate(imagen, irisTemplate);
-	templates.push_back(irisTemplate);
 
-	vector<IrisTemplate> vectorTemplates(templates.size());
-	std::copy(templates.begin(), templates.end(), vectorTemplates.begin());
+#if 1
+    imshow("imagen", imagen);
+    imshow("similarity", segmentator.pupilSegmentator.similarityImage);
+    while (char(waitKey(5)) != 'q') {}
+#endif
 
-	IrisTemplate averageTemplate = IrisEncoder::averageTemplates(vectorTemplates);
-	decorator.drawTemplate(imagenBW, averageTemplate, Point(15, 400));
-
-	tools::superimposeTexture(imagenBW, averageTemplate.getTemplateImage(), sr,
-							  IrisEncoder::THETA0, IrisEncoder::THETA1, IrisEncoder::MIN_RADIUS_TO_USE, IrisEncoder::MAX_RADIUS_TO_USE, false);
-
-	imshow("imagen", imagenBW);
-
-	imshow("equalized", segmentator.pupilSegmentator.equalizedImage);
-	imshow("similarity", segmentator.pupilSegmentator.similarityImage);
+    TemplateComparator comparator(irisTemplate);
+    return make_pair(irisTemplate, comparator);
 }
 
+#if 0
 int main(int, char**)
 {
 	VideoCapture cap(0);
@@ -64,3 +61,47 @@ int main(int, char**)
 
 	return 0;
 }
+#else
+int main(int argc, char** argv)
+{
+    vector<TemplateComparator> comparators;
+    vector<IrisTemplate> templates;
+    for (int i = 1; i < argc; i++) {
+        cv::Mat image = cv::imread(argv[i]);
+        if (image.empty()) {
+            throw std::runtime_error("Unable to open image!");
+        }
+
+        pair<IrisTemplate, TemplateComparator> proc = procesarImagen(image);
+        templates.push_back(proc.first);
+        comparators.push_back(proc.second);
+    }
+
+    int w = 10;
+
+    size_t n = comparators.size();
+    cout << "/" << setw(w);
+    for (size_t i = 0; i < n; i++)
+        cout << i+1 << setw(w);
+    cout << endl;
+
+    for (size_t i = 0; i < n; i++) {
+        cout << setw(0) << i+1 << setw(w);
+
+        for (size_t j = 0; j < n; j++) {
+            if (i == j) {
+                cout << "-" << setw(w);
+                continue;
+            }
+
+            double distance = comparators[j].compare(templates[i]);
+
+
+            cout << setprecision(5) << distance << setw(w);
+        }
+
+        cout << endl;
+    }
+}
+
+#endif

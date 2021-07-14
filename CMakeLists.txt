@@ -1,146 +1,23 @@
-CMAKE_MINIMUM_REQUIRED(VERSION 2.8)
+CMAKE_MINIMUM_REQUIRED(VERSION 2.8.11)
 PROJECT(Horus)
 
-# ----------------------------------- Program options --------------------------------------
-OPTION(USE_CUDA "Use CUDA acceleration" OFF)
-IF (WIN32)
-	OPTION(PYTHON_INTERFACE "Generate Python interface" OFF)
-	OPTION(HORUS_SHARED_LIB "Build as shared library" OFF)
-ELSE()
-	OPTION(PYTHON_INTERFACE "Generate Python interface" ON)
-	OPTION(HORUS_SHARED_LIB "Build as shared library" ON)
-ENDIF()
-OPTION(BUILD_UI "Build UI app" ON)
-
-# ----------------------------------- SOURCE FILES --------------------------------------
-SET(HORUS_LIB_SOURCES 
-	${PROJECT_SOURCE_DIR}/src/decorator.cpp 
-	${PROJECT_SOURCE_DIR}/src/eyelidsegmentator.cpp
-	${PROJECT_SOURCE_DIR}/src/irisdatabase.cpp 
-	${PROJECT_SOURCE_DIR}/src/irisencoder.cpp
-	${PROJECT_SOURCE_DIR}/src/irissegmentator.cpp 
-	${PROJECT_SOURCE_DIR}/src/iristemplate.cpp 
-	${PROJECT_SOURCE_DIR}/src/loggaborencoder.cpp
-	${PROJECT_SOURCE_DIR}/src/pupilsegmentator.cpp 
-	${PROJECT_SOURCE_DIR}/src/videopupilsegmentator.cpp 
-	${PROJECT_SOURCE_DIR}/src/qualitychecker.cpp 
-	${PROJECT_SOURCE_DIR}/src/segmentator.cpp 
-	${PROJECT_SOURCE_DIR}/src/videosegmentator.cpp 
-	${PROJECT_SOURCE_DIR}/src/serializer.cpp 
-	${PROJECT_SOURCE_DIR}/src/templatecomparator.cpp 
-	${PROJECT_SOURCE_DIR}/src/tools.cpp
-	${PROJECT_SOURCE_DIR}/src/videoprocessor.cpp
-	${PROJECT_SOURCE_DIR}/src/gaborencoder.cpp 
-	${PROJECT_SOURCE_DIR}/src/eyedetect.cpp
-	${PROJECT_SOURCE_DIR}/src/external/base64.cpp 
-	${PROJECT_SOURCE_DIR}/src/drivers/basedriver.cpp
-	${PROJECT_SOURCE_DIR}/src/drivers/v4ldriver.cpp
-	${PROJECT_SOURCE_DIR}/src/drivers/ueyedriver.cpp
-)
-
-SET(HORUS_LIB_HEADERS 
-	${PROJECT_SOURCE_DIR}/src/clock.h
-	${PROJECT_SOURCE_DIR}/src/common.h
-	${PROJECT_SOURCE_DIR}/src/decorator.h
-	${PROJECT_SOURCE_DIR}/src/eyelidsegmentator.h
-	${PROJECT_SOURCE_DIR}/src/irisdatabase.h
-	${PROJECT_SOURCE_DIR}/src/irisencoder.h
-	${PROJECT_SOURCE_DIR}/src/irissegmentator.h
-	${PROJECT_SOURCE_DIR}/src/iristemplate.h
-	${PROJECT_SOURCE_DIR}/src/loggaborencoder.h
-	${PROJECT_SOURCE_DIR}/src/pupilsegmentator.h
-	${PROJECT_SOURCE_DIR}/src/videopupilsegmentator.h
-	${PROJECT_SOURCE_DIR}/src/qualitychecker.h
-	${PROJECT_SOURCE_DIR}/src/segmentator.h
-	${PROJECT_SOURCE_DIR}/src/videosegmentator.h
-	${PROJECT_SOURCE_DIR}/src/serializer.h
-	${PROJECT_SOURCE_DIR}/src/templatecomparator.h
-	${PROJECT_SOURCE_DIR}/src/tools.h
-	${PROJECT_SOURCE_DIR}/src/videoprocessor.h
-	${PROJECT_SOURCE_DIR}/src/gaborencoder.h
-	${PROJECT_SOURCE_DIR}/src/types.h
-	${PROJECT_SOURCE_DIR}/src/external/base64.h
-	${PROJECT_SOURCE_DIR}/src/eyedetect.h
-	${PROJECT_SOURCE_DIR}/src/horus.h
-	${PROJECT_SOURCE_DIR}/src/drivers/basedriver.hpp
-	${PROJECT_SOURCE_DIR}/src/drivers/v4ldriver.hpp
-	${PROJECT_SOURCE_DIR}/src/drivers/ueyedriver.hpp
-)
-
-INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR}/src)
-
-# ----------------------------------- Compiler settings --------------------------------------
+# --- COMPILER SETTINGS ---
 IF (CMAKE_COMPILER_IS_GNUCXX)
-	SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")		# Enable c++0x support (requires GCC >= 4.5)
+    # Enable C++11 support
+	SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 ENDIF()
 
-# ----------------------------------- OpenCV 2.2 --------------------------------------
-#FIND_PACKAGE(OpenCV 2.2 REQUIRED HINTS ".")			 # This doesn't work (see CMake manual)
-FIND_PACKAGE(OpenCV REQUIRED HINTS ".")
-IF (${OpenCV_VERSION_MAJOR} EQUAL 2 AND ${OpenCV_VERSION_MINOR} LESS 2)
-	MESSAGE(FATAL_ERROR "Needs at least OpenCV 2.2 (If present on system, copy the file OpenCVConfig.cmake to the current dir)")
-ELSE()
-	MESSAGE(STATUS "Found OpenCV ${OpenCV_VERSION}")
-ENDIF()
-
+# --- REQUIRED LIBRARIES ---
+FIND_PACKAGE(OpenCV REQUIRED)
 INCLUDE_DIRECTORIES(${OpenCV_INCLUDE_DIRS})
 
-# ----------------------------------- Global options for Boost ------------------
-IF (WIN32)
-	SET(Boost_USE_STATIC_LIBS ON)
-ENDIF()
 
-FIND_PACKAGE(Boost REQUIRED COMPONENTS system date_time thread)
-INCLUDE_DIRECTORIES(${Boost_INCLUDE_DIRS})
-
-# ----------------------------------- CUDA --------------------------------------
-IF (USE_CUDA)
-	FIND_PACKAGE(CUDA REQUIRED)
-	ADD_DEFINITIONS("-DUSE_CUDA")
-	SET(CUDA_SOURCES
-		${PROJECT_SOURCE_DIR}/src/irisdatabase_kernel.cu
-	)
-	
-	SET(HORUS_LIB_SOURCES ${HORUS_LIB_SOURCES} ${PROJECT_SOURCE_DIR}/src/irisdatabasecuda.cpp)
-	SET(HORUS_LIB_HEADERS ${HORUS_LIB_HEADERS} ${PROJECT_SOURCE_DIR}/src/irisdatabasecuda.h)
-	
-	# Enable this to compile CUDA support in a dynamic library
-	SET(CUDA_NVCC_FLAGS --ptxas-options=-v --compiler-options '-fPIC' --compiler-bindir=/opt/gcc-4.4)
-	SET(CUDA_PROPAGATE_HOST_FLAGS OFF)			# To disable a problem with the -std=c++0x flag
-	CUDA_ADD_LIBRARY(horus_cuda ${CUDA_SOURCES})
-ELSE ()
-	SET(USE_CUDA OFF)
-ENDIF ()
-
-IF (HORUS_SHARED_LIB)
-# ----------------------------------- SHARED LIBRARY --------------------------------------
-	ADD_LIBRARY(horus SHARED ${HORUS_LIB_SOURCES})
-	TARGET_LINK_LIBRARIES(horus ${OpenCV_LIBS} ${Boost_LIBRARIES} ueye_api)
-
-	IF (USE_CUDA)
-		TARGET_LINK_LIBRARIES(horus horus_cuda)
-	ENDIF (USE_CUDA)
-
-# ----------------------------------- INSTALLATION --------------------------------------
-
-	INSTALL(TARGETS horus DESTINATION lib)
-	INSTALL(FILES ${HORUS_LIB_HEADERS} DESTINATION include/horus)
-ENDIF ()
-
-# ----------------------------------- SUBDIRS --------------------------------------
-IF (PYTHON_INTERFACE)
-	ADD_SUBDIRECTORY(python_interface)
-ENDIF()
+# --- INCLUDE FILES ---
+ADD_SUBDIRECTORY(src/horus)
+ADD_SUBDIRECTORY(src/ui-debug)
 ADD_SUBDIRECTORY(tests)
-IF (BUILD_UI)
-	ADD_SUBDIRECTORY(ui-c++)
-ENDIF()
 
-# REMOVE THIS IF IT DOESN'T COMPILE
-ADD_SUBDIRECTORY(bin/calibrate)
-
-# ----------------------------------- UNINSTALL --------------------------------------
-
+# --- UNINSTALL ---
 CONFIGURE_FILE(
 	"${CMAKE_CURRENT_SOURCE_DIR}/cmake_uninstall.cmake.in"
 	"${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake"
@@ -148,4 +25,5 @@ CONFIGURE_FILE(
 )
 
 ADD_CUSTOM_TARGET(uninstall
-  "${CMAKE_COMMAND}" -P "${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake")
+  "${CMAKE_COMMAND}" -P "${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake"
+)

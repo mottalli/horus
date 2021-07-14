@@ -1,7 +1,7 @@
 %module "pyhorus"
 
 %{
-#include "../src/horus.h"
+#include "../src/horus/horus.h"
 
 using namespace horus;
 
@@ -84,30 +84,30 @@ namespace cv {
 	delete $1;
 }
 
-%include "../src/types.h"
-%include "../src/common.h"
-%include "../src/clock.h"
-%include "../src/segmentator.h"
-%include "../src/decorator.h"
-%include "../src/eyelidsegmentator.h"
-%include "../src/irissegmentator.h"
-%include "../src/iristemplate.h"
-%include "../src/irisencoder.h"
-%include "../src/loggaborencoder.h"
-%include "../src/irisdatabase.h"
-%include "../src/pupilsegmentator.h"
-%include "../src/qualitychecker.h"
-%include "../src/segmentator.h"
-%include "../src/serializer.h"
-%include "../src/templatecomparator.h"
-%include "../src/tools.h"
-%include "../src/types.h"
-%include "../src/videoprocessor.h"
-%include "../src/eyedetect.h"
+%include "../src/horus/types.h"
+%include "../src/horus/common.h"
+%include "../src/horus/clock.h"
+%include "../src/horus/segmentator.h"
+%include "../src/horus/decorator.h"
+%include "../src/horus/eyelidsegmentator.h"
+%include "../src/horus/irissegmentator.h"
+%include "../src/horus/iristemplate.h"
+%include "../src/horus/irisencoder.h"
+%include "../src/horus/loggaborencoder.h"
+%include "../src/horus/irisdatabase.h"
+%include "../src/horus/pupilsegmentator.h"
+%include "../src/horus/qualitychecker.h"
+%include "../src/horus/segmentator.h"
+%include "../src/horus/serializer.h"
+%include "../src/horus/templatecomparator.h"
+%include "../src/horus/tools.h"
+%include "../src/horus/types.h"
+%include "../src/horus/videoprocessor.h"
+%include "../src/horus/eyedetect.h"
 //%include "../src/irisdctencoder.h"
-%include "../src/gaborencoder.h"
+%include "../src/horus/gaborencoder.h"
 #ifdef USE_CUDA
-%include "../src/irisdatabasecuda.h"
+%include "../src/horus/irisdatabasecuda.h"
 #endif
 
 // ---------------- Wrappers for functions with default arguments -----------------
